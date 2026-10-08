@@ -304,7 +304,8 @@ def validate_warehouse(doc, method=None):
 
 # ------------------------------------------------------------- Stock Entry
 def validate_stock_entry(doc, method=None):
-    """Shelving yang diisi harus milik warehouse barisnya dan (untuk tujuan) aktif."""
+    """Shelving yang diisi harus milik warehouse barisnya dan (untuk tujuan) aktif;
+    tujuan warehouse berrak wajib isi Ke Shelving (dicek saat Save, bukan hanya Submit)."""
     for row in doc.items:
         for field, wh in (("from_shelving", row.s_warehouse), ("to_shelving", row.t_warehouse)):
             shelving = row.get(field)
@@ -316,6 +317,7 @@ def validate_stock_entry(doc, method=None):
                     row.idx, shelving, wh))
             if disabled and field == "to_shelving":
                 frappe.throw(_("Baris {0}: shelving {1} nonaktif.").format(row.idx, shelving))
+    require_target_shelving(doc)
 
 
 def require_target_shelving(doc, method=None):
