@@ -28,6 +28,15 @@ def execute(filters=None):
             else:
                 wh_raw.append(str(w))
         filters.warehouses = [w for w in wh_raw if w]
+    # Konversi outlet MultiSelectList ke list string
+    if filters.get("outlets") and isinstance(filters.get("outlets"), list):
+        ol_raw = []
+        for o in filters.outlets:
+            if isinstance(o, dict):
+                ol_raw.append(o.get("value") or o.get("name") or "")
+            else:
+                ol_raw.append(str(o))
+        filters.outlets = [o for o in ol_raw if o]
     filters.from_date = getdate(filters.get("from_date") or frappe.defaults.get_user_default("year_start_date"))
     filters.to_date   = getdate(filters.get("to_date")   or frappe.defaults.get_user_default("year_end_date"))
     if not filters.get("tree_type"):  filters.tree_type = "Item Group"
@@ -88,6 +97,52 @@ def get_warehouse_children(warehouse):
         (wh.lft, wh.rgt), as_dict=True
     )
     return [c["name"] for c in children] if children else [warehouse]
+
+
+def get_outlet_descendants(outlet):
+    """Outlet yang dipilih + SEMUA turunannya, lewat nested set lft/rgt.
+
+    Sengaja TIDAK memakai pola get_outlet_children() di laporan_penjualan_harian
+    (telusur parent_outlet yang berhenti di is_group=0 dan membuang node
+    induknya sendiri). Dua kondisi di data produksi bikin pola itu membuang
+    data tanpa gejala:
+      - Outlet group FMCG dipakai LANGSUNG di Sales Invoice, jadi node induk
+        tidak boleh dibuang dari hasil expand.
+      - UIN is_group=0 TAPI punya anak BGROW, jadi telusur yang berhenti begitu
+        ketemu is_group=0 tidak akan pernah sampai ke BGROW.
+    lft/rgt sudah diverifikasi konsisten untuk 29 outlet yang ada.
+    """
+    o = frappe.db.get_value("Outlet", outlet, ["lft", "rgt"], as_dict=True)
+    if not o or not o.lft:
+        return [outlet]
+    rows = frappe.db.sql(
+        "SELECT name FROM `tabOutlet` WHERE lft >= %s AND rgt <= %s",
+        (o.lft, o.rgt), as_dict=True
+    )
+    return [r["name"] for r in rows] if rows else [outlet]
+
+
+def get_outlet_list(filters):
+    """Daftar outlet final untuk WHERE: tiap pilihan di-expand ke turunannya."""
+    outlet_raw = filters.get("outlets")
+    if not outlet_raw:
+        return []
+    if isinstance(outlet_raw, list):
+        raw_list = []
+        for o in outlet_raw:
+            if isinstance(o, dict):
+                raw_list.append(o.get("value") or o.get("name") or "")
+            else:
+                raw_list.append(str(o))
+        raw_list = [o for o in raw_list if o]
+    else:
+        raw_list = [str(outlet_raw)]
+    result = []
+    for ol in raw_list:
+        for d in get_outlet_descendants(ol):
+            if d not in result:
+                result.append(d)
+    return result
 
 
 def get_columns(filters, periodic_daterange):
@@ -175,6 +230,15 @@ def get_entries(filters, cfg):
         else:
             wh_str = "({})".format(", ".join(["'{}'".format(w.replace("'","''")) for w in wh_list]))
             conditions.append("sii.warehouse IN {}".format(wh_str))
+
+    # Filter outlet (si.custom_outlet). Dipakai langsung, BUKAN dipetakan ke
+    # warehouse: MSHA dan XCW berbagi warehouse "SELLING AREA XCW - X" sehingga
+    # pemetaan lewat warehouse akan menggabungkan dua outlet berbeda, dan
+    # XSMGROW tidak punya warehouse sama sekali sehingga jadi tidak terfilter.
+    outlet_list = get_outlet_list(filters)
+    if outlet_list:
+        conditions.append("si.custom_outlet IN %(outlet_list)s")
+        filters.outlet_list = outlet_list
 
     if filters.get("item_code"):
         conditions.append("sii.item_code = %(item_code)s")

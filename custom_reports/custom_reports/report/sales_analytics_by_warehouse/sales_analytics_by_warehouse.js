@@ -47,6 +47,14 @@ frappe.query_reports["Sales Analytics by Warehouse"] = {
 			}
 		},
 		{
+			fieldname: "outlets",
+			label: __("Outlet"),
+			fieldtype: "MultiSelectList",
+			get_data: function(txt) {
+				return frappe.db.get_link_options("Outlet", txt);
+			}
+		},
+		{
 			fieldname: "item_group",
 			label: __("Item Group"),
 			fieldtype: "Link",
