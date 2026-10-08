@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "creation": "2026-10-08 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "shelving",
+  "warehouse",
+  "item_code",
+  "actual_qty"
+ ],
+ "fields": [
+  {
+   "fieldname": "shelving",
+   "fieldtype": "Link",
+   "label": "Shelving",
+   "options": "Shelving",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "actual_qty",
+   "fieldtype": "Float",
+   "label": "Qty",
+   "in_list_view": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-08 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Shelving Bin",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "",
+ "in_create": 1,
+ "read_only": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Stock Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Stock User",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  }
+ ]
+}

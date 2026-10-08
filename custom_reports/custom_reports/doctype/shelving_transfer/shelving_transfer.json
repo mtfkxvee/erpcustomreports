@@ -1,0 +1,148 @@
+{
+ "actions": [],
+ "creation": "2026-10-08 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "transfer_type",
+  "warehouse",
+  "column_break_1",
+  "posting_date",
+  "company",
+  "section_items",
+  "items",
+  "section_notes",
+  "notes",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "transfer_type",
+   "fieldtype": "Select",
+   "label": "Jenis",
+   "options": "Put-away\nPindah Shelving\nKeluarkan dari Shelving",
+   "default": "Put-away",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Put-away: dari rak BELUM DITATA ke rak. Pindah: antar rak. Keluarkan: rak kembali ke BELUM DITATA. Stok warehouse tidak berubah."
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Tanggal",
+   "default": "Today",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "fetch_from": "warehouse.company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_items",
+   "fieldtype": "Section Break",
+   "label": "Item"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Item",
+   "options": "Shelving Transfer Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_notes",
+   "fieldtype": "Section Break",
+   "label": "Catatan"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Catatan"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Shelving Transfer",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-08 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Shelving Transfer",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "SHT-.YYYY.-.#####",
+ "is_submittable": 1,
+ "track_changes": 1,
+ "editable_grid": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Stock Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Stock User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "submit": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ]
+}
