@@ -75,6 +75,25 @@ def main(frappe, filters):
         {"o": tuple(outlets), "si": si_from, "last": lastdone}, as_dict=True):
         vals[r["o"] + "|" + str(r["d"])] = r["v"] or 0
 
+    # Target harian dari "Sales Target Outlet" -> child "Sales Target Daily".
+    # UPPER(COALESCE(so.outlet, std.parent)): nama dokumen Sales Target Outlet TIDAK
+    # selalu sama dengan kode outlet -- ada yang hash ("ib614lonrt" utk XSL,
+    # "i9nrri1c58" utk XSC-OL), ada yang beda case ("xsc" utk XSC), dan XJB field
+    # `outlet`-nya KOSONG sehingga harus fallback ke nama dokumen. Pola ini sama
+    # dengan _target_by_outlet() di sales_api.py. Memfilter std.parent langsung
+    # (spt get_target_map di laporan_penjualan_harian) akan melewatkan outlet2 itu.
+    tgt = {}
+    for r in frappe.db.sql(
+        "select upper(coalesce(so.outlet, std.parent)) as o, std.tanggal as d, "
+        "sum(std.target_harian) as v "
+        "from `tabSales Target Daily` std "
+        "join `tabSales Target Outlet` so on so.name = std.parent "
+        "where std.tanggal >= %(a)s and std.tanggal <= %(b)s "
+        "and upper(coalesce(so.outlet, std.parent)) in %(o)s "
+        "group by upper(coalesce(so.outlet, std.parent)), std.tanggal",
+        {"a": from_date, "b": to_date, "o": tuple(outlets)}, as_dict=True):
+        tgt[r["o"] + "|" + str(r["d"])] = r["v"] or 0
+
     cal = {}
     byname = {}
     for r in frappe.db.sql(
@@ -237,6 +256,21 @@ def main(frappe, filters):
             return t[0]
         return None
 
+    def target_on(d):
+        # Sengaja ikut konvensi complete_on(): kosong kalau TIDAK semua outlet
+        # terpilih punya baris target di tanggal itu. Lebih baik kosong daripada
+        # menampilkan jumlah separuh yang terlihat seperti target penuh.
+        s = 0
+        n = 0
+        for o in outlets:
+            v = tgt.get(o + "|" + str(d))
+            if v is not None:
+                s += v
+                n += 1
+        if n == len(outlets):
+            return s
+        return None
+
     # ---- baris harian ----
     rows = []
     d = from_date
@@ -266,7 +300,7 @@ def main(frappe, filters):
         rows.append({
             "posting_date": d, "hari": DAYS_ID[d.weekday()], "wd": d.weekday(),
             "day_type": c["day_type"] if c is not None else "",
-            "event": tag, "actual": act, "forecast": fc,
+            "event": tag, "actual": act, "forecast": fc, "target": target_on(d),
             "var_pct": pct(act, fc) if act is not None else None,
             "nilai": nilai, "lm_date": lmd, "lm": lm, "lm_pct": pct(nilai, lm),
             "ly_date": lyd, "ly": ly, "ly_pct": pct(nilai, ly),
@@ -279,6 +313,8 @@ def main(frappe, filters):
     tot_nilai = sum([r["nilai"] for r in rows if r["nilai"] is not None])
     lm_ok = len([r for r in rows if r["lm"] is not None]) == len(rows)
     ly_ok = len([r for r in rows if r["ly"] is not None]) == len(rows)
+    tgt_ok = len([r for r in rows if r["target"] is not None]) == len(rows)
+    tot_tgt = sum([r["target"] for r in rows]) if tgt_ok else None
     tot_lm = sum([r["lm"] for r in rows]) if lm_ok else None
     tot_ly = sum([r["ly"] for r in rows]) if ly_ok else None
     apes = [abs(r["actual"] / r["forecast"] - 1) * 100 for r in rows if r["actual"] and r["forecast"]]
@@ -304,6 +340,7 @@ def main(frappe, filters):
             {"fieldname": "event", "label": "Libur / Event", "fieldtype": "Data", "width": 170},
             {"fieldname": "actual", "label": "Aktual (Rp)", "fieldtype": cur, "width": 140},
             {"fieldname": "forecast", "label": "Forecast (Rp)", "fieldtype": cur, "width": 140},
+            {"fieldname": "target", "label": "Target (Rp)", "fieldtype": cur, "width": 140},
             {"fieldname": "var_pct", "label": "Aktual vs Forecast (%)", "fieldtype": pc, "width": 120},
             {"fieldname": "lm_date", "label": "Tgl Bulan Lalu", "fieldtype": "Date", "width": 100},
             {"fieldname": "lm", "label": "Bulan Lalu (Rp)", "fieldtype": cur, "width": 140},
@@ -316,6 +353,7 @@ def main(frappe, filters):
         out.append({
             "posting_date": None, "hari": "TOTAL", "day_type": "", "event": "",
             "actual": tot_act, "forecast": sum([r["forecast"] for r in rows if r["forecast"] is not None]),
+            "target": tot_tgt,
             "var_pct": None, "lm": tot_lm, "lm_pct": pct(tot_nilai, tot_lm) if tot_lm else None,
             "ly": tot_ly, "ly_pct": pct(tot_nilai, tot_ly) if tot_ly else None,
         })
@@ -380,6 +418,8 @@ def main(frappe, filters):
            "Aktual = grand_total - loyalty_amount Sales Invoice non-retur (sama dengan Laporan Penjualan Harian); "
            "sebelum " + SI_FROM + " memakai histori impor. "
            "Pembanding bulan lalu/tahun lalu kosong bila datanya tidak lengkap di semua outlet terpilih (mis. Apr-Mei 2026). "
+           "<b>Target</b> = jumlah target harian (Sales Target Outlet -> Target Per Hari) untuk outlet terpilih; "
+           "kosong bila ada outlet terpilih yang belum punya target di tanggal itu. "
            "Outlet dengan penjualan bergelombang (" + ", ".join(VOLATILE) + ") akurasinya rendah per hari. "
            "Hari libur/event (mis. Nataru) hanya punya 1 tahun pembanding sehingga kurang stabil.")
     if warn:
