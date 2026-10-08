@@ -321,7 +321,7 @@ def validate_stock_entry(doc, method=None):
 def require_target_shelving(doc, method=None):
     """Apa pun jenis Stock Entry-nya: tujuan warehouse yang punya shelving WAJIB isi Ke Shelving."""
     for row in doc.items:
-        if row.t_warehouse and _has_shelves(row.t_warehouse) and not row.to_shelving:
+        if row.t_warehouse and _has_shelves(row.t_warehouse) and not row.get("to_shelving"):
             frappe.throw(_("Baris {0}: isi <b>Ke Shelving</b>, warehouse {1} memakai shelving.").format(
                 row.idx, row.t_warehouse))
 
@@ -331,12 +331,12 @@ def on_stock_entry_submit(doc, method=None):
     for row in doc.items:
         qty = flt(row.transfer_qty)
         meta = (doc.doctype, doc.name, row.name, doc.posting_date, doc.company)
-        if row.from_shelving:
+        if row.get("from_shelving"):
             post_entry(row.from_shelving, row.s_warehouse, row.item_code, -qty, *meta)
         elif row.s_warehouse and _has_shelves(row.s_warehouse):
             key = (row.s_warehouse, row.item_code)
             auto[key] = auto.get(key, 0) + qty
-        if row.to_shelving:
+        if row.get("to_shelving"):
             post_entry(row.to_shelving, row.t_warehouse, row.item_code, qty, *meta)
     for (warehouse, item_code), qty in auto.items():
         _deduct(doc, item_code, warehouse, qty)
