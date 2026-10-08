@@ -32,10 +32,13 @@ class Shelving(Document):
 
     def after_insert(self):
         """Rak pertama di sebuah warehouse: buat rak bawaan, lalu masukkan seluruh stok warehouse
-        yang ada ke rak bawaan di background (supaya rak = warehouse sejak awal)."""
+        yang ada ke rak bawaan di background (supaya rak = warehouse sejak awal).
+        Rak berikutnya di warehouse yang sama tidak memicu apa pun."""
         if self.is_default:
             return
         from custom_reports.custom_reports.shelving.ledger import get_default_shelving
+        if get_default_shelving(self.warehouse):
+            return
         get_default_shelving(self.warehouse, create=True)
         frappe.enqueue("custom_reports.custom_reports.shelving.ledger.sync_warehouse",
                        warehouse=self.warehouse, queue="long", enqueue_after_commit=True)
