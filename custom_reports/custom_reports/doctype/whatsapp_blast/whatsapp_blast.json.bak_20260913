@@ -1,0 +1,164 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-09-12 15:19:30.168169",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "title",
+  "status",
+  "col_break_head",
+  "template_name",
+  "template_language",
+  "sec_variables",
+  "template_variables",
+  "sec_recipients",
+  "recipients",
+  "sec_result",
+  "total_recipients",
+  "sent_count",
+  "col_break_result",
+  "failed_count",
+  "sent_at"
+ ],
+ "fields": [
+  {
+   "default": "WABLAST-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "options": "WABLAST-.YYYY.-.#####"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nama Campaign",
+   "reqd": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nSending\nCompleted\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Nama template yang SUDAH DISETUJUI Meta (cek status di dashboard api.co.id)",
+   "fieldname": "template_name",
+   "fieldtype": "Data",
+   "label": "Nama Template WA",
+   "reqd": 1
+  },
+  {
+   "default": "id",
+   "fieldname": "template_language",
+   "fieldtype": "Data",
+   "label": "Bahasa Template"
+  },
+  {
+   "fieldname": "sec_variables",
+   "fieldtype": "Section Break",
+   "label": "Variable Template (Opsional)"
+  },
+  {
+   "fieldname": "template_variables",
+   "fieldtype": "Table",
+   "label": "Variable Body (urut sesuai {{1}}, {{2}}, ...)",
+   "options": "WhatsApp Blast Variable"
+  },
+  {
+   "fieldname": "sec_recipients",
+   "fieldtype": "Section Break",
+   "label": "Penerima"
+  },
+  {
+   "fieldname": "recipients",
+   "fieldtype": "Table",
+   "label": "Penerima",
+   "options": "WhatsApp Blast Recipient"
+  },
+  {
+   "fieldname": "sec_result",
+   "fieldtype": "Section Break",
+   "label": "Hasil"
+  },
+  {
+   "fieldname": "total_recipients",
+   "fieldtype": "Int",
+   "label": "Total Penerima",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sent_count",
+   "fieldtype": "Int",
+   "label": "Terkirim",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break_result",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "failed_count",
+   "fieldtype": "Int",
+   "label": "Gagal",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sent_at",
+   "fieldtype": "Datetime",
+   "label": "Waktu Selesai",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-12 15:19:30.168169",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "WhatsApp Blast",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

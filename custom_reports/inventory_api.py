@@ -1,0 +1,351 @@
+# Copyright (c) 2026, X-SHA and contributors
+# For license information, please see license.txt
+#
+# Satu API call untuk laporan "Daily Inventory" (Saldo Awal/Pembelian/Penjualan/
+# Transfer Masuk/Transfer Keluar/Lainnya/Saldo Akhir) per outlet, 3 varian sekaligus
+# (ALL, EXC_TOPUP, EXC_TOPUP_SEM).
+#
+# PERFORMA: versi awal scan SELURUH histori Stock Ledger Entry pakai window function
+# (ROW_NUMBER/LAG) -> timeout di production (>120s, jutaan baris SLE). Versi ini
+# jauh lebih cepat krn:
+#   - Saldo Akhir dihitung dari tabBin (saldo real-time yg SELALU ter-update ERPNext,
+#     bukan scan histori) dikurangi mutasi SETELAH as_of_date (biasanya cuma beberapa
+#     hari kalau as_of_date baru2 ini).
+#   - Mutasi harian dihitung cuma utk tanggal as_of_date itu sendiri (range sempit,
+#     bukan seluruh histori dari awal).
+#   - Saldo Awal = Saldo Akhir dikurangi net mutasi hari itu (identitas akuntansi
+#     dasar), bukan query terpisah.
+# Catatan: efisien utk as_of_date yg relatif baru (beberapa hari/minggu terakhir).
+# Kalau butuh tanggal yg sangat lampau, query "mutasi setelah as_of_date" bisa jadi
+# berat lagi krn rentangnya makin lebar.
+#
+# CATATAN PENTING: setiap outlet punya sampai 3 warehouse fisik terpisah di ERP
+# (GUDANG/storage, SELLING AREA/toko, TRANSIT/dalam perjalanan). Versi awal cuma
+# baca SELLING AREA sehingga saldo & transfer masuk/keluar jauh lebih kecil dari
+# laporan asli. Versi ini menjumlahkan SEMUA warehouse per outlet.
+#
+# URL: /api/method/custom_reports.inventory_api.get_daily_inventory?as_of_date=YYYY-MM-DD
+
+import calendar
+
+import frappe
+
+_OUTLET_WAREHOUSES = {
+    "XSC": ["GUDANG XSC - X", "SELLING AREA XSC - X", "TRANSIT XSC - X"],
+    "XSC-OL": ["GUDANG XSC-OL - X"],
+    "PSR": ["GUDANG PSR - X", "SELLING AREA PSR - X", "TRANSIT PSR - X"],
+    "XPY": ["GUDANG XPY - X", "SELLING AREA XPY - X", "TRANSIT XPY - X"],
+    "XJB": ["GUDANG XJB - X", "SELLING AREA XJB - X", "TRANSIT XJB - X"],
+    "XCW": ["GUDANG XCW - X", "SELLING AREA XCW - X", "TRANSIT XCW - X"],
+    "OCW": ["GUDANG OCW - X"],
+    "XSP": ["GUDANG XSP - X", "SELLING AREA XSP - X", "TRANSIT XSP - X"],
+    "XSP-OL": ["GUDANG XSP-OL - X"],
+    "HCW": ["SELLING AREA HCW - X", "TRANSIT HCW - X"],
+    "XSM": ["GUDANG XSM - X", "SELLING AREA XSM - X", "TRANSIT XSM - X"],
+    "XMJ": ["GUDANG XMJ - X", "SELLING AREA XMJ - X", "TRANSIT XMJ - X"],
+    "XWP": ["GUDANG XWP - X", "SELLING AREA XWP - X", "TRANSIT XWP - X"],
+    "XPH": ["GUDANG XPH - X", "SELLING AREA XPH - X", "TRANSIT XPH - X"],
+    "XTJ": ["GUDANG XTJ - X", "SELLING AREA XTJ - X", "TRANSIT XTJ - X"],
+    "XCR": ["GUDANG XCR - X", "SELLING AREA XCR - X", "TRANSIT XCR - X"],
+    "TASMU": ["GUDANG TASMU - X", "SELLING AREA TASMU - X", "TRANSIT TASMU - X"],
+    "MNR": ["GUDANG MENARA - X", "SELLING AREA MENARA - X", "TRANSIT MENARA - X"],
+    "UIN": ["GUDANG UIN - X", "SELLING AREA UIN - X", "TRANSIT UIN - X"],
+    "KMT": ["GUDANG KEMITRAAN - X", "KEMITRAAN - X"],
+    "MBG": ["MBG - X"],
+    "XSL": ["SOCCERLITE - X"],
+    "GD": ["GUDANG FHS - X", "Transit fhs  - X"],
+    "DC": ["GUDANG DC - X"],
+}
+
+_FASHION_ROWS = ["XSC", "XSC-OL", "PSR", "XPY", "XJB", "XCW", "OCW", "XSP", "XSP-OL", "HCW", "GD"]
+_FMCG_ROWS = ["XSM", "XMJ", "XWP", "XPH", "XTJ", "XCR", "TASMU", "MNR", "UIN", "DC"]
+_HO_ROWS = ["KMT", "MBG", "XSL"]
+
+_OUTLET_LABELS = {
+    "HCW": "X-sha Rumah Kedua", "MNR": "Menara", "UIN": "UIN Grow",
+    "KMT": "KMT IPOS", "MBG": "MBG IPOS",
+}
+
+_VARIANTS = {
+    "ALL": [],
+    "EXC_TOPUP": ["TOPUP"],
+    "EXC_TOPUP_SEM": ["TOPUP", "SEM"],
+}
+
+
+def _item_group_cond(exclude_item_groups, params):
+    if not exclude_item_groups:
+        return ""
+    placeholders = ", ".join(["%s"] * len(exclude_item_groups))
+    params += list(exclude_item_groups)
+    return f"AND i.item_group NOT IN ({placeholders})"
+
+
+def _current_balance_by_warehouse(warehouses, exclude_item_groups):
+    """Saldo SEKARANG per warehouse dari tabBin (materialized, real-time)."""
+    if not warehouses:
+        return {}
+    wh_placeholders = ", ".join(["%s"] * len(warehouses))
+    params = list(warehouses)
+    item_cond = _item_group_cond(exclude_item_groups, params)
+    rows = frappe.db.sql(f"""
+        SELECT b.warehouse, SUM(b.stock_value) as val
+        FROM `tabBin` b
+        JOIN `tabItem` i ON i.name = b.item_code
+        WHERE b.warehouse IN ({wh_placeholders})
+        {item_cond}
+        GROUP BY b.warehouse
+    """, params, as_dict=True)
+    return {r["warehouse"]: r["val"] or 0 for r in rows}
+
+
+def _sle_sum_by_warehouse(date_cond, date_params, warehouses, exclude_item_groups):
+    """Total stock_value_difference per warehouse utk kondisi tanggal tertentu."""
+    if not warehouses:
+        return {}
+    wh_placeholders = ", ".join(["%s"] * len(warehouses))
+    params = list(date_params) + list(warehouses)
+    item_cond = _item_group_cond(exclude_item_groups, params)
+    rows = frappe.db.sql(f"""
+        SELECT sle.warehouse, SUM(sle.stock_value_difference) as val
+        FROM `tabStock Ledger Entry` sle
+        JOIN `tabItem` i ON i.name = sle.item_code
+        WHERE sle.is_cancelled = 0
+          AND {date_cond}
+          AND sle.warehouse IN ({wh_placeholders})
+          {item_cond}
+        GROUP BY sle.warehouse
+    """, params, as_dict=True)
+    return {r["warehouse"]: r["val"] or 0 for r in rows}
+
+
+def _sle_by_warehouse_voucher(as_of_date, warehouses, exclude_item_groups):
+    """Breakdown mutasi (per voucher_type) HANYA utk tanggal as_of_date (range sempit).
+
+    PENTING: pos/neg dijumlah TERPISAH per (warehouse, voucher_type), bukan di-net
+    dulu baru dicek tandanya. Kalau di-net dulu, warehouse yg dalam 1 hari ada
+    barang MASUK dan KELUAR sekaligus (2 Stock Entry berbeda) akan salah hitung -
+    Transfer Masuk/Keluar jadi separuh dari yang sebenarnya (terbukti dari data:
+    versi net menghasilkan Transfer Keluar FMCG Rp33,8jt padahal seharusnya Rp39,7jt
+    sesuai breakdown pos/neg mentah).
+    """
+    if not warehouses:
+        return {}
+    wh_placeholders = ", ".join(["%s"] * len(warehouses))
+    params = [as_of_date] + list(warehouses)
+    item_cond = _item_group_cond(exclude_item_groups, params)
+    rows = frappe.db.sql(f"""
+        SELECT sle.warehouse, sle.voucher_type,
+               SUM(CASE WHEN sle.stock_value_difference >= 0 THEN sle.stock_value_difference ELSE 0 END) as pos_val,
+               SUM(CASE WHEN sle.stock_value_difference < 0 THEN sle.stock_value_difference ELSE 0 END) as neg_val
+        FROM `tabStock Ledger Entry` sle
+        JOIN `tabItem` i ON i.name = sle.item_code
+        WHERE sle.is_cancelled = 0
+          AND sle.posting_date = %s
+          AND sle.warehouse IN ({wh_placeholders})
+          {item_cond}
+        GROUP BY sle.warehouse, sle.voucher_type
+    """, params, as_dict=True)
+
+    result = {}
+    for r in rows:
+        wh = r["warehouse"]
+        result.setdefault(wh, {"pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0})
+        vt = r["voucher_type"]
+        pos_val, neg_val = (r["pos_val"] or 0), (r["neg_val"] or 0)
+        if vt in ("Purchase Invoice", "Purchase Receipt"):
+            result[wh]["pembelian"] += pos_val
+            result[wh]["lainnya"] += neg_val
+        elif vt == "Sales Invoice":
+            result[wh]["penjualan"] += pos_val + neg_val
+        elif vt == "Stock Entry":
+            result[wh]["transfer_masuk"] += pos_val
+            result[wh]["transfer_keluar"] += abs(neg_val)
+        else:
+            result[wh]["lainnya"] += pos_val + neg_val
+    return result
+
+
+def _kmt_mbg_inventory_row(kategori, as_of_date):
+    """KMT & MBG tidak tercatat di sistem warehouse ERPNext sama sekali (sudah
+    dibuktikan: tabBin kosong utk warehouse mereka) - datanya diambil dari
+    doctype 'Kemitraan MBG Inventory History' (input manual dari laporan tim),
+    sama spt pola yg dipakai utk data Sales KMT/MBG. Kalau blm ada record utk
+    tanggal itu, kembalikan 0 (sama spt perilaku sebelumnya)."""
+    row = frappe.db.get_value(
+        "Kemitraan MBG Inventory History",
+        {"kategori": kategori, "tanggal": as_of_date},
+        ["saldo_awal", "pembelian", "penjualan", "transfer_masuk", "transfer_keluar", "lainnya", "saldo_akhir"],
+        as_dict=True,
+    )
+    if not row:
+        return {"saldo_awal": 0, "pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0, "saldo_akhir": 0}
+    return {k: (v or 0) for k, v in row.items()}
+
+
+_KMT_MBG_KATEGORI = {"KMT": "Kemitraan", "MBG": "MBG"}
+
+
+def _build_variant(as_of_date, exclude_item_groups):
+    all_rows = _FASHION_ROWS + _FMCG_ROWS + _HO_ROWS
+    warehouses = [wh for code in all_rows for wh in _OUTLET_WAREHOUSES[code] if code not in _KMT_MBG_KATEGORI]
+
+    current_balance = _current_balance_by_warehouse(warehouses, exclude_item_groups)
+    future_movement = _sle_sum_by_warehouse("sle.posting_date > %s", [as_of_date], warehouses, exclude_item_groups)
+    mutasi = _sle_by_warehouse_voucher(as_of_date, warehouses, exclude_item_groups)
+
+    def row_for(code):
+        if code in _KMT_MBG_KATEGORI:
+            r = _kmt_mbg_inventory_row(_KMT_MBG_KATEGORI[code], as_of_date)
+            return {
+                "outlet": code, "label": _OUTLET_LABELS.get(code, code),
+                "saldo_awal": r["saldo_awal"],
+                # "penjualan" disimpan positif (magnitude) di doctype sumbernya
+                # (kolom "Keluar" laporan asli) - di-negatifkan di sini biar
+                # konsisten dgn outlet lain (Fashion/FMCG selalu negatif).
+                "pembelian": r["pembelian"], "penjualan": -r["penjualan"],
+                "transfer_masuk": r["transfer_masuk"], "transfer_keluar": r["transfer_keluar"],
+                "lainnya": abs(r["lainnya"]), "_lainnya_signed": r["lainnya"],
+                "saldo_akhir": r["saldo_akhir"],
+            }
+        whs = _OUTLET_WAREHOUSES[code]
+        akhir = sum(current_balance.get(wh, 0) - future_movement.get(wh, 0) for wh in whs)
+        m_total = {"pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0}
+        for wh in whs:
+            m = mutasi.get(wh, {})
+            for k in m_total:
+                m_total[k] += m.get(k, 0)
+        net_hari_ini = (
+            m_total["pembelian"] + m_total["penjualan"]
+            + m_total["transfer_masuk"] - m_total["transfer_keluar"] + m_total["lainnya"]
+        )
+        awal = akhir - net_hari_ini
+        return {
+            "outlet": code, "label": _OUTLET_LABELS.get(code, code),
+            "saldo_awal": awal,
+            "pembelian": m_total["pembelian"], "penjualan": m_total["penjualan"],
+            "transfer_masuk": m_total["transfer_masuk"], "transfer_keluar": m_total["transfer_keluar"],
+            # kolom "Lainnya" di laporan Excel asli selalu ditampilkan positif (nilai
+            # mutlak) walau transaksinya net rugi/berkurang secara akuntansi -
+            # net_hari_ini tetap pakai nilai bertanda asli, cuma tampilannya di-abs().
+            # _lainnya_signed disimpan utk dijumlah dulu (baris TOTAL) sebelum di-abs(),
+            # supaya lainnya antar outlet yg tandanya beda saling menutupi dulu -
+            # bukan menjumlahkan angka yg sudah positif semua.
+            "lainnya": abs(m_total["lainnya"]), "_lainnya_signed": m_total["lainnya"],
+            "saldo_akhir": akhir,
+        }
+
+    def section(rows, exclude_awal_from_total=None):
+        exclude_awal_from_total = exclude_awal_from_total or set()
+        data = [row_for(c) for c in rows]
+        total = {"outlet": "TOTAL INVENTORY", "label": "TOTAL INVENTORY"}
+        for k in ("pembelian", "penjualan", "transfer_masuk", "transfer_keluar", "saldo_akhir"):
+            total[k] = sum(d[k] for d in data)
+        # Saldo Awal KMT sengaja TIDAK diikutkan ke TOTAL (laporan Excel asli
+        # blm py data historis KMT yg berkesinambungan waktu dibuat, jadi
+        # TOTAL-nya dihitung tanpa KMT - baris KMT sendiri tetap tampil benar).
+        total["saldo_awal"] = sum(
+            d["saldo_awal"] for c, d in zip(rows, data) if c not in exclude_awal_from_total
+        )
+        total["lainnya"] = abs(sum(d["_lainnya_signed"] for d in data))
+        for d in data:
+            d.pop("_lainnya_signed", None)
+        data.append(total)
+        return data
+
+    return {
+        "fashion": section(_FASHION_ROWS),
+        "fmcg": section(_FMCG_ROWS),
+        "ho": section(_HO_ROWS, exclude_awal_from_total={"KMT"}),
+    }
+
+
+@frappe.whitelist()
+def get_daily_inventory(as_of_date=None):
+    as_of_date = as_of_date or frappe.utils.today()
+    return {
+        "as_of_date": as_of_date,
+        "variants": {
+            variant_key: _build_variant(as_of_date, exclude_groups)
+            for variant_key, exclude_groups in _VARIANTS.items()
+        },
+    }
+
+
+_BULAN_ID_INV = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+]
+
+
+def _inv_target_by_outlet(bulan_label):
+    # TARGET INV - input manual, blm ada master data (ad-hoc per bulan sesuai
+    # arahan tim), diimport dari file "INV TARGET VS INV AKHIR AGT26" ke
+    # doctype "Outlet Inventory Target". Bulan yg blm diinput -> None (jujur,
+    # bukan 0/ditebak).
+    rows = frappe.db.sql("""
+        SELECT outlet, target_inv FROM `tabOutlet Inventory Target` WHERE bulan = %s
+    """, (bulan_label,), as_dict=True)
+    return {r["outlet"]: r["target_inv"] for r in rows}
+
+
+# --- Monthly Inventory Target vs Inventory Akhir - All/Per Department/Per
+# Outlet, EXCLUDE MBG/KMT/XSL (sesuai file referensi "INV TARGET VS INV AKHIR
+# AGT26" sheet "EXC KMT, MBG, XSL"). "TOTAL INV" (Inventory Akhir) = reuse
+# PERSIS mekanisme get_daily_inventory varian EXC_TOPUP (saldo_akhir) -
+# divalidasi exact match ke file referensi utk Cikiray & Pasar.
+@frappe.whitelist()
+def get_monthly_inventory_target(department="FASHION", month=None, year=None):
+    today = frappe.utils.getdate(frappe.utils.today())
+    target_month = int(month) if month else today.month
+    target_year = int(year) if year else today.year
+    is_current_month = (target_year, target_month) == (today.year, today.month)
+    if is_current_month:
+        as_of_date = str(today)
+    else:
+        last_day = calendar.monthrange(target_year, target_month)[1]
+        as_of_date = f"{target_year}-{target_month:02d}-{last_day:02d}"
+
+    bulan_label = _BULAN_ID_INV[target_month - 1]
+    targets = _inv_target_by_outlet(bulan_label)
+
+    variant = _build_variant(as_of_date, ["TOPUP"])
+
+    dept = department.upper()
+    if dept == "FASHION":
+        section_rows = variant["fashion"]
+    elif dept == "FMCG":
+        section_rows = variant["fmcg"]
+    else:
+        section_rows = variant["fashion"] + variant["fmcg"]
+
+    rows = []
+    total_inv, total_target = 0, 0
+    for r in section_rows:
+        if r["outlet"] == "TOTAL INVENTORY":
+            continue
+        target = targets.get(r["outlet"])
+        total_inv_val = r["saldo_akhir"]
+        row = {
+            "outlet": r["outlet"], "label": r["label"],
+            "target_inv": target, "total_inv": total_inv_val,
+            "vs_target": (total_inv_val - target) if target is not None else None,
+            "achv_pct": round(total_inv_val / target * 100, 2) if target else None,
+        }
+        rows.append(row)
+        total_inv += total_inv_val
+        total_target += target or 0
+
+    rows.append({
+        "outlet": "TOTAL", "label": "Total",
+        "target_inv": total_target if total_target else None,
+        "total_inv": total_inv,
+        "vs_target": (total_inv - total_target) if total_target else None,
+        "achv_pct": round(total_inv / total_target * 100, 2) if total_target else None,
+    })
+
+    return {
+        "department": dept, "bulan": bulan_label, "tahun": target_year, "as_of_date": as_of_date,
+        "rows": rows,
+        "note": "Target inventory data manual (ad-hoc per bulan), blm ada master data. Bulan tanpa target -> null.",
+    }

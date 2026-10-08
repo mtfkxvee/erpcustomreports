@@ -1,0 +1,16 @@
+{
+ "add_total_row": 0,
+ "columns": [],
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "is_standard": "Yes",
+ "letter_head": null,
+ "module": "Custom Reports",
+ "name": "General Ledger X-SHA",
+ "ref_doctype": "GL Entry",
+ "report_name": "General Ledger X-SHA",
+ "report_type": "Script Report",
+ "roles": []
+}

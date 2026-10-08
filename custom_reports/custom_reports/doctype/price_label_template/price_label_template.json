@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:template_name",
+ "creation": "2026-08-16 09:51:30.121564",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "template_name",
+  "col_break1",
+  "is_active",
+  "sec_image",
+  "background_image",
+  "col_break2",
+  "items_per_page",
+  "sec_period",
+  "valid_from",
+  "col_break3",
+  "valid_upto",
+  "sec_layout",
+  "content_top",
+  "col_break4",
+  "orientation"
+ ],
+ "fields": [
+  {
+   "fieldname": "template_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nama Template",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "col_break1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Aktif"
+  },
+  {
+   "fieldname": "sec_image",
+   "fieldtype": "Section Break",
+   "label": "Background"
+  },
+  {
+   "fieldname": "background_image",
+   "fieldtype": "Attach Image",
+   "label": "Gambar Background",
+   "reqd": 1
+  },
+  {
+   "fieldname": "col_break2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "8",
+   "fieldname": "items_per_page",
+   "fieldtype": "Int",
+   "label": "Item per Halaman"
+  },
+  {
+   "fieldname": "sec_period",
+   "fieldtype": "Section Break",
+   "label": "Periode"
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Berlaku Dari"
+  },
+  {
+   "fieldname": "col_break3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "valid_upto",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Berlaku Sampai"
+  },
+  {
+   "fieldname": "sec_layout",
+   "fieldtype": "Section Break",
+   "label": "Layout"
+  },
+  {
+   "default": "50",
+   "fieldname": "content_top",
+   "fieldtype": "Int",
+   "label": "Posisi Konten Dari Atas (%)"
+  },
+  {
+   "fieldname": "col_break4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Landscape",
+   "fieldname": "orientation",
+   "fieldtype": "Select",
+   "label": "Orientasi",
+   "options": "Landscape\nPortrait"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-16 09:51:30.121564",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Price Label Template",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html class="light" lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>X-Sha Price Checker Kiosk</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    surface: "#fbf9f8",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-low": "#f5f3f3",
+                    "surface-container": "#efeded",
+                    "surface-container-high": "#e9e8e7",
+                    primary: "#660077",
+                    "on-primary": "#ffffff",
+                    "on-surface": "#1b1c1c",
+                    "on-surface-variant": "#514250",
+                    secondary: "#5f5e5e",
+                    tertiary: "#383a3e",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed": "#e2e2e7",
+                    "on-tertiary-fixed": "#1a1c1f",
+                    error: "#ba1a1a",
+                    "error-container": "#ffdad6",
+                    "on-error-container": "#93000a"
+                },
+                borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+                fontFamily: { headline: ["Montserrat", "sans-serif"] }
+            }
+        }
+    };
+</script>
+<style>
+    html, body { height: 100%; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-headline { font-family: 'Montserrat', sans-serif; }
+    .spin { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body class="bg-surface text-on-surface h-screen overflow-hidden flex flex-col">
+<header class="relative flex justify-center items-center px-4 py-2 bg-surface shadow-sm flex-none">
+    <span class="font-headline text-primary text-xl font-extrabold italic">X-Sha</span>
+    <button aria-label="Fullscreen" class="absolute right-4 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors" id="fullscreen-btn" type="button">
+        <span class="material-symbols-outlined text-2xl" id="fullscreen-icon">fullscreen</span>
+    </button>
+</header>
+
+<main class="flex-grow flex flex-col items-center justify-center px-4 w-full max-w-4xl mx-auto gap-3 min-h-0 overflow-hidden">
+    <div class="text-center w-full max-w-2xl">
+        <h1 class="text-2xl md:text-3xl text-primary font-extrabold font-headline">Cek Harga Barang</h1>
+        <p class="text-sm text-on-surface-variant">Scan barcode atau ketik nama barang.</p>
+    </div>
+
+    <form id="lookup-form" class="w-full max-w-xl bg-surface-container-lowest rounded-xl shadow-lg p-3 flex flex-row gap-2 items-center border border-surface-container flex-none">
+        <div class="flex-grow w-full relative">
+            <label class="sr-only" for="price-check-input">Barcode atau Nama Barang</label>
+            <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-3 text-secondary text-xl">search</span>
+                <input autocomplete="off" autofocus class="w-full pl-10 pr-3 py-3 bg-tertiary-fixed text-on-tertiary-fixed text-base rounded-lg border-none focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all" id="price-check-input" placeholder="Scan atau ketik..." type="text"/>
+            </div>
+        </div>
+        <button class="flex-none bg-primary text-on-primary font-bold px-4 py-3 text-base rounded-lg flex items-center justify-center gap-2 hover:scale-105 transition-transform shadow-md whitespace-nowrap" type="submit">
+            <span class="material-symbols-outlined text-xl" id="submit-icon" style="font-variation-settings: 'FILL' 1;">barcode_scanner</span>
+            <span id="submit-label" class="hidden sm:inline">Cek Harga</span>
+        </button>
+    </form>
+
+    <div id="result-area" class="w-full max-w-2xl hidden min-h-0"></div>
+</main>
+
+<footer class="w-full py-1 px-4 flex-none flex flex-col justify-center items-center bg-surface-container-high">
+    <p class="text-xs text-on-surface text-center">© 2026 rousk.id</p>
+</footer>
+
+<script>
+(function () {
+    const form = document.getElementById("lookup-form");
+    const input = document.getElementById("price-check-input");
+    const resultArea = document.getElementById("result-area");
+    const submitIcon = document.getElementById("submit-icon");
+    const submitLabel = document.getElementById("submit-label");
+
+    const AUTO_SEARCH_DELAY_MS = 300; // jeda diam setelah ketikan berhenti -> auto cari
+    const MIN_QUERY_LENGTH = 3;
+    let autoSearchTimer = null;
+    let lastSearchedQuery = "";
+
+    function formatRupiah(value) {
+        if (value === null || value === undefined) return "-";
+        return "Rp " + Math.round(value).toLocaleString("id-ID");
+    }
+
+    function setLoading(isLoading) {
+        submitIcon.textContent = isLoading ? "progress_activity" : "barcode_scanner";
+        submitIcon.classList.toggle("spin", isLoading);
+        form.querySelector("button").disabled = isLoading;
+    }
+
+    function renderNotFound(query) {
+        resultArea.innerHTML = `
+            <div class="w-full bg-error-container rounded-xl shadow-sm p-3 flex items-center gap-3 border border-error/20">
+                <span class="material-symbols-outlined text-on-error-container text-2xl">error</span>
+                <div>
+                    <p class="font-bold text-on-error-container">Barang tidak ditemukan</p>
+                    <p class="text-on-error-container text-sm">Tidak ada hasil untuk "${escapeHtml(query)}".</p>
+                </div>
+            </div>`;
+        resultArea.classList.remove("hidden");
+    }
+
+    function renderError(message) {
+        resultArea.innerHTML = `
+            <div class="w-full bg-error-container rounded-xl shadow-sm p-3 flex items-center gap-3 border border-error/20">
+                <span class="material-symbols-outlined text-on-error-container text-2xl">wifi_off</span>
+                <div>
+                    <p class="font-bold text-on-error-container">Gagal mengambil data</p>
+                    <p class="text-on-error-container text-sm">${escapeHtml(message)}</p>
+                </div>
+            </div>`;
+        resultArea.classList.remove("hidden");
+    }
+
+    function renderItem(item) {
+        const imageBlock = item.image
+            ? `<img class="w-full h-full object-cover" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.item_name)}"/>`
+            : `<div class="w-full h-full flex items-center justify-center text-secondary"><span class="material-symbols-outlined text-4xl">inventory_2</span></div>`;
+
+        const priceBlock = (item.price === null || item.price === undefined)
+            ? `<span class="text-lg text-on-surface-variant">Harga belum tersedia</span>`
+            : `<span class="text-2xl md:text-3xl text-primary font-extrabold font-headline tracking-tight">${formatRupiah(item.price)}</span>`;
+
+        resultArea.innerHTML = `
+            <div class="w-full bg-surface-container-lowest rounded-xl shadow-sm p-3 flex flex-row gap-4 items-center border border-surface-container">
+                <div class="w-20 h-20 md:w-28 md:h-28 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-low">
+                    ${imageBlock}
+                </div>
+                <div class="flex flex-col gap-0.5 text-left min-w-0">
+                    <h2 class="text-base md:text-xl text-on-surface font-bold font-headline leading-tight truncate">${escapeHtml(item.item_name)}</h2>
+                    <p class="text-secondary text-xs md:text-sm">SKU: ${escapeHtml(item.item_code)}</p>
+                    <div class="mt-1">${priceBlock}</div>
+                </div>
+            </div>`;
+        resultArea.classList.remove("hidden");
+    }
+
+    function escapeHtml(str) {
+        return String(str ?? "").replace(/[&<>"']/g, s => ({
+            "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        }[s]));
+    }
+
+    async function lookup(query) {
+        lastSearchedQuery = query;
+        input.value = ""; // kosongin biar scan berikutnya gak numpuk di belakang
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/method/custom_reports.api.price_checker.lookup_item?query=${encodeURIComponent(query)}`, {
+                headers: { "X-Frappe-CSRF-Token": window.csrf_token || "" }
+            });
+            if (!res.ok) throw new Error(`Server error (${res.status})`);
+            const data = await res.json();
+            const payload = data.message || data;
+            if (payload && payload.found) {
+                renderItem(payload);
+            } else {
+                renderNotFound(query);
+            }
+        } catch (err) {
+            renderError(err.message || "Tidak bisa terhubung ke server.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function scheduleAutoSearch() {
+        clearTimeout(autoSearchTimer);
+        const query = input.value.trim();
+        if (query.length < MIN_QUERY_LENGTH) return;
+        autoSearchTimer = setTimeout(() => {
+            if (input.value.trim() === query && query !== lastSearchedQuery) {
+                lookup(query);
+            }
+        }, AUTO_SEARCH_DELAY_MS);
+    }
+
+    input.addEventListener("input", scheduleAutoSearch);
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        clearTimeout(autoSearchTimer);
+        const query = input.value.trim();
+        if (!query) return;
+        lookup(query);
+    });
+
+    // Scanner yang ngirim Enter di akhir -> langsung cari, gak nunggu debounce
+    input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            clearTimeout(autoSearchTimer);
+            const query = input.value.trim();
+            if (query) lookup(query);
+        }
+    });
+
+    // Setelah hasil tampil & user (atau scanner) mulai input baru, select-all
+    // biar ketikan/scan berikutnya langsung nimpa, gak perlu clear manual dulu.
+    input.addEventListener("focus", function () {
+        input.select();
+    });
+
+    input.focus();
+
+    // Scanner ngirim keystroke ke element yang lagi fokus. Kalau fokus lagi
+    // gak di input (misal abis klik tombol fullscreen, atau kiosk disentuh
+    // di tempat lain), tarik fokus balik ke input SEBELUM karakter pertama
+    // dari scan ke-insert, biar hasil scan tetep masuk ke search box tanpa
+    // perlu klik dulu.
+    document.addEventListener("keydown", function (e) {
+        if (document.activeElement !== input) {
+            input.focus();
+        }
+    }, true);
+
+    // Jaga-jaga tambahan: kalau fokus kegeser (klik tombol, sentuh layar,
+    // dll), balikin lagi ke input abis jeda singkat.
+    input.addEventListener("blur", function () {
+        setTimeout(() => input.focus(), 60);
+    });
+
+    // Tombol fullscreen
+    const fullscreenBtn = document.getElementById("fullscreen-btn");
+    const fullscreenIcon = document.getElementById("fullscreen-icon");
+
+    fullscreenBtn.addEventListener("click", function () {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+            document.exitFullscreen().catch(() => {});
+        }
+    });
+
+    document.addEventListener("fullscreenchange", function () {
+        const isFullscreen = !!document.fullscreenElement;
+        fullscreenIcon.textContent = isFullscreen ? "fullscreen_exit" : "fullscreen";
+        input.focus();
+    });
+})();
+</script>
+</body>
+</html>

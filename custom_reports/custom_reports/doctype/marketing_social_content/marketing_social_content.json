@@ -1,0 +1,196 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-09-11 13:07:45.879040",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "platform",
+  "account_name",
+  "col_break_head",
+  "posting_date",
+  "content_type",
+  "sec_content",
+  "caption",
+  "url",
+  "sec_metrics",
+  "likes",
+  "comments",
+  "shares",
+  "col_break_metrics",
+  "saved",
+  "views",
+  "reach",
+  "interactions",
+  "repliz_content_id",
+  "repliz_account_id"
+ ],
+ "fields": [
+  {
+   "default": "SMC-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "options": "SMC-.YYYY.-.#####"
+  },
+  {
+   "description": "Contoh: TikTok, Instagram, Facebook, YouTube",
+   "fieldname": "platform",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Platform",
+   "reqd": 1
+  },
+  {
+   "description": "Contoh: xshamart.official1",
+   "fieldname": "account_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Akun",
+   "reqd": 1
+  },
+  {
+   "fieldname": "col_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Tanggal",
+   "reqd": 1
+  },
+  {
+   "description": "Contoh: video, photo, carousel, reels",
+   "fieldname": "content_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tipe"
+  },
+  {
+   "fieldname": "sec_content",
+   "fieldtype": "Section Break",
+   "label": "Konten"
+  },
+  {
+   "fieldname": "caption",
+   "fieldtype": "Small Text",
+   "label": "Caption"
+  },
+  {
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL"
+  },
+  {
+   "fieldname": "sec_metrics",
+   "fieldtype": "Section Break",
+   "label": "Metrik"
+  },
+  {
+   "default": "0",
+   "fieldname": "likes",
+   "fieldtype": "Int",
+   "label": "Like"
+  },
+  {
+   "default": "0",
+   "fieldname": "comments",
+   "fieldtype": "Int",
+   "label": "Komentar"
+  },
+  {
+   "default": "0",
+   "fieldname": "shares",
+   "fieldtype": "Int",
+   "label": "Share"
+  },
+  {
+   "fieldname": "col_break_metrics",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "saved",
+   "fieldtype": "Int",
+   "label": "Saved"
+  },
+  {
+   "default": "0",
+   "fieldname": "views",
+   "fieldtype": "Int",
+   "label": "Views"
+  },
+  {
+   "default": "0",
+   "fieldname": "reach",
+   "fieldtype": "Int",
+   "label": "Reach"
+  },
+  {
+   "default": "0",
+   "fieldname": "interactions",
+   "fieldtype": "Int",
+   "label": "Interaction"
+  },
+  {
+   "fieldname": "repliz_content_id",
+   "fieldtype": "Data",
+   "label": "Repliz Content ID",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "repliz_account_id",
+   "fieldtype": "Data",
+   "label": "Repliz Account ID",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-11 13:11:34.816702",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Marketing Social Content",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "posting_date",
+ "sort_order": "DESC",
+ "states": []
+}

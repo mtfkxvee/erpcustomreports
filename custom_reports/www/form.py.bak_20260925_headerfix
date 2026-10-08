@@ -1,0 +1,63 @@
+import frappe
+
+
+def get_context(context):
+    context.no_cache = 1
+    frappe.local.response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    frappe.local.response.headers["Pragma"] = "no-cache"
+    form_key = frappe.form_dict.get("form_key")
+
+    survey = frappe.db.get_value(
+        "Survey Form",
+        {"form_key": form_key},
+        ["name", "title", "description", "status", "collect_email", "allow_multiple_responses", "banner_image"],
+        as_dict=True,
+    )
+
+    if not survey:
+        context.not_found = True
+        return context
+
+    if survey.banner_image and not survey.banner_image.startswith("http"):
+        survey.banner_image = frappe.utils.get_url() + survey.banner_image
+
+    context.survey = survey
+    context.form_key = form_key
+
+    if survey.status != "Published":
+        context.closed = True
+        return context
+
+    questions = frappe.get_all(
+        "Survey Form Question",
+        filters={"parent": survey.name, "parenttype": "Survey Form"},
+        fields=["name", "question", "question_type", "options", "is_required",
+                "scale_min", "scale_max", "scale_min_label", "scale_max_label", "idx"],
+        order_by="idx asc",
+        ignore_permissions=True,
+    )
+
+    for q in questions:
+        if q.question_type in ("Multiple Choice", "Checkboxes", "Dropdown"):
+            q.option_list = [o for o in (q.options or "").split("\n") if o.strip()]
+        else:
+            q.option_list = []
+
+    # Group questions into pages, Google-Forms style: each Section Break starts a new page.
+    pages = []
+    current = {"title": None, "description": None, "questions": []}
+    for q in questions:
+        if q.question_type == "Section Break":
+            if current["questions"] or current["title"]:
+                pages.append(current)
+            current = {"title": q.question, "description": q.options, "questions": []}
+        else:
+            current["questions"].append(q)
+    if current["questions"] or current["title"]:
+        pages.append(current)
+    if not pages:
+        pages = [{"title": None, "description": None, "questions": []}]
+
+    context.questions = questions
+    context.survey_pages = pages
+    return context

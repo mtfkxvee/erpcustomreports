@@ -1,0 +1,77 @@
+# Copyright (c) 2026, X-SHA and contributors
+# For license information, please see license.txt
+
+import frappe
+from frappe.model.document import Document
+from frappe.utils import now_datetime
+
+from custom_reports.api.whatsapp import normalize_wa_number, send_apicoid_template_message
+
+
+@frappe.whitelist()
+def get_recipients_from_customer_group(customer_group):
+	rows = frappe.get_all(
+		"Customer",
+		filters={"customer_group": customer_group, "mobile_no": ["is", "set"]},
+		fields=["customer_name", "mobile_no"],
+	)
+	return [
+		{"phone": r.mobile_no, "recipient_name": r.customer_name}
+		for r in rows if normalize_wa_number(r.mobile_no)
+	]
+
+
+class WhatsAppBlast(Document):
+	def validate(self):
+		self.total_recipients = len(self.recipients or [])
+
+	@frappe.whitelist()
+	def send_blast(self):
+		if not self.recipients:
+			frappe.throw("Tambahkan minimal 1 penerima dulu.")
+		if self.status == "Sending":
+			frappe.throw("Blast ini sedang dikirim.")
+
+		variables = [v.value for v in (self.template_variables or [])]
+
+		self.status = "Sending"
+		self.save(ignore_permissions=True)
+		frappe.db.commit()
+
+		sent_count = 0
+		failed_count = 0
+
+		for row in self.recipients:
+			if row.status == "Sent":
+				sent_count += 1
+				continue
+
+			phone = normalize_wa_number(row.phone)
+			if not phone:
+				row.status = "Failed"
+				row.error_message = "Nomor tidak valid"
+				failed_count += 1
+				continue
+
+			result = send_apicoid_template_message(
+				phone, self.template_name, self.template_language, variables
+			)
+
+			if result.get("success"):
+				row.status = "Sent"
+				row.error_message = None
+				row.sent_at = now_datetime()
+				sent_count += 1
+			else:
+				row.status = "Failed"
+				row.error_message = result.get("error")
+				failed_count += 1
+
+		self.sent_count = sent_count
+		self.failed_count = failed_count
+		self.sent_at = now_datetime()
+		self.status = "Completed" if failed_count == 0 else ("Failed" if sent_count == 0 else "Completed")
+		self.save(ignore_permissions=True)
+		frappe.db.commit()
+
+		return {"sent": sent_count, "failed": failed_count}

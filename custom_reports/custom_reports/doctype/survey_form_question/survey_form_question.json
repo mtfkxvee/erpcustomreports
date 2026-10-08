@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-09 16:55:14.251208",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "question",
+  "question_type",
+  "is_required",
+  "options",
+  "col_break_scale",
+  "scale_min",
+  "scale_max",
+  "scale_min_label",
+  "scale_max_label"
+ ],
+ "fields": [
+  {
+   "fieldname": "question",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Pertanyaan",
+   "reqd": 1
+  },
+  {
+   "default": "Short Text",
+   "fieldname": "question_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Tipe Pertanyaan",
+   "options": "Short Text\nParagraph\nMultiple Choice\nCheckboxes\nDropdown\nLinear Scale\nDate\nFile Upload\nSection Break",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "is_required",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Wajib Diisi"
+  },
+  {
+   "depends_on": "eval:['Multiple Choice','Checkboxes','Dropdown','Section Break'].includes(doc.question_type)",
+   "fieldname": "options",
+   "fieldtype": "Small Text",
+   "label": "Pilihan (1 per baris) / Deskripsi Section"
+  },
+  {
+   "fieldname": "col_break_scale",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.question_type=='Linear Scale'",
+   "fieldname": "scale_min",
+   "fieldtype": "Int",
+   "label": "Skala Min"
+  },
+  {
+   "default": "5",
+   "depends_on": "eval:doc.question_type=='Linear Scale'",
+   "fieldname": "scale_max",
+   "fieldtype": "Int",
+   "label": "Skala Max"
+  },
+  {
+   "depends_on": "eval:doc.question_type=='Linear Scale'",
+   "fieldname": "scale_min_label",
+   "fieldtype": "Data",
+   "label": "Label Skala Min"
+  },
+  {
+   "depends_on": "eval:doc.question_type=='Linear Scale'",
+   "fieldname": "scale_max_label",
+   "fieldtype": "Data",
+   "label": "Label Skala Max"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-09 22:37:32.842159",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Survey Form Question",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

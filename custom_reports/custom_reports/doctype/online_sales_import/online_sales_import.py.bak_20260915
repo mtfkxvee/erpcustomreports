@@ -1,0 +1,447 @@
+import frappe
+from frappe import _
+from frappe.model.document import Document
+
+
+def _fix_osi_invoice(inv_name, outlet):
+    """Fix invoice setelah commit - dipanggil via after_commit hook."""
+    frappe.db.sql(
+        "UPDATE `tabSales Invoice` SET ignore_pricing_rule = 1, custom_outlet = %s WHERE name = %s",
+        (outlet, inv_name)
+    )
+    frappe.db.sql(
+        "DELETE FROM `tabSales Invoice Item` WHERE parent = %s AND is_free_item = 1",
+        inv_name
+    )
+
+
+class OnlineSalesImport(Document):
+
+    def validate(self):
+        pass
+
+    @frappe.whitelist()
+    def parse_data(self):
+        if not self.raw_data:
+            frappe.throw(_("Harap paste data terlebih dahulu."))
+
+        self.import_items = []
+        lines = self.raw_data.strip().split("\n")
+
+        start = 0
+        first = lines[0].strip().lower()
+        if "pesanan" in first or "sku" in first or "no." in first:
+            start = 1
+
+        errors = []
+        for i, line in enumerate(lines[start:], start=start+1):
+            line = line.strip()
+            if not line:
+                continue
+            cols = line.split("\t")
+            if len(cols) < 4:
+                errors.append("Baris {}: format tidak valid ({} kolom)".format(i, len(cols)))
+                continue
+
+            no_pesanan      = cols[0].strip()
+            item_code       = cols[1].strip()
+            qty             = abs(self._parse_float(cols[2])) if len(cols) > 2 else 1
+            rate            = self._parse_float(cols[3]) if len(cols) > 3 else 0
+            discount_amount = self._parse_float(cols[4]) if len(cols) > 4 else 0
+
+            item_name = frappe.db.get_value("Item", item_code, "item_name")
+            status = "Valid" if item_name else "Item tidak ditemukan"
+
+            self.append("import_items", {
+                "no_pesanan":      no_pesanan,
+                "item_code":       item_code,
+                "item_name":       item_name or "",
+                "qty":             qty,
+                "rate":            rate,
+                "discount_amount": discount_amount,
+                "status":          status,
+                "mode_of_payment": self.mode_of_payment or "",
+            })
+
+        if errors:
+            frappe.msgprint(
+                "Beberapa baris tidak valid:<br>" + "<br>".join(errors),
+                indicator="orange", title="Warning"
+            )
+
+        frappe.msgprint(
+            "{} baris berhasil di-parse.".format(len(self.import_items)),
+            indicator="green", alert=True
+        )
+        return self.import_items
+
+    @frappe.whitelist()
+    def get_preview(self):
+        """Return preview grouped per NO.PESANAN untuk ditampilkan sebelum submit."""
+        if not self.import_items:
+            frappe.throw(_("Harap parse data terlebih dahulu."))
+
+        groups = {}
+        for row in self.import_items:
+            key = row.no_pesanan
+            if key not in groups:
+                groups[key] = {"no_pesanan": key, "items": [], "total": 0, "total_diskon": 0, "net_total": 0, "valid": True}
+            groups[key]["items"].append({
+                "item_code":       row.item_code,
+                "item_name":       row.item_name,
+                "qty":             row.qty,
+                "rate":            row.rate,
+                "discount_amount": row.discount_amount,
+                "subtotal":        row.qty * row.rate,
+                "status":          row.status,
+            })
+            if row.status != "Valid":
+                groups[key]["valid"] = False
+            groups[key]["total"]        += row.qty * row.rate
+            groups[key]["total_diskon"] += row.discount_amount
+            groups[key]["net_total"]    += (row.qty * row.rate) - row.discount_amount
+
+        result = list(groups.values())
+        result.sort(key=lambda x: x["no_pesanan"])
+
+        grand_total       = sum(g["total"] for g in result)
+        grand_diskon      = sum(g["total_diskon"] for g in result)
+        grand_net         = sum(g["net_total"] for g in result)
+        total_invoice     = len(result)
+        total_item        = sum(len(g["items"]) for g in result)
+        invalid_count     = sum(1 for g in result if not g["valid"])
+
+        return {
+            "groups":         result,
+            "grand_total":    grand_total,
+            "grand_diskon":   grand_diskon,
+            "grand_net":      grand_net,
+            "total_invoice":  total_invoice,
+            "total_item":     total_item,
+            "invalid_count":  invalid_count,
+        }
+
+    def _parse_float(self, val):
+        try:
+            return float(str(val).replace(",", "").replace(" ", "") or 0)
+        except:
+            return 0
+
+
+    def on_cancel(self):
+        """Cancel semua Sales Invoice yang dibuat dari dokumen ini."""
+        created_invoices = frappe.db.get_value("Online Sales Import", self.name, "created_invoices") or ""
+        if not created_invoices.strip():
+            frappe.msgprint("Tidak ada Sales Invoice yang perlu dicancel.", alert=True)
+            return
+
+        inv_list = [i.strip() for i in created_invoices.strip().split("\n") if i.strip()]
+        cancelled = []
+        failed    = []
+
+        for inv_name in inv_list:
+            try:
+                if not frappe.db.exists("Sales Invoice", inv_name):
+                    continue
+                si = frappe.get_doc("Sales Invoice", inv_name)
+                if si.docstatus == 1:
+                    si.cancel()
+                    cancelled.append(inv_name)
+                elif si.docstatus == 2:
+                    cancelled.append(inv_name + " (sudah cancel)")
+            except Exception as e:
+                failed.append("{}: {}".format(inv_name, str(e)))
+
+        frappe.db.commit()
+        msg_parts = []
+        if cancelled:
+            msg_parts.append("{} Sales Invoice berhasil dicancel.".format(len(cancelled)))
+        if failed:
+            msg_parts.append("Gagal: " + ", ".join(failed))
+        frappe.msgprint(
+            "\n".join(msg_parts) or "Selesai.",
+            indicator="orange" if failed else "green",
+            alert=True
+        )
+
+    def on_submit(self):
+        self.create_invoices()
+
+    def fix_created_invoices(self, inv_list=None):
+        """Update ignore_pricing_rule, hapus free item, dan fix rate sesuai input OSI."""
+        if inv_list is None:
+            created = frappe.db.get_value("Online Sales Import", self.name, "created_invoices") or ""
+            inv_list = [i.strip() for i in created.strip().split("\n") if i.strip()]
+        if not inv_list:
+            return
+
+        # Build map: no_pesanan -> {item_code -> rate}
+        rate_map = {}
+        for row in self.import_items:
+            rate_map.setdefault(row.no_pesanan, {})[row.item_code] = row.rate
+
+        for inv_name in inv_list:
+            if not frappe.db.exists("Sales Invoice", inv_name):
+                continue
+
+            # Fix ignore_pricing_rule dan outlet
+            frappe.db.sql(
+                "UPDATE `tabSales Invoice` SET ignore_pricing_rule = 1, custom_outlet = %s WHERE name = %s",
+                (self.outlet, inv_name)
+            )
+
+            # Hapus free item
+            frappe.db.sql(
+                "DELETE FROM `tabSales Invoice Item` WHERE parent = %s AND is_free_item = 1",
+                inv_name
+            )
+
+            # Fix rate sesuai input OSI
+            no_pesanan = frappe.db.get_value("Sales Invoice", inv_name, "remarks")
+            item_rates = rate_map.get(no_pesanan, {})
+            for item_code, rate in item_rates.items():
+                frappe.db.sql("""
+                    UPDATE `tabSales Invoice Item`
+                    SET rate = %s, base_rate = %s, net_rate = %s, base_net_rate = %s,
+                        amount = qty * %s, base_amount = qty * %s,
+                        net_amount = qty * %s, base_net_amount = qty * %s
+                    WHERE parent = %s AND item_code = %s AND is_free_item = 0
+                """, (rate, rate, rate, rate, rate, rate, rate, rate, inv_name, item_code))
+
+            # Recalculate grand_total dari items yang ada
+            totals = frappe.db.sql("""
+                SELECT SUM(net_amount) as net_total, SUM(amount) as total
+                FROM `tabSales Invoice Item`
+                WHERE parent = %s
+            """, inv_name, as_dict=True)[0]
+            net_total = float(totals.net_total or 0)
+            total = float(totals.total or 0)
+            frappe.db.sql("""
+                UPDATE `tabSales Invoice`
+                SET net_total = %s, base_net_total = %s,
+                    total = %s, base_total = %s,
+                    grand_total = %s, base_grand_total = %s,
+                    rounded_total = %s, base_rounded_total = %s,
+                    outstanding_amount = %s, paid_amount = %s
+                WHERE name = %s
+            """, (net_total, net_total, total, total,
+                  net_total, net_total, net_total, net_total,
+                  0, net_total, inv_name))
+
+        frappe.db.commit()
+
+    def fix_created_invoices(self, inv_list=None):
+        """Update ignore_pricing_rule, hapus free item, dan fix rate sesuai input OSI."""
+        if inv_list is None:
+            created = frappe.db.get_value("Online Sales Import", self.name, "created_invoices") or ""
+            inv_list = [i.strip() for i in created.strip().split("\n") if i.strip()]
+        if not inv_list:
+            return
+
+        # Build map: no_pesanan -> {item_code -> rate}
+        rate_map = {}
+        for row in self.import_items:
+            rate_map.setdefault(row.no_pesanan, {})[row.item_code] = row.rate
+
+        for inv_name in inv_list:
+            if not frappe.db.exists("Sales Invoice", inv_name):
+                continue
+
+            # Fix ignore_pricing_rule dan outlet
+            frappe.db.sql(
+                "UPDATE `tabSales Invoice` SET ignore_pricing_rule = 1, custom_outlet = %s WHERE name = %s",
+                (self.outlet, inv_name)
+            )
+
+            # Hapus free item
+            frappe.db.sql(
+                "DELETE FROM `tabSales Invoice Item` WHERE parent = %s AND is_free_item = 1",
+                inv_name
+            )
+
+            # Fix rate sesuai input OSI
+            no_pesanan = frappe.db.get_value("Sales Invoice", inv_name, "remarks")
+            item_rates = rate_map.get(no_pesanan, {})
+            for item_code, rate in item_rates.items():
+                frappe.db.sql("""
+                    UPDATE `tabSales Invoice Item`
+                    SET rate = %s, base_rate = %s, net_rate = %s, base_net_rate = %s,
+                        amount = qty * %s, base_amount = qty * %s,
+                        net_amount = qty * %s, base_net_amount = qty * %s
+                    WHERE parent = %s AND item_code = %s AND is_free_item = 0
+                """, (rate, rate, rate, rate, rate, rate, rate, rate, inv_name, item_code))
+
+            # Recalculate grand_total dari items yang ada
+            totals = frappe.db.sql("""
+                SELECT SUM(net_amount) as net_total, SUM(amount) as total
+                FROM `tabSales Invoice Item`
+                WHERE parent = %s
+            """, inv_name, as_dict=True)[0]
+            net_total = float(totals.net_total or 0)
+            total = float(totals.total or 0)
+            frappe.db.sql("""
+                UPDATE `tabSales Invoice`
+                SET net_total = %s, base_net_total = %s,
+                    total = %s, base_total = %s,
+                    grand_total = %s, base_grand_total = %s,
+                    rounded_total = %s, base_rounded_total = %s,
+                    outstanding_amount = %s, paid_amount = %s
+                WHERE name = %s
+            """, (net_total, net_total, total, total,
+                  net_total, net_total, net_total, net_total,
+                  0, net_total, inv_name))
+
+        frappe.db.commit()
+
+    def create_invoices(self):
+        if not self.import_items:
+            frappe.throw(_("Tidak ada data untuk diimport."))
+
+        invalid = [r.item_code for r in self.import_items if r.status != "Valid"]
+        if invalid:
+            frappe.throw(
+                "Item berikut tidak ditemukan: <b>{}</b>. Harap perbaiki sebelum submit.".format(
+                    ", ".join(invalid)
+                )
+            )
+
+        groups = {}
+        for row in self.import_items:
+            if row.no_pesanan not in groups:
+                groups[row.no_pesanan] = []
+            groups[row.no_pesanan].append(row)
+
+        company = (
+            frappe.defaults.get_user_default("company")
+            or frappe.db.get_single_value("Global Defaults", "default_company")
+        )
+
+        created = []
+        failed  = []
+
+        for no_pesanan, rows in groups.items():
+            try:
+                is_return = (self.is_return == "Sales Return")
+
+                # Ambil MOP dari baris pertama group (sudah diset per pesanan)
+                mop = rows[0].mode_of_payment or self.mode_of_payment or ""
+
+                si = frappe.new_doc("Sales Invoice")
+                si.customer           = self.customer
+                si.posting_date       = self.posting_date
+                si.company            = company
+                si.selling_price_list = self.price_list
+                si.set_warehouse      = self.warehouse
+                si.cost_center        = self.cost_center
+                si.remarks            = no_pesanan
+                si.custom_outlet      = self.outlet
+                si.update_stock       = 1
+                si.is_return          = 1 if is_return else 0
+                si.ignore_pricing_rule = 1
+                si.flags.pos_next_ignore_pricing_rule = True
+                if self.debit_to:
+                    si.debit_to = self.debit_to
+
+                # Set is_pos = 1 agar payment muncul
+                si.is_pos = 1
+
+                for row in rows:
+                    # Ambil valuation rate dari item master atau SLE
+                    val_rate = frappe.db.get_value(
+                        "Bin", {"item_code": row.item_code, "warehouse": self.warehouse}, "valuation_rate"
+                    ) or frappe.db.get_value("Item", row.item_code, "valuation_rate") or 0
+
+                    item_row = si.append("items", {
+                        "item_code":                row.item_code,
+                        "item_name":                row.item_name,
+                        "qty":                      -abs(row.qty) if is_return else row.qty,
+                        "rate":                     row.rate,
+                        "warehouse":                self.warehouse,
+                        "cost_center":              self.cost_center,
+                        "discount_amount":          row.discount_amount,
+                        "allow_zero_valuation_rate": 1,
+                    })
+                    if self.discount_account and row.discount_amount:
+                        item_row.discount_account = self.discount_account
+
+                si.insert(ignore_permissions=True)
+
+                # Hapus free item dan force ignore_pricing_rule via SQL
+                frappe.db.sql(
+                    "UPDATE `tabSales Invoice` SET ignore_pricing_rule = 1 WHERE name = %s",
+                    si.name
+                )
+                # Hapus free item yang di-inject pricing rule
+                frappe.db.sql(
+                    "DELETE FROM `tabSales Invoice Item` WHERE parent = %s AND is_free_item = 1",
+                    si.name
+                )
+                frappe.db.commit()
+                si.reload()
+
+                # Tambah payment setelah insert (grand_total sudah terhitung)
+                if mop:
+                    mop_account = frappe.db.get_value("Mode of Payment Account",
+                        {"parent": mop, "company": company}, "default_account"
+                    )
+                    # Hapus payment yang auto-dibuat, replace dengan yang benar
+                    si.payments = []
+                    si.append("payments", {
+                        "mode_of_payment": mop,
+                        "account":         mop_account or "",
+                        "amount":          abs(si.grand_total),
+                        "base_amount":     abs(si.grand_total),
+                    })
+                    si.paid_amount = abs(si.grand_total)
+                    si.custom_outlet = self.outlet
+                    si.flags.ignore_validate = True
+                    si.flags.ignore_permissions = True
+                    si.save()
+
+                si.submit()
+                # Update setelah submit - submit() bisa reset ignore_pricing_rule
+                frappe.db.sql(
+                    "UPDATE `tabSales Invoice` SET ignore_pricing_rule = 1, custom_outlet = %s WHERE name = %s",
+                    (self.outlet, si.name)
+                )
+                frappe.db.sql(
+                    "DELETE FROM `tabSales Invoice Item` WHERE parent = %s AND is_free_item = 1",
+                    si.name
+                )
+                frappe.db.commit()
+                created.append({"name": si.name, "no_pesanan": no_pesanan, "grand_total": si.grand_total})
+
+            except Exception as e:
+                failed.append({"no_pesanan": no_pesanan, "error": str(e)})
+
+        log_lines = []
+        if created:
+            log_lines.append("Berhasil: {} invoice".format(len(created)))
+            for c in created:
+                log_lines.append("  {} → {} (Rp {:,.0f})".format(c["no_pesanan"], c["name"], c["grand_total"]))
+        if failed:
+            log_lines.append("Gagal: {} pesanan".format(len(failed)))
+            for f in failed:
+                log_lines.append("  {}: {}".format(f["no_pesanan"], f["error"]))
+
+        self.db_set("total_invoices", len(created))
+        self.db_set("import_log", "\n".join(log_lines))
+        # Simpan nama invoice untuk keperluan cancel
+        inv_names = [c["name"] for c in created]
+        self.db_set("created_invoices", "\n".join(inv_names))
+        # Fix ignore_pricing_rule dan hapus free item untuk semua invoice yang dibuat
+        self.fix_created_invoices(inv_names)
+
+        if failed:
+            frappe.msgprint(
+                "{} berhasil, {} gagal.<br><br>{}".format(
+                    len(created), len(failed),
+                    "<br>".join([f["no_pesanan"] + ": " + f["error"] for f in failed])
+                ),
+                indicator="orange", title="Import Selesai"
+            )
+        else:
+            frappe.msgprint(
+                "{} Sales Invoice berhasil dibuat!".format(len(created)),
+                indicator="green", title="Import Selesai"
+            )

@@ -1,0 +1,36 @@
+[
+  {
+    "doctype": "Custom Field",
+    "dt": "Payment Entry",
+    "fieldname": "is_cheque_payment",
+    "label": "Is Cheque/Giro Payment",
+    "fieldtype": "Check",
+    "insert_after": "mode_of_payment",
+    "read_only": 1,
+    "no_copy": 1
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Payment Entry",
+    "fieldname": "cheque_status",
+    "label": "Cheque Status",
+    "fieldtype": "Select",
+    "options": "\nPending\nCleared\nBounced",
+    "insert_after": "is_cheque_payment",
+    "read_only": 1,
+    "no_copy": 1,
+    "in_list_view": 1,
+    "in_standard_filter": 1
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Payment Entry",
+    "fieldname": "cheque_clearing_je",
+    "label": "Clearing Journal Entry",
+    "fieldtype": "Link",
+    "options": "Journal Entry",
+    "insert_after": "cheque_status",
+    "read_only": 1,
+    "no_copy": 1
+  }
+]

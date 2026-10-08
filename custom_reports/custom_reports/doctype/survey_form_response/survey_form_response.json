@@ -1,0 +1,113 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-09-09 16:55:15.041010",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "survey_form",
+  "submitted_on",
+  "col_break_resp",
+  "respondent_name",
+  "respondent_email",
+  "sec_answers",
+  "answers"
+ ],
+ "fields": [
+  {
+   "default": "SFR-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "options": "SFR-.YYYY.-.#####"
+  },
+  {
+   "fieldname": "survey_form",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Survey Form",
+   "options": "Survey Form",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "submitted_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Waktu Submit",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break_resp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "respondent_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nama Responden",
+   "read_only": 1
+  },
+  {
+   "fieldname": "respondent_email",
+   "fieldtype": "Data",
+   "label": "Email Responden",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec_answers",
+   "fieldtype": "Section Break",
+   "label": "Jawaban"
+  },
+  {
+   "fieldname": "answers",
+   "fieldtype": "Table",
+   "label": "Jawaban",
+   "options": "Survey Response Answer",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-09 16:55:15.041010",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Survey Form Response",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

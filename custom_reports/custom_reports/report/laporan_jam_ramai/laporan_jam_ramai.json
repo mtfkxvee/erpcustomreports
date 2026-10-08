@@ -1,0 +1,28 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-06-18 21:44:59.296930",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 5,
+ "is_standard": "Yes",
+ "letter_head": null,
+ "modified": "2026-06-21 18:57:39.819187",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Laporan Jam Ramai",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Sales Invoice",
+ "report_name": "Laporan Jam Ramai",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "All"
+  }
+ ],
+ "timeout": 0
+}

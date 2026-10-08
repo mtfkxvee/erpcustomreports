@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ survey.title if survey else "Survey" }}</title>
+<link rel="icon" type="image/png" href="https://x-sha.id/xsha-logo.png">
+<style>
+  :root {
+    --purple: #7c3aed;
+    --purple-dark: #5b21b6;
+    --purple-light: #ede9fe;
+    --bg: #f6f4fb;
+    --card: #ffffff;
+    --text: #1f1b2e;
+    --muted: #8b8698;
+    --border: #e7e3f0;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 0 0 60px; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; background: var(--card); position: sticky; top: 0; z-index: 5; border-bottom: 1px solid var(--border); }
+  .topbar .side { display: flex; align-items: center; gap: 10px; }
+  .topbar button.icon-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text); padding: 4px; }
+  .topbar .title { font-weight: 700; font-size: 15px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--purple); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+
+  .hero { background: linear-gradient(135deg, var(--purple) 0%, #a855f7 100%); color: #fff; padding: 22px 18px 26px; border-radius: 0 0 26px 26px; margin-bottom: 18px; overflow: hidden; }
+  .hero-banner { width: 100%; margin: 0 0 16px; display: block; max-height: 200px; object-fit: cover; border-radius: 14px; }
+  .hero-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .badge { background: rgba(255,255,255,0.18); border-radius: 999px; padding: 5px 12px; font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+  .hero h1 { font-size: 21px; margin: 4px 0 8px; line-height: 1.3; }
+  .hero p { font-size: 13.5px; opacity: 0.92; margin: 0 0 14px; line-height: 1.5; }
+  .hero-user { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.14); border-radius: 12px; padding: 8px 12px; margin-bottom: 14px; font-size: 12.5px; }
+  .hero-user .who { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .hero-user .autosave { display: flex; align-items: center; gap: 5px; opacity: 0.9; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; }
+  .progress-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; opacity: 0.95; }
+  .progress-track { height: 7px; background: rgba(255,255,255,0.25); border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #fff; border-radius: 999px; width: 0%; transition: width 0.25s ease; }
+
+  .content { padding: 0 16px; }
+
+  .page-step { font-size: 11.5px; font-weight: 700; color: var(--purple); text-transform: uppercase; letter-spacing: 0.03em; margin: 4px 4px 6px; }
+  .section-title { font-size: 17px; font-weight: 700; margin: 6px 4px 4px; color: var(--text); }
+  .section-desc { font-size: 13px; color: var(--muted); margin: 0 4px 16px; line-height: 1.5; }
+
+  .q { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(20,10,40,0.03); }
+  .q-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+  .q-num { display: flex; align-items: center; gap: 10px; }
+  .q-num .n { width: 24px; height: 24px; border-radius: 7px; background: var(--purple-light); color: var(--purple-dark); font-size: 12.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .q-num .t { font-weight: 700; font-size: 14.5px; }
+  .q-tag { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .q-tag.req { background: #fee2e2; color: #b91c1c; }
+  .q-tag.opt { background: #f1f0f6; color: var(--muted); }
+
+  input[type=text], input[type=email], input[type=date], textarea, select {
+    width: 100%; padding: 11px 13px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; font-family: inherit; background: #fbfaff;
+  }
+  textarea { resize: vertical; }
+  .char-count { text-align: right; font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  .emoji-row { display: flex; justify-content: space-between; gap: 6px; }
+  .emoji-opt { flex: 1; border: 1.5px solid var(--border); border-radius: 14px; background: #fbfaff; padding: 12px 4px; text-align: center; cursor: pointer; font-size: 12px; color: var(--muted); }
+  .emoji-opt .e { font-size: 22px; display: block; margin-bottom: 4px; }
+  .emoji-opt.selected { background: var(--purple); border-color: var(--purple); color: #fff; }
+
+  .scale-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .scale-opt { flex: 1; min-width: 32px; border: 1.5px solid var(--border); border-radius: 10px; background: #fbfaff; padding: 10px 0; text-align: center; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .scale-opt.selected { background: var(--purple); border-color: var(--purple); color: #fff; }
+  .scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 8px; }
+
+  .choice-row { border: 1.5px solid var(--border); border-radius: 13px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 13.5px; font-weight: 500; background: #fbfaff; }
+  .choice-row.selected { background: var(--purple); border-color: var(--purple); color: #fff; }
+  .choice-check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; color: transparent; }
+  .choice-row.selected .choice-check { background: #fff; border-color: #fff; color: var(--purple); }
+
+  .chip-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1.5px solid var(--border); border-radius: 999px; padding: 9px 15px; font-size: 12.5px; font-weight: 600; cursor: pointer; background: #fbfaff; }
+  .chip.selected { background: var(--purple-light); border-color: var(--purple); color: var(--purple-dark); }
+
+  select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b8698' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+
+  .file-row { border: 1.5px dashed var(--border); border-radius: 13px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #fbfaff; }
+  .file-row .info { font-size: 12.5px; }
+  .file-row .info .h { font-weight: 600; }
+  .file-row .info .hint { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .upload-btn { background: var(--purple-light); color: var(--purple-dark); border: none; border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .file-status { font-size: 11.5px; color: var(--muted); margin-top: 8px; }
+
+  .page-err, .err { color: #b91c1c; background: #fee2e2; border-radius: 10px; padding: 10px 14px; margin: 6px 0 14px; font-size: 13px; display: none; }
+
+  .actions { padding: 6px 0 0; }
+  .btn-submit, .btn-next { width: 100%; background: linear-gradient(135deg, var(--purple) 0%, #a855f7 100%); color: #fff; border: none; border-radius: 14px; padding: 15px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-submit:disabled { opacity: 0.6; }
+  .btn-row { display: flex; gap: 10px; margin-top: 10px; }
+  .btn-secondary { flex: 1; background: var(--card); border: 1.5px solid var(--border); color: var(--text); border-radius: 12px; padding: 11px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .page-nav { display: flex; gap: 10px; margin-top: 4px; }
+  .page-nav .btn-back { flex: 0 0 90px; }
+
+  .footer-note { text-align: center; font-size: 11px; color: var(--muted); margin-top: 18px; padding: 0 30px; line-height: 1.5; }
+
+  .center { text-align: center; padding: 60px 20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+{% if not_found %}
+  <div class="center">
+    <h3>Survey tidak ditemukan</h3>
+    <p style="color:var(--muted);">Link ini mungkin salah atau sudah tidak berlaku.</p>
+  </div>
+
+{% elif closed %}
+  <div class="center">
+    <h3>{{ survey.title }}</h3>
+    <p style="color:var(--muted);">Survey ini sudah tidak menerima jawaban baru.</p>
+  </div>
+
+{% else %}
+  <div class="hero">
+    {% if survey.banner_image %}
+    <img id="banner-wrap" class="hero-banner" src="{{ survey.banner_image }}" alt="Banner">
+    {% endif %}
+    <div class="hero-badges hero-extra">
+      <span class="badge">&#9200; ~2 Menit</span>
+    </div>
+    <h1 id="intro-title">{{ survey.title }}</h1>
+    {% if survey.description %}<p class="hero-extra">{{ survey.description }}</p>{% endif %}
+
+    {% if survey.collect_email %}
+    <div class="hero-user hero-extra">
+      <span class="who"><span id="who-name">Isi nama kamu di bawah</span></span>
+      <span class="autosave"><span class="dot"></span> Tersimpan otomatis</span>
+    </div>
+    {% endif %}
+
+    <div class="progress-row hero-extra">
+      <span id="progress-frac">0 dari {{ questions|selectattr("question_type", "ne", "Section Break")|list|length }} Pertanyaan Terjawab</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-track hero-extra"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <form id="survey-form">
+    {% if survey.collect_email %}
+    <div class="content">
+      <div class="q">
+        <div class="q-head"><div class="q-num"><span class="t">Data Diri</span></div><span class="q-tag req">Wajib</span></div>
+        <label style="font-size:12.5px;font-weight:600;display:block;margin:10px 0 6px;">Nama</label>
+        <input type="text" id="respondent_name" required>
+        <label style="font-size:12.5px;font-weight:600;display:block;margin:12px 0 6px;">Email</label>
+        <input type="email" id="respondent_email" required>
+      </div>
+    </div>
+    {% endif %}
+
+    {% set ns = namespace(qnum=0) %}
+    {% for page in survey_pages %}
+    <div class="content page" data-page="{{ loop.index0 }}" {% if not loop.first %}style="display:none;"{% endif %}>
+      {% if survey_pages|length > 1 %}
+        <div class="page-step">Bagian {{ loop.index }} dari {{ survey_pages|length }}</div>
+      {% endif %}
+      {% if page.title %}
+        <div class="section-title">{{ page.title }}</div>
+        {% if page.description %}<div class="section-desc">{{ page.description }}</div>{% endif %}
+      {% endif %}
+
+      {% for q in page.questions %}
+        {% set ns.qnum = ns.qnum + 1 %}
+        <div class="q" data-qname="{{ q.name }}" data-qtype="{{ q.question_type }}" data-required="{{ 1 if q.is_required else 0 }}">
+          <div class="q-head">
+            <div class="q-num"><span class="n">{{ ns.qnum }}</span><span class="t">{{ q.question }}</span></div>
+            <span class="q-tag {{ 'req' if q.is_required else 'opt' }}">{{ 'Wajib' if q.is_required else ('Bisa > 1' if q.question_type == 'Checkboxes' else 'Opsional') }}</span>
+          </div>
+
+          {% if q.question_type == "Short Text" %}
+            <input type="text" class="q-input">
+          {% elif q.question_type == "Paragraph" %}
+            <textarea class="q-input" rows="3" maxlength="500" oninput="this.nextElementSibling.textContent = this.value.length + '/500 karakter'"></textarea>
+            <div class="char-count">0/500 karakter</div>
+          {% elif q.question_type == "Date" %}
+            <input type="date" class="q-input">
+          {% elif q.question_type == "Dropdown" %}
+            <select class="q-input">
+              <option value="">-- pilih --</option>
+              {% for opt in q.option_list %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+            </select>
+          {% elif q.question_type == "Multiple Choice" %}
+            {% for opt in q.option_list %}
+            <div class="choice-row" onclick="selectSingle(this)" data-value="{{ opt }}">
+              <span>{{ opt }}</span><span class="choice-check">&#10003;</span>
+            </div>
+            {% endfor %}
+          {% elif q.question_type == "Checkboxes" %}
+            <div class="chip-wrap">
+              {% for opt in q.option_list %}
+              <div class="chip" onclick="this.classList.toggle('selected'); updateProgress();" data-value="{{ opt }}">{{ opt }}</div>
+              {% endfor %}
+            </div>
+          {% elif q.question_type == "Linear Scale" and (q.scale_max - q.scale_min) == 4 %}
+            <div class="emoji-row">
+              {% set emojis = ["\U0001F61E", "\U0001F641", "\U0001F610", "\U0001F642", "\U0001F929"] %}
+              {% set labels = ["Buruk", "Kurang", "Cukup", "Bagus", "Puas"] %}
+              {% for i in range(0, 5) %}
+              <div class="emoji-opt" onclick="selectSingle(this)" data-value="{{ q.scale_min + i }}">
+                <span class="e">{{ emojis[i] }}</span>{{ labels[i] }}
+              </div>
+              {% endfor %}
+            </div>
+          {% elif q.question_type == "Linear Scale" %}
+            <div class="scale-row">
+              {% for i in range(q.scale_min, q.scale_max + 1) %}
+              <div class="scale-opt" onclick="selectSingle(this)" data-value="{{ i }}">{{ i }}</div>
+              {% endfor %}
+            </div>
+            {% if q.scale_min_label or q.scale_max_label %}
+            <div class="scale-labels"><span>{{ q.scale_min_label or "" }}</span><span>{{ q.scale_max_label or "" }}</span></div>
+            {% endif %}
+          {% elif q.question_type == "File Upload" %}
+            <div class="file-row">
+              <div class="info">
+                <div class="h">Lampirkan File</div>
+                <div class="hint">Format JPG, PNG (Maks 5MB)</div>
+              </div>
+              <button type="button" class="upload-btn" data-mode="upload">+ Upload</button>
+              <input type="file" class="q-input-file" style="display:none;">
+            </div>
+            <div class="file-status" style="font-size:12px;margin-top:4px;"></div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <div class="page-err"></div>
+
+      {% if not loop.last %}
+        <div class="page-nav">
+          {% if not loop.first %}<button type="button" class="btn-secondary btn-back">&#8592; Kembali</button>{% endif %}
+          <button type="button" class="btn-next">Lanjut &#8594;</button>
+        </div>
+      {% else %}
+        {% if survey_pages|length > 1 %}
+        <div class="page-nav" style="margin-bottom:10px;">
+          <button type="button" class="btn-secondary btn-back">&#8592; Kembali</button>
+        </div>
+        {% endif %}
+        <div id="err" class="err"></div>
+        <div class="actions">
+          <button type="submit" class="btn-submit" id="submit-btn">&#9993; Kirim Tanggapan Survei</button>
+          <div class="btn-row">
+            <button type="button" class="btn-secondary" onclick="saveDraft()">&#128190; Simpan Draf</button>
+            <button type="button" class="btn-secondary" onclick="resetForm()">&#8635; Reset Isian</button>
+          </div>
+        </div>
+        <div class="footer-note">&#128274; Tanggapan Anda disimpan dan hanya digunakan untuk pengembangan layanan.</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </form>
+
+  <div id="thankyou" style="display:none;" class="center">
+    <h3>Terima kasih!</h3>
+    <p style="color:var(--muted);">Jawaban kamu sudah tersimpan.</p>
+    {% if survey.allow_multiple_responses %}
+    <button type="button" class="btn-submit" id="resubmit-btn" style="max-width:280px;margin:20px auto 0;">&#8635; Kirim Tanggapan Lagi</button>
+    {% endif %}
+  </div>
+{% endif %}
+
+</div>
+
+<script>
+(function() {
+  const form = document.getElementById('survey-form');
+  if (!form) return;
+
+  const formKey = {{ (form_key or "") | tojson }};
+  const draftKey = 'survey_draft_' + formKey;
+  const pages = Array.from(form.querySelectorAll('.page'));
+  let currentPage = 0;
+
+  function showPage(i) {
+    pages.forEach((p, idx) => { p.style.display = idx === i ? '' : 'none'; });
+    currentPage = i;
+    window.scrollTo(0, 0);
+  }
+
+  form.querySelectorAll('.btn-next').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const page = btn.closest('.page');
+      const errBox = page.querySelector('.page-err');
+      const missing = [];
+      page.querySelectorAll('.q[data-required="1"]').forEach(block => {
+        if (!isAnswered(block)) missing.push(block);
+      });
+      if (missing.length) {
+        errBox.textContent = 'Ada pertanyaan wajib yang belum diisi di bagian ini.';
+        errBox.style.display = 'block';
+        missing[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      errBox.style.display = 'none';
+      showPage(currentPage + 1);
+    });
+  });
+
+  form.querySelectorAll('.btn-back').forEach(btn => {
+    btn.addEventListener('click', () => showPage(currentPage - 1));
+  });
+
+  window.selectSingle = function(el) {
+    const parent = el.parentElement;
+    parent.querySelectorAll('.choice-row, .emoji-opt, .scale-opt').forEach(x => x.classList.remove('selected'));
+    el.classList.add('selected');
+    updateProgress();
+  };
+
+  const nameEl = document.getElementById('respondent_name');
+  if (nameEl) {
+    nameEl.addEventListener('input', () => {
+      document.getElementById('who-name').textContent = nameEl.value || 'Isi nama kamu di bawah';
+      const avatarBadge = document.getElementById('avatar-badge');
+      if (avatarBadge) avatarBadge.textContent = (nameEl.value || '?').trim().slice(0, 1).toUpperCase() || '?';
+    });
+  }
+
+  function isAnswered(block) {
+    const qtype = block.getAttribute('data-qtype');
+    if (qtype === 'Multiple Choice' || qtype === 'Linear Scale') {
+      return !!block.querySelector('.selected');
+    } else if (qtype === 'Checkboxes') {
+      return block.querySelectorAll('.chip.selected').length > 0;
+    } else if (qtype === 'File Upload') {
+      return !!block.getAttribute('data-file-url');
+    } else {
+      const input = block.querySelector('.q-input');
+      return input ? !!input.value : false;
+    }
+  }
+
+  function collectAnswers() {
+    const answers = {};
+    form.querySelectorAll('.q[data-qname]').forEach(block => {
+      const qname = block.getAttribute('data-qname');
+      const qtype = block.getAttribute('data-qtype');
+
+      if (qtype === 'Multiple Choice' || qtype === 'Linear Scale') {
+        const sel = block.querySelector('.selected');
+        answers[qname] = sel ? sel.getAttribute('data-value') : '';
+      } else if (qtype === 'Checkboxes') {
+        const sels = block.querySelectorAll('.chip.selected');
+        answers[qname] = Array.from(sels).map(c => c.getAttribute('data-value'));
+      } else if (qtype === 'File Upload') {
+        answers[qname] = block.getAttribute('data-file-url') || '';
+      } else {
+        const input = block.querySelector('.q-input');
+        answers[qname] = input ? input.value : '';
+      }
+    });
+    return answers;
+  }
+
+  window.updateProgress = function() {
+    const blocks = form.querySelectorAll('.q[data-qname]');
+    let answered = 0;
+    blocks.forEach(block => { if (isAnswered(block)) answered++; });
+    const total = blocks.length || 1;
+    const pct = Math.round((answered / total) * 100);
+    document.getElementById('progress-frac').textContent = answered + ' dari ' + total + ' Pertanyaan Terjawab';
+    document.getElementById('progress-pct').textContent = pct + '%';
+    document.getElementById('progress-fill').style.width = pct + '%';
+  };
+
+  form.addEventListener('input', updateProgress);
+  form.addEventListener('change', updateProgress);
+
+  window.saveDraft = function() {
+    try {
+      const answers = collectAnswers();
+      const nameEl2 = document.getElementById('respondent_name');
+      const emailEl2 = document.getElementById('respondent_email');
+      localStorage.setItem(draftKey, JSON.stringify({
+        answers,
+        respondent_name: nameEl2 ? nameEl2.value : '',
+        respondent_email: emailEl2 ? emailEl2.value : '',
+      }));
+      alert('Draf tersimpan di perangkat ini.');
+    } catch (e) {
+      alert('Gagal menyimpan draf.');
+    }
+  };
+
+  function clearAllAnswers() {
+    form.reset();
+    form.querySelectorAll('.selected').forEach(x => x.classList.remove('selected'));
+    form.querySelectorAll('.char-count').forEach(x => x.textContent = '0/500 karakter');
+    form.querySelectorAll('.q[data-file-url]').forEach(block => block.removeAttribute('data-file-url'));
+    form.querySelectorAll('.file-status').forEach(x => x.textContent = '');
+    form.querySelectorAll('.upload-btn').forEach(btn => { btn.textContent = '+ Upload'; btn.dataset.mode = 'upload'; });
+    localStorage.removeItem(draftKey);
+    showPage(0);
+    updateProgress();
+  }
+
+  window.resetForm = function() {
+    if (!confirm('Kosongkan semua jawaban?')) return;
+    clearAllAnswers();
+  };
+
+  const resubmitBtn = document.getElementById('resubmit-btn');
+  if (resubmitBtn) {
+    resubmitBtn.addEventListener('click', () => {
+      clearAllAnswers();
+      document.querySelectorAll('.hero-extra').forEach(el => el.style.display = '');
+      document.getElementById('thankyou').style.display = 'none';
+      form.style.display = '';
+      const submitBtn = document.getElementById('submit-btn');
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '&#9993; Kirim Tanggapan Survei'; }
+      window.scrollTo(0, 0);
+    });
+  }
+
+  try {
+    const draft = JSON.parse(localStorage.getItem(draftKey) || 'null');
+    if (draft) {
+      const nameEl3 = document.getElementById('respondent_name');
+      const emailEl3 = document.getElementById('respondent_email');
+      if (nameEl3 && draft.respondent_name) { nameEl3.value = draft.respondent_name; nameEl3.dispatchEvent(new Event('input')); }
+      if (emailEl3 && draft.respondent_email) emailEl3.value = draft.respondent_email;
+      form.querySelectorAll('.q[data-qname]').forEach(block => {
+        const qname = block.getAttribute('data-qname');
+        const qtype = block.getAttribute('data-qtype');
+        const val = draft.answers ? draft.answers[qname] : null;
+        if (!val) return;
+        if (qtype === 'Multiple Choice' || qtype === 'Linear Scale') {
+          const opt = block.querySelector('[data-value="' + CSS.escape(val) + '"]');
+          if (opt) opt.classList.add('selected');
+        } else if (qtype === 'Checkboxes' && Array.isArray(val)) {
+          val.forEach(v => {
+            const opt = block.querySelector('.chip[data-value="' + CSS.escape(v) + '"]');
+            if (opt) opt.classList.add('selected');
+          });
+        } else {
+          const input = block.querySelector('.q-input');
+          if (input) input.value = val;
+        }
+      });
+      updateProgress();
+    }
+  } catch (e) {}
+
+  form.querySelectorAll('.file-row').forEach(row => {
+    const fileInput = row.querySelector('.q-input-file');
+    const uploadBtn = row.querySelector('.upload-btn');
+    const block = row.closest('.q');
+    const statusEl = block.querySelector('.file-status');
+
+    uploadBtn.addEventListener('click', () => {
+      if (uploadBtn.dataset.mode === 'remove') {
+        block.removeAttribute('data-file-url');
+        fileInput.value = '';
+        statusEl.textContent = '';
+        uploadBtn.textContent = '+ Upload';
+        uploadBtn.dataset.mode = 'upload';
+        updateProgress();
+      } else {
+        fileInput.click();
+      }
+    });
+
+    fileInput.addEventListener('change', async () => {
+      if (!fileInput.files || !fileInput.files[0]) return;
+      const file = fileInput.files[0];
+      statusEl.textContent = 'Mengupload file...';
+      try {
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        const res = await fetch('/form/api/upload_survey_answer_file', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ form_key: formKey, filename: file.name, content_base64: base64 })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || data.exc || 'Upload gagal');
+        block.setAttribute('data-file-url', data.message.file_url);
+        statusEl.textContent = 'File terupload: ' + file.name;
+        uploadBtn.textContent = 'Hapus';
+        uploadBtn.dataset.mode = 'remove';
+        updateProgress();
+      } catch (err) {
+        statusEl.textContent = 'Upload gagal, coba lagi.';
+      }
+    });
+  });
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const errBox = document.getElementById('err');
+    errBox.style.display = 'none';
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Mengirim...';
+
+    try {
+      const answers = collectAnswers();
+
+      let firstMissing = null;
+      form.querySelectorAll('.q[data-qname]').forEach(block => {
+        if (block.getAttribute('data-required') === '1' && !isAnswered(block) && !firstMissing) {
+          firstMissing = block;
+        }
+      });
+      if (firstMissing) {
+        const pageEl = firstMissing.closest('.page');
+        const idx = pages.indexOf(pageEl);
+        if (idx >= 0) showPage(idx);
+        throw new Error('Ada pertanyaan wajib yang belum diisi.');
+      }
+
+      const payload = { form_key: formKey, answers: JSON.stringify(answers) };
+      const nameEl4 = document.getElementById('respondent_name');
+      const emailEl4 = document.getElementById('respondent_email');
+      if (nameEl4) payload.respondent_name = nameEl4.value;
+      if (emailEl4) payload.respondent_email = emailEl4.value;
+
+      const res = await fetch('/form/api/submit_response', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error((data._server_messages && JSON.parse(data._server_messages)[0]) || data.exc || 'Gagal mengirim jawaban');
+      }
+
+      localStorage.removeItem(draftKey);
+      document.getElementById('survey-form').style.display = 'none';
+      document.querySelectorAll('.hero-extra').forEach(el => el.style.display = 'none');
+      document.getElementById('thankyou').style.display = 'block';
+    } catch (err) {
+      errBox.textContent = (err && err.message) ? err.message.replace(/^"|"$/g, '') : 'Terjadi kesalahan, coba lagi.';
+      errBox.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '&#9993; Kirim Tanggapan Survei';
+    }
+  });
+
+  updateProgress();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-06-23 23:33:27.789908",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": null,
+ "modified": "2026-06-23 23:34:18.606393",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Laporan Penjualan Per Kasir",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Sales Invoice",
+ "report_name": "Laporan Penjualan Per Kasir",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "All"
+  }
+ ],
+ "timeout": 0
+}

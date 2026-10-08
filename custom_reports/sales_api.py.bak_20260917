@@ -1,0 +1,38 @@
+import frappe
+
+@frappe.whitelist()
+def get_sales_today():
+    today = frappe.utils.today()
+    data = frappe.db.sql("""
+        SELECT
+            s.outlet,
+            o.nama AS outlet_nama,
+            o.parent_outlet AS dept,
+            s.total_sales,
+            s.total_trx,
+            MAX(std.target_harian) AS target_harian,
+            ROUND(s.total_sales / NULLIF(MAX(std.target_harian), 0) * 100, 2) AS achievement_pct
+        FROM (
+            SELECT
+                custom_outlet AS outlet,
+                SUM(grand_total) AS total_sales,
+                COUNT(name) AS total_trx
+            FROM `tabSales Invoice`
+            WHERE docstatus = 1
+                AND is_return = 0
+                AND posting_date = %s
+                AND NOT (
+                    loyalty_amount > 0
+                    AND loyalty_amount >= grand_total
+                    AND name NOT IN (SELECT DISTINCT parent FROM `tabSales Invoice Payment`)
+                )
+            GROUP BY custom_outlet
+        ) s
+        LEFT JOIN `tabOutlet` o ON o.name = s.outlet
+        LEFT JOIN `tabSales Target Daily` std
+            ON std.parent = s.outlet
+            AND std.tanggal = %s
+        GROUP BY s.outlet, s.total_sales, s.total_trx, o.nama, o.parent_outlet
+        ORDER BY s.total_sales DESC
+    """, (today, today), as_dict=True)
+    return data

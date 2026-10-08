@@ -1,0 +1,2042 @@
+import frappe
+
+@frappe.whitelist()
+def get_sales_today(date=None):
+    today = date or frappe.utils.today()
+    data = frappe.db.sql("""
+        SELECT
+            s.outlet,
+            o.nama AS outlet_nama,
+            o.parent_outlet AS dept,
+            s.total_sales,
+            s.total_trx,
+            MAX(std.target_harian) AS target_harian,
+            ROUND(s.total_sales / NULLIF(MAX(std.target_harian), 0) * 100, 2) AS achievement_pct
+        FROM (
+            SELECT
+                custom_outlet AS outlet,
+                SUM(grand_total) AS total_sales,
+                COUNT(name) AS total_trx
+            FROM `tabSales Invoice`
+            WHERE docstatus = 1
+                AND is_return = 0
+                AND posting_date = %s
+                AND NOT (
+                    loyalty_amount > 0
+                    AND loyalty_amount >= grand_total
+                    AND name NOT IN (SELECT DISTINCT parent FROM `tabSales Invoice Payment`)
+                )
+            GROUP BY custom_outlet
+        ) s
+        LEFT JOIN `tabOutlet` o ON o.name = s.outlet
+        LEFT JOIN `tabSales Target Daily` std
+            ON std.parent = s.outlet
+            AND std.tanggal = %s
+        GROUP BY s.outlet, s.total_sales, s.total_trx, o.nama, o.parent_outlet
+        ORDER BY s.total_sales DESC
+    """, (today, today), as_dict=True)
+    return data
+
+
+# --- Ditambahkan: laporan Sales vs Target per departemen (Fashion/FMCG/Mini Soccer) ---
+# URL: /api/method/custom_reports.sales_api.get_sales_vs_target?as_of_date=YYYY-MM-DD
+
+import calendar
+
+_FASHION_OUTLETS = ["HCW", "OCW", "PSR", "XCW", "XJB", "XPY", "XSC", "XSP", "XSC-OL", "XSP-OL"]
+_FMCG_OUTLETS = ["MNR", "TASMU", "UIN", "XCR", "XMJ", "XPH", "XSM", "XSMGROW", "XTJ", "XWP", "KMT"]
+_MBG_OUTLET = "MBG"
+_MINI_SOCCER_OUTLET = "XSL"
+
+_BULAN_ID = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli",
+             "Agustus", "September", "Oktober", "November", "Desember"]
+
+# Disamakan persis dgn report resmi "Laporan Penjualan Harian" (sales_api lama
+# cuma exclude invoice yg 100% bayar loyalty; yg bener: loyalty_amount SELALU
+# dikurangi dari grand_total di SETIAP invoice, sebagian ataupun penuh - dan
+# TIDAK ada filter is_pos di report resmi itu, jadi dihapus juga di sini).
+_SALES_WHERE = """
+    docstatus = 1
+    AND is_return = 0
+    AND posting_date BETWEEN %s AND %s
+"""
+
+
+def _sales_by_outlet(start_date, end_date):
+    rows = frappe.db.sql(f"""
+        SELECT custom_outlet AS outlet,
+               SUM(grand_total - COALESCE(loyalty_amount, 0)) AS sales,
+               COUNT(name) AS trx
+        FROM `tabSales Invoice`
+        WHERE {_SALES_WHERE}
+        GROUP BY custom_outlet
+    """, (start_date, end_date), as_dict=True)
+    return {r["outlet"]: {"sales": r["sales"] or 0, "trx": r["trx"] or 0} for r in rows}
+
+
+def _target_by_outlet(bulan_label):
+    # COALESCE(so.outlet, stm.parent): sebagian record "Sales Target Outlet" nama
+    # dokumennya TIDAK sama dgn kode outlet (mis. auto-generated hash spt
+    # "i9nrri1c58" utk outlet "XSC-OL", atau beda case spt "xsc" utk "XSC") -
+    # jadi ambil dari field link `outlet` dulu kalau ada, baru fallback ke nama
+    # dokumen. .upper() jaga2 dari sisa masalah case.
+    rows = frappe.db.sql("""
+        SELECT COALESCE(so.outlet, stm.parent) AS outlet, stm.target_bulan AS target
+        FROM `tabSales Target Monthly` stm
+        JOIN `tabSales Target Outlet` so ON so.name = stm.parent
+        WHERE stm.bulan = %s
+    """, (bulan_label,), as_dict=True)
+    return {r["outlet"].upper(): r["target"] or 0 for r in rows}
+
+
+def _sales_by_outlet_history(start_date, end_date):
+    """Sama spt _sales_by_outlet, tapi sumbernya doctype 'Outlet Daily Sales History'
+    (data histori 2025 & awal 2026 yg diinput manual dari Excel, krn Sales Invoice
+    di ERP ini baru mulai ada data live sejak akhir April 2026)."""
+    rows = frappe.db.sql("""
+        SELECT outlet, SUM(nominal) AS sales, SUM(jumlah_transaksi) AS trx
+        FROM `tabOutlet Daily Sales History`
+        WHERE tanggal BETWEEN %s AND %s
+        GROUP BY outlet
+    """, (start_date, end_date), as_dict=True)
+    return {r["outlet"]: {"sales": r["sales"] or 0, "trx": r["trx"] or 0} for r in rows}
+
+
+def _sales_by_kmt_mbg(start_date, end_date):
+    """KMT (Kemitraan) & MBG dari doctype 'Kemitraan MBG Sales History' (input
+    manual dari Excel) — outlet KMT & MBG terbukti 0 transaksi di Sales Invoice
+    ERP ini (lihat audit), jadi datanya diambil dari sini, bukan dari Sales Invoice."""
+    rows = frappe.db.sql("""
+        SELECT kategori, SUM(nominal) AS sales, SUM(jumlah_transaksi) AS trx
+        FROM `tabKemitraan MBG Sales History`
+        WHERE tanggal BETWEEN %s AND %s
+        GROUP BY kategori
+    """, (start_date, end_date), as_dict=True)
+    mapping = {"Kemitraan": "KMT", "MBG": "MBG"}
+    return {mapping[r["kategori"]]: {"sales": r["sales"] or 0, "trx": r["trx"] or 0} for r in rows if r["kategori"] in mapping}
+
+
+def _kmt_only(start_date, end_date):
+    """KMT (Kemitraan) SAJA, tanpa MBG — dipakai utk kolom histori (MTD Bulan
+    Lalu/MTD Tahun Lalu/Monthly Tahun Lalu) krn laporan asli terbukti include
+    Kemitraan tapi TIDAK include MBG di kolom2 itu (divalidasi manual thd data
+    per-outlet: MTD Sept 2025 & Monthly Sept 2025 cocok nyaris exact dgn rumus
+    ini, beda <0.2%)."""
+    rows = frappe.db.sql("""
+        SELECT SUM(nominal) AS sales, SUM(jumlah_transaksi) AS trx
+        FROM `tabKemitraan MBG Sales History`
+        WHERE tanggal BETWEEN %s AND %s AND kategori = 'Kemitraan'
+    """, (start_date, end_date), as_dict=True)
+    r = rows[0] if rows else {}
+    return {"KMT": {"sales": r.get("sales") or 0, "trx": r.get("trx") or 0}}
+
+
+@frappe.whitelist()
+def get_sales_vs_target(as_of_date=None):
+    as_of = frappe.utils.getdate(as_of_date or frappe.utils.today())
+    month_start = as_of.replace(day=1)
+    bulan_ini = _BULAN_ID[as_of.month - 1]
+    days_in_month = calendar.monthrange(as_of.year, as_of.month)[1]
+    standard_achieve_pct = round(as_of.day / days_in_month * 100, 2)
+
+    last_month_end = frappe.utils.add_days(month_start, -1)
+    last_month_start = last_month_end.replace(day=1)
+    last_month_same_day = min(as_of.day, calendar.monthrange(last_month_end.year, last_month_end.month)[1])
+    last_month_mtd_end = last_month_start.replace(day=last_month_same_day)
+
+    last_year = as_of.year - 1
+    last_year_days = calendar.monthrange(last_year, as_of.month)[1]
+    last_year_month_start = frappe.utils.getdate(f"{last_year}-{as_of.month:02d}-01")
+    last_year_mtd_end = frappe.utils.getdate(f"{last_year}-{as_of.month:02d}-{min(as_of.day, last_year_days):02d}")
+    last_year_month_end = frappe.utils.getdate(f"{last_year}-{as_of.month:02d}-{last_year_days:02d}")
+
+    daily = _sales_by_outlet(as_of, as_of)
+    accumulated = _sales_by_outlet(month_start, as_of)
+    mtd_last_month = _sales_by_outlet(last_month_start, last_month_mtd_end)
+    mtd_last_month.pop("XSMGROW", None)  # outlet baru (buka 8 Agustus 2026), blm py
+    # basis pembanding "bulan lalu" yg wajar - laporan asli sengaja exclude dia
+    # dari kolom ini (divalidasi: gap Total FMCG MTD Agustus persis sama dgn
+    # kontribusi XSM Grow sebelum di-exclude).
+    mtd_last_year = _sales_by_outlet_history(last_year_month_start, last_year_mtd_end)
+    monthly_last_year = _sales_by_outlet_history(last_year_month_start, last_year_month_end)
+
+    # KMT & MBG: periode "sekarang-ish" (Daily, Accumulated, MTD Bulan Lalu)
+    # include KEDUANYA. Periode "Tahun Lalu" (MTD & Monthly Tahun Lalu) cuma
+    # include KMT (Kemitraan), TANPA MBG — divalidasi manual thd laporan asli:
+    # MBG blm py pembanding tahun lalu yg diakui (lihat docstring _kmt_only()).
+    daily.update(_sales_by_kmt_mbg(as_of, as_of))
+    accumulated.update(_sales_by_kmt_mbg(month_start, as_of))
+    mtd_last_month.update(_sales_by_kmt_mbg(last_month_start, last_month_mtd_end))
+    mtd_last_year.update(_kmt_only(last_year_month_start, last_year_mtd_end))
+    monthly_last_year.update(_kmt_only(last_year_month_start, last_year_month_end))
+
+    targets = _target_by_outlet(bulan_ini)
+
+    def agg(outlets, src):
+        return {
+            "trx": sum(src.get(o, {}).get("trx", 0) for o in outlets),
+            "sales": sum(src.get(o, {}).get("sales", 0) for o in outlets),
+        }
+
+    def target_sum(outlets):
+        return sum(targets.get(o, 0) for o in outlets)
+
+    def pct_change(new, old):
+        if not old:
+            return None
+        return round((new / old - 1) * 100, 2)
+
+    def build_row(label, outlets, target_outlets=None):
+        target_outlets = target_outlets or outlets
+        d, a, lm = agg(outlets, daily), agg(outlets, accumulated), agg(outlets, mtd_last_month)
+        ly, myly = agg(outlets, mtd_last_year), agg(outlets, monthly_last_year)
+        tgt = target_sum(target_outlets)
+        achv = round(a["sales"] / tgt * 100, 2) if tgt else None
+        return {
+            "department": label,
+            "target": tgt,
+            "daily_tc": d["trx"], "daily_sales": d["sales"],
+            "acc_tc": a["trx"], "acc_sales": a["sales"],
+            "achv_vs_target_pct": achv,
+            "vs_standard_achv_pct": round(achv - standard_achieve_pct, 2) if achv is not None else None,
+            "mtd_last_month_tc": lm["trx"], "mtd_last_month_sales": lm["sales"],
+            "vs_last_month_tc_pct": pct_change(a["trx"], lm["trx"]),
+            "vs_last_month_sales_pct": pct_change(a["sales"], lm["sales"]),
+            "mtd_last_year_tc": ly["trx"], "mtd_last_year_sales": ly["sales"],
+            "vs_last_year_tc_pct": pct_change(a["trx"], ly["trx"]),
+            "vs_last_year_sales_pct": pct_change(a["sales"], ly["sales"]),
+            "monthly_sales_last_year": myly["sales"],
+            "pct_2026_vs_2025": pct_change(a["sales"], myly["sales"]),
+        }
+
+    rows = [
+        # Catatan: target_outlets TIDAK di-override lagi utk baris "exclude" -
+        # biar target-nya ikut kurang sesuai outlet yg di-exclude dari sales-nya
+        # juga (sebelumnya target selalu pakai total dept penuh, salah, gak
+        # sesuai foto laporan asli).
+        build_row("F&H.S exclude HCW", [o for o in _FASHION_OUTLETS if o != "HCW"]),
+        build_row("Total Fashion & Home Supplies", _FASHION_OUTLETS),
+        build_row("Fmcg exclude MBG", _FMCG_OUTLETS),
+        build_row("Fmcg exclude UIN", [o for o in _FMCG_OUTLETS if o != "UIN"] + [_MBG_OUTLET]),
+        build_row("Total FMCG", _FMCG_OUTLETS + [_MBG_OUTLET]),
+        build_row("Mini Soccer", [_MINI_SOCCER_OUTLET]),
+    ]
+    grand_outlets = _FASHION_OUTLETS + _FMCG_OUTLETS + [_MBG_OUTLET, _MINI_SOCCER_OUTLET]
+    rows.append(build_row("TOTAL Exclude MBG", [o for o in grand_outlets if o != _MBG_OUTLET]))
+    rows.append(build_row("TOTAL Exclude UIN & HCW", [o for o in grand_outlets if o not in ("UIN", "HCW")]))
+    rows.append(build_row("GRAND TOTAL", grand_outlets))
+
+    return {"as_of_date": str(as_of), "bulan": bulan_ini, "rows": rows}
+
+
+# --- Ditambahkan: detail Sales vs Target PER OUTLET, per departemen ---
+# URL: /api/method/custom_reports.sales_api.get_sales_vs_target_detail?department=FASHION&as_of_date=YYYY-MM-DD
+# department: "FASHION" atau "FMCG"
+
+_FASHION_OFFLINE = ["HCW", "PSR", "XPY", "XJB", "XCW", "XSP", "XSC"]
+_FASHION_ONLINE = ["OCW", "XSC-OL", "XSP-OL"]
+_FMCG_ALL = ["XSM", "XMJ", "XWP", "XPH", "XTJ", "XCR", "TASMU", "MNR", "UIN", "XSMGROW", "KMT", "MBG"]
+
+_OUTLET_LABELS = {
+    "HCW": "X-sha rumah kedua", "PSR": "Pasar", "XPY": "Panyingkiran", "XJB": "Furniture",
+    "XCW": "Ciawi", "XSP": "Sp Fashion", "XSC": "Cikiray",
+    "OCW": "Online Ciawi", "XSC-OL": "Online Cikiray", "XSP-OL": "Online Sp Fashion",
+    "XSM": "Supermart", "XMJ": "X-Shamart Mangunreja", "XWP": "X-Shamart Wr Peuteuy",
+    "XPH": "X-Shamart Puspahiang", "XTJ": "X-Shamart Tanjung jaya", "XCR": "X-Shamart Cisaruni",
+    "TASMU": "Tasmu Mart", "MNR": "Menara X-Shamart", "UIN": "UIN Grow", "XSMGROW": "XSM Grow",
+    "KMT": "Kemitraan", "MBG": "MBG",
+}
+
+
+def _pct_change(new, old):
+    if not old:
+        return None
+    return round((new / old - 1) * 100, 2)
+
+
+@frappe.whitelist()
+def get_sales_vs_target_detail(department="FASHION", month=None, year=None, as_of_date=None):
+    # Cukup kirim month/year: kalau bulan yg diminta = bulan BERJALAN, otomatis
+    # dihitung MTD s.d. hari ini; kalau bulan yg sudah LEWAT, otomatis dihitung
+    # penuh 1 s.d. akhir bulan itu. Param as_of_date tetap ada (opsional) utk
+    # override manual/testing - kalau diisi, prioritas dari month/year.
+    today = frappe.utils.getdate(frappe.utils.today())
+    if as_of_date:
+        as_of = frappe.utils.getdate(as_of_date)
+    else:
+        target_month = int(month) if month else today.month
+        target_year = int(year) if year else today.year
+        if (target_year, target_month) == (today.year, today.month):
+            as_of = today
+        else:
+            last_day = calendar.monthrange(target_year, target_month)[1]
+            as_of = frappe.utils.getdate(f"{target_year}-{target_month:02d}-{last_day:02d}")
+    month_start = as_of.replace(day=1)
+    bulan_ini = _BULAN_ID[as_of.month - 1]
+    days_in_month = calendar.monthrange(as_of.year, as_of.month)[1]
+    standard_achieve_pct = round(as_of.day / days_in_month * 100, 2)
+
+    last_month_end = frappe.utils.add_days(month_start, -1)
+    last_month_start = last_month_end.replace(day=1)
+    last_month_same_day = min(as_of.day, calendar.monthrange(last_month_end.year, last_month_end.month)[1])
+    last_month_mtd_end = last_month_start.replace(day=last_month_same_day)
+
+    last_year = as_of.year - 1
+    last_year_mtd_start = frappe.utils.getdate(f"{last_year}-{as_of.month:02d}-01")
+    last_year_days = calendar.monthrange(last_year, as_of.month)[1]
+    last_year_mtd_end = frappe.utils.getdate(f"{last_year}-{as_of.month:02d}-{min(as_of.day, last_year_days):02d}")
+    last_year_month_end = frappe.utils.getdate(f"{last_year}-{as_of.month:02d}-{last_year_days:02d}")
+
+    daily = _sales_by_outlet(as_of, as_of)
+    accumulated = _sales_by_outlet(month_start, as_of)
+    mtd_last_month = _sales_by_outlet(last_month_start, last_month_mtd_end)
+    mtd_last_month.pop("XSMGROW", None)  # outlet baru (buka 8 Agustus 2026) - lihat
+    # catatan sama di get_sales_vs_target.
+    mtd_last_year = _sales_by_outlet_history(last_year_mtd_start, last_year_mtd_end)
+    monthly_last_year = _sales_by_outlet_history(last_year_mtd_start.replace(day=1), last_year_month_end)
+
+    # KMT & MBG: periode "sekarang-ish" include KEDUANYA; "tahun lalu" cuma KMT
+    # (sama spt get_sales_vs_target - lihat docstring _kmt_only()).
+    daily.update(_sales_by_kmt_mbg(as_of, as_of))
+    accumulated.update(_sales_by_kmt_mbg(month_start, as_of))
+    mtd_last_month.update(_sales_by_kmt_mbg(last_month_start, last_month_mtd_end))
+    mtd_last_year.update(_kmt_only(last_year_mtd_start, last_year_mtd_end))
+    monthly_last_year.update(_kmt_only(last_year_mtd_start.replace(day=1), last_year_month_end))
+
+    targets = _target_by_outlet(bulan_ini)
+
+    def get(src, outlet):
+        v = src.get(outlet, {})
+        return v.get("trx", 0), v.get("sales", 0)
+
+    remaining_days = days_in_month - as_of.day
+
+    def _projection(target, acc_sales):
+        # Proyeksi Balance To Achv 90%/100% & rata-rata harian yg perlu
+        # dicapai sisa hari bulan ini - sesuai kolom di file "SALES REPORT HO"
+        # sheet ALL/DEPT. Kalau tanggal sudah di akhir bulan (remaining_days=0),
+        # rata-rata harian yg perlu None (bukan divide-by-zero '#DIV/0!' spt Excel).
+        target_90 = target * 0.9
+        balance_90 = target_90 - acc_sales
+        avg_90 = round(balance_90 / remaining_days, 2) if remaining_days else None
+        balance_100 = target - acc_sales
+        avg_100 = round(balance_100 / remaining_days, 2) if remaining_days else None
+        return {
+            "target_90pct": round(target_90, 2), "balance_to_90pct": round(balance_90, 2),
+            "avg_daily_needed_90pct": avg_90,
+            "target_100pct": round(target, 2), "balance_to_100pct": round(balance_100, 2),
+            "avg_daily_needed_100pct": avg_100,
+        }
+
+    def outlet_row(outlet):
+        d_tc, d_sales = get(daily, outlet)
+        a_tc, a_sales = get(accumulated, outlet)
+        lm_tc, lm_sales = get(mtd_last_month, outlet)
+        ly_tc, ly_sales = get(mtd_last_year, outlet)
+        _, myly_sales = get(monthly_last_year, outlet)
+        target = targets.get(outlet, 0)
+        achv = round(a_sales / target * 100, 2) if target else None
+        row = {
+            "outlet": outlet, "outlet_label": _OUTLET_LABELS.get(outlet, outlet),
+            "target": target,
+            "daily_tc": d_tc, "daily_sales": d_sales,
+            "acc_tc": a_tc, "acc_sales": a_sales,
+            "achv_vs_target_pct": achv,
+            "vs_standard_achv_pct": round(achv - standard_achieve_pct, 2) if achv is not None else None,
+            "mtd_last_month_tc": lm_tc, "mtd_last_month_sales": lm_sales,
+            "vs_last_month_tc_pct": _pct_change(a_tc, lm_tc),
+            "vs_last_month_sales_pct": _pct_change(a_sales, lm_sales),
+            "mtd_last_year_tc": ly_tc, "mtd_last_year_sales": ly_sales,
+            "vs_last_year_tc_pct": _pct_change(a_tc, ly_tc),
+            "vs_last_year_sales_pct": _pct_change(a_sales, ly_sales),
+            "monthly_sales_last_year": myly_sales,
+            "pct_2026_vs_2025": _pct_change(a_sales, myly_sales),
+        }
+        row.update(_projection(target, a_sales))
+        return row
+
+    def subtotal_row(label, outlets, target_outlets=None):
+        target_outlets = target_outlets or outlets
+        d_tc = sum(get(daily, o)[0] for o in outlets); d_sales = sum(get(daily, o)[1] for o in outlets)
+        a_tc = sum(get(accumulated, o)[0] for o in outlets); a_sales = sum(get(accumulated, o)[1] for o in outlets)
+        lm_tc = sum(get(mtd_last_month, o)[0] for o in outlets); lm_sales = sum(get(mtd_last_month, o)[1] for o in outlets)
+        ly_tc = sum(get(mtd_last_year, o)[0] for o in outlets); ly_sales = sum(get(mtd_last_year, o)[1] for o in outlets)
+        myly_sales = sum(get(monthly_last_year, o)[1] for o in outlets)
+        target = sum(targets.get(o, 0) for o in target_outlets)
+        achv = round(a_sales / target * 100, 2) if target else None
+        row = {
+            "outlet": label, "outlet_label": label,
+            "target": target,
+            "daily_tc": d_tc, "daily_sales": d_sales,
+            "acc_tc": a_tc, "acc_sales": a_sales,
+            "achv_vs_target_pct": achv,
+            "vs_standard_achv_pct": round(achv - standard_achieve_pct, 2) if achv is not None else None,
+            "mtd_last_month_tc": lm_tc, "mtd_last_month_sales": lm_sales,
+            "vs_last_month_tc_pct": _pct_change(a_tc, lm_tc),
+            "vs_last_month_sales_pct": _pct_change(a_sales, lm_sales),
+            "mtd_last_year_tc": ly_tc, "mtd_last_year_sales": ly_sales,
+            "vs_last_year_tc_pct": _pct_change(a_tc, ly_tc),
+            "vs_last_year_sales_pct": _pct_change(a_sales, ly_sales),
+            "monthly_sales_last_year": myly_sales,
+            "pct_2026_vs_2025": _pct_change(a_sales, myly_sales),
+        }
+        row.update(_projection(target, a_sales))
+        return row
+
+    dept = department.upper()
+    if dept == "FASHION":
+        all_outlets = _FASHION_OFFLINE + _FASHION_ONLINE
+        rows = [outlet_row(o) for o in _FASHION_OFFLINE]
+        rows.append(subtotal_row("Total Outlet - Offline", _FASHION_OFFLINE))
+        rows.append(subtotal_row("Total Outlet - Online", _FASHION_ONLINE))
+        rows.append(subtotal_row("TOTAL DEPT F&H.S EXC HCW", [o for o in all_outlets if o != "HCW"]))
+        rows.append(subtotal_row("TOTAL DEPT F&H.S ALL", all_outlets))
+    elif dept == "FMCG":
+        rows = [outlet_row(o) for o in _FMCG_ALL]
+        rows.append(subtotal_row("FMCG Exclude MBG", [o for o in _FMCG_ALL if o != "MBG"]))
+        rows.append(subtotal_row("TOTAL DEPT.FMCG ALL", _FMCG_ALL))
+        rows.append(subtotal_row("TOTAL DEPT.FMCG EXC UIN", [o for o in _FMCG_ALL if o != "UIN"]))
+        rows.append(subtotal_row("TOTAL MBG", ["MBG"]))
+    else:
+        # HOLDING/ALL - gabungan semua departemen, sesuai sheet "ALL" di file
+        # "SALES REPORT HO" (F&H.S exclude HCW, Total F&H.S, Fmcg exclude
+        # MBG/UIN, Total FMCG, Mini Soccer, lalu 3 baris grand total).
+        fashion_all = _FASHION_OFFLINE + _FASHION_ONLINE
+        rows = [
+            subtotal_row("F&H.S exclude HCW", [o for o in fashion_all if o != "HCW"]),
+            subtotal_row("Total (F&H.S)", fashion_all),
+            subtotal_row("Fmcg exclude MBG", [o for o in _FMCG_ALL if o != "MBG"]),
+            subtotal_row("Fmcg exclude UIN", [o for o in _FMCG_ALL if o != "UIN"]),
+            subtotal_row("Total (FMCG)", _FMCG_ALL),
+            outlet_row(_MINI_SOCCER_OUTLET),
+        ]
+        total_exc_mbg = fashion_all + [o for o in _FMCG_ALL if o != "MBG"] + [_MINI_SOCCER_OUTLET]
+        total_exc_uin_hcw = [o for o in fashion_all if o != "HCW"] + [o for o in _FMCG_ALL if o != "UIN"] + [_MINI_SOCCER_OUTLET]
+        grand_total = fashion_all + _FMCG_ALL + [_MINI_SOCCER_OUTLET]
+        rows.append(subtotal_row("TOTAL Exclude MBG", total_exc_mbg))
+        rows.append(subtotal_row("TOTAL Exclude UIN & HCW", total_exc_uin_hcw))
+        rows.append(subtotal_row("GRAND TOTAL", grand_total))
+
+    return {
+        "department": dept, "as_of_date": str(as_of), "bulan": bulan_ini,
+        "standard_achieve_pct": standard_achieve_pct, "remaining_days": remaining_days, "rows": rows,
+    }
+
+
+# --- Ditambahkan: trend Sales Harian HOLDING (grand total semua outlet), bulan
+# ini vs bulan lalu vs tahun lalu + rata-rata & target pencapaian 90%/100%.
+# URL: /api/method/custom_reports.sales_api.get_holding_daily_trend?as_of_date=YYYY-MM-DD
+
+def _daily_sales_by_date(start_date, end_date, outlets):
+    if not outlets:
+        return {}
+    placeholders = ", ".join(["%s"] * len(outlets))
+    rows = frappe.db.sql(f"""
+        SELECT posting_date, SUM(grand_total - COALESCE(loyalty_amount, 0)) AS sales
+        FROM `tabSales Invoice`
+        WHERE docstatus = 1 AND is_return = 0
+          AND posting_date BETWEEN %s AND %s
+          AND custom_outlet IN ({placeholders})
+        GROUP BY posting_date
+    """, [start_date, end_date] + list(outlets), as_dict=True)
+    return {str(r["posting_date"]): (r["sales"] or 0) for r in rows}
+
+
+def _daily_kmt_mbg_by_date(start_date, end_date, include_mbg=True):
+    kategori_cond = "" if include_mbg else "AND kategori = 'Kemitraan'"
+    rows = frappe.db.sql(f"""
+        SELECT tanggal, SUM(nominal) AS sales
+        FROM `tabKemitraan MBG Sales History`
+        WHERE tanggal BETWEEN %s AND %s {kategori_cond}
+        GROUP BY tanggal
+    """, (start_date, end_date), as_dict=True)
+    return {str(r["tanggal"]): (r["sales"] or 0) for r in rows}
+
+
+def _daily_mbg_only_by_date(start_date, end_date):
+    """MBG SAJA, tanpa Kemitraan - dipakai khusus utk get_holding_daily_trend
+    department=FMCG, yg scope-nya (divalidasi thd sheet 'Grafik Dept.') ikut
+    MBG tapi TIDAK ikut Kemitraan (beda dgn get_sales_vs_target_detail yg
+    'TOTAL DEPT.FMCG ALL'-nya include KEDUANYA)."""
+    rows = frappe.db.sql("""
+        SELECT tanggal, SUM(nominal) AS sales
+        FROM `tabKemitraan MBG Sales History`
+        WHERE tanggal BETWEEN %s AND %s AND kategori = 'MBG'
+        GROUP BY tanggal
+    """, (start_date, end_date), as_dict=True)
+    return {str(r["tanggal"]): (r["sales"] or 0) for r in rows}
+
+
+def _daily_skm_by_date(start_date, end_date):
+    """Sub-lokasi Kemitraan 'SKM' (Sales Marketing) SAJA - khusus dipakai utk
+    kolom 'Last month'/'Last year' di get_holding_daily_trend department=FMCG.
+    Divalidasi thd sheet 'Master': kolom TOTAL FMCG Last month/Last year
+    (AU/U) = outlet FMCG + SKM (+ MBG utk last month saja) - BEDA dgn kolom
+    'current month' (AB, dari sheet 'Daily sales') yg TIDAK ikut SKM sama
+    sekali. Jadi 'current' & 'last month/year' scope-nya sengaja gak sama,
+    ngikutin apa adanya di file sumber."""
+    rows = frappe.db.sql("""
+        SELECT tanggal, SUM(nominal) AS sales
+        FROM `tabKemitraan MBG Sales History`
+        WHERE tanggal BETWEEN %s AND %s AND sub_kode = 'SKM'
+        GROUP BY tanggal
+    """, (start_date, end_date), as_dict=True)
+    return {str(r["tanggal"]): (r["sales"] or 0) for r in rows}
+
+
+def _daily_history_by_date(start_date, end_date, outlets):
+    if not outlets:
+        return {}
+    placeholders = ", ".join(["%s"] * len(outlets))
+    rows = frappe.db.sql(f"""
+        SELECT tanggal, SUM(nominal) AS sales
+        FROM `tabOutlet Daily Sales History`
+        WHERE tanggal BETWEEN %s AND %s AND outlet IN ({placeholders})
+        GROUP BY tanggal
+    """, [start_date, end_date] + list(outlets), as_dict=True)
+    return {str(r["tanggal"]): (r["sales"] or 0) for r in rows}
+
+
+def _build_series(start_date, n_days, sales_by_date):
+    series = []
+    for i in range(n_days):
+        d = frappe.utils.add_days(start_date, i)
+        series.append({"day": i + 1, "date": str(d), "sales": sales_by_date.get(str(d), 0)})
+    return series
+
+
+@frappe.whitelist()
+def get_holding_daily_trend(as_of_date=None, department=None):
+    as_of = frappe.utils.getdate(as_of_date or frappe.utils.today())
+    month_start = as_of.replace(day=1)
+    bulan_ini = _BULAN_ID[as_of.month - 1]
+    days_in_month = calendar.monthrange(as_of.year, as_of.month)[1]
+
+    last_month_end = frappe.utils.add_days(month_start, -1)
+    last_month_start = last_month_end.replace(day=1)
+    last_month_days = calendar.monthrange(last_month_end.year, last_month_end.month)[1]
+
+    last_year = as_of.year - 1
+    last_year_days = calendar.monthrange(last_year, as_of.month)[1]
+    last_year_month_start = frappe.utils.getdate(f"{last_year}-{as_of.month:02d}-01")
+    last_year_month_end = frappe.utils.getdate(f"{last_year}-{as_of.month:02d}-{last_year_days:02d}")
+
+    # department=None/HOLDING -> semua outlet (Fashion+FMCG+Mini Soccer+MBG).
+    # department=FASHION -> outlet Fashion saja, TANPA KMT/MBG/Mini Soccer.
+    # department=FMCG -> outlet FMCG ritel saja (10 toko), TANPA KMT & MBG -
+    # divalidasi persis thd sheet "Grafik Dept." (kolom AB "DEPT FMCG" sama
+    # persis dgn kolom "OUTLET DEPT.FMCG" di sheet "Daily sales", yg terbukti
+    # TIDAK menjumlahkan Kemitraan maupun MBG sama sekali). Beda dgn
+    # get_sales_vs_target_detail yg "TOTAL DEPT.FMCG ALL"-nya MEMANG include
+    # KMT+MBG (scope beda, divalidasi terpisah thd sheet lain) - sengaja gak
+    # disamakan.
+    dept = (department or "HOLDING").upper()
+    include_mbg_period = True
+    if dept == "FASHION":
+        outlets = list(_FASHION_OUTLETS)
+        include_mbg_period = False
+    elif dept == "FMCG":
+        outlets = [o for o in _FMCG_OUTLETS if o != "KMT"]  # KMT ditangani lewat _sales_by_kmt_mbg, bukan Sales Invoice
+        include_mbg_period = False
+    else:
+        outlets = _FASHION_OUTLETS + [o for o in _FMCG_OUTLETS if o != "KMT"] + [_MINI_SOCCER_OUTLET]
+        include_mbg_period = True
+    # XSMGROW (outlet baru, buka 8 Agustus 2026) TETAP ikut di sales & target
+    # bulan berjalan (outlets), tapi di-exclude dari outlets_hist krn blm py
+    # pembanding bulan lalu/tahun lalu yg adil - sama spt di get_sales_vs_target.
+    outlets_hist = [o for o in outlets if o != "XSMGROW"]
+    # FMCG: scope "Last month" & "Last year" beda dari di atas (divalidasi thd
+    # sheet "Master") - Last month TETAP ikut XSM Grow (sudah buka sejak
+    # Agustus, jadi fair dibandingkan ke September); Last year exclude XSM
+    # Grow DAN UIN Grow (dua2nya belum ada di Oktober 2025).
+    lm_outlets_fmcg = outlets
+    ly_outlets_fmcg = [o for o in outlets if o not in ("XSMGROW", "UIN")]
+
+    def _kmt_mbg_for_period(start_date, end_date, is_last_year=False):
+        if dept == "FASHION":
+            return {}
+        if dept == "FMCG":
+            # MBG ikut, Kemitraan TIDAK (lihat docstring _daily_mbg_only_by_date).
+            # MBG blm py pembanding tahun lalu -> kosong.
+            return {} if is_last_year else _daily_mbg_only_by_date(start_date, end_date)
+        if is_last_year:
+            return _daily_kmt_mbg_by_date(start_date, end_date, include_mbg=False)  # KMT saja, MBG blm py pembanding thn lalu
+        return _daily_kmt_mbg_by_date(start_date, end_date, include_mbg=include_mbg_period)
+
+    # Bulan ini & bulan lalu: dari Sales Invoice (live) + Kemitraan/MBG history
+    cur_si = _daily_sales_by_date(month_start, as_of, outlets)
+    cur_kmtmbg = _kmt_mbg_for_period(month_start, as_of)
+    current_by_date = {}
+    for k in set(cur_si) | set(cur_kmtmbg):
+        current_by_date[k] = cur_si.get(k, 0) + cur_kmtmbg.get(k, 0)
+
+    lm_end = last_month_start.replace(day=last_month_days)
+    if dept == "FMCG":
+        # "Last month" di FMCG ikut SKM (sub-lokasi Kemitraan "Sales
+        # Marketing") + MBG - beda dgn "current month" yg ga ikut SKM sama
+        # sekali (lihat docstring _daily_skm_by_date).
+        lm_si = _daily_sales_by_date(last_month_start, lm_end, lm_outlets_fmcg)
+        lm_kmtmbg = dict(_daily_skm_by_date(last_month_start, lm_end))
+        for k, v in _daily_mbg_only_by_date(last_month_start, lm_end).items():
+            lm_kmtmbg[k] = lm_kmtmbg.get(k, 0) + v
+    else:
+        lm_si = _daily_sales_by_date(last_month_start, lm_end, outlets_hist)
+        lm_kmtmbg = _kmt_mbg_for_period(last_month_start, lm_end)
+    last_month_by_date = {}
+    for k in set(lm_si) | set(lm_kmtmbg):
+        last_month_by_date[k] = lm_si.get(k, 0) + lm_kmtmbg.get(k, 0)
+
+    # Tahun lalu: dari doctype histori (Sales Invoice blm py data sblm April
+    # 2026) + Kemitraan SAJA (tanpa MBG - MBG blm py pembanding thn lalu, sama
+    # spt di get_sales_vs_target/_kmt_only). Utk FMCG, "Kemitraan" di sini
+    # artinya SKM saja (lihat docstring _daily_skm_by_date), bukan 4 sub-lokasi
+    # lain (RSI/FDM/ANM/UMTAS) yg emang gak termasuk scope chart ini.
+    if dept == "FMCG":
+        ly_hist = _daily_history_by_date(last_year_month_start, last_year_month_end, ly_outlets_fmcg)
+        ly_kmt = _daily_skm_by_date(last_year_month_start, last_year_month_end)
+    else:
+        ly_hist = _daily_history_by_date(last_year_month_start, last_year_month_end, outlets_hist)
+        ly_kmt = _kmt_mbg_for_period(last_year_month_start, last_year_month_end, is_last_year=True)
+    last_year_by_date = {}
+    for k in set(ly_hist) | set(ly_kmt):
+        last_year_by_date[k] = ly_hist.get(k, 0) + ly_kmt.get(k, 0)
+
+    # current_month diisi PENUH sampai akhir bulan (hari setelah as_of_date =
+    # 0), bukan cuma sampai as_of.day - supaya garis chart di frontend gak
+    # keliatan "putus" di tengah bulan. accumulated_so_far tetap dihitung dari
+    # current_by_date langsung (bukan dari current_series) jadi gak kepengaruh
+    # oleh hari2 padding yg nilainya 0.
+    current_series = _build_series(month_start, days_in_month, current_by_date)
+    last_month_series = _build_series(last_month_start, last_month_days, last_month_by_date)
+    last_year_series = _build_series(last_year_month_start, last_year_days, last_year_by_date)
+    max_days = max(days_in_month, last_month_days, last_year_days)
+
+    accumulated_so_far = sum((current_by_date.get(str(d)) or 0)
+                              for d in [frappe.utils.add_days(month_start, i) for i in range(as_of.day)])
+    avg_current = accumulated_so_far / as_of.day if as_of.day else 0
+    # Avg "Bulan Lalu"/"Tahun Lalu" dihitung MTD (hari 1 s/d hari yg sama dgn
+    # bulan berjalan), BUKAN rata-rata sebulan penuh - divalidasi thd foto
+    # laporan HOLDING (avg bulan lalu MTD jauh lebih dekat ke angka foto
+    # drpd avg sebulan penuh). last_month_series/last_year_series sendiri
+    # tetap dikembalikan penuh 1 bulan utk keperluan chart.
+    lm_mtd_days = min(as_of.day, last_month_days)
+    avg_last_month = sum(d["sales"] for d in last_month_series[:lm_mtd_days]) / lm_mtd_days if lm_mtd_days else 0
+    ly_mtd_days = min(as_of.day, last_year_days)
+    avg_last_year = sum(d["sales"] for d in last_year_series[:ly_mtd_days]) / ly_mtd_days if ly_mtd_days else 0
+
+    def pct_change(new, old):
+        if not old:
+            return None
+        return round((new / old - 1) * 100, 2)
+
+    targets = _target_by_outlet(bulan_ini)
+    monthly_target = sum(targets.get(o, 0) for o in outlets)
+    if dept != "FASHION":
+        # KMT & MBG dikeluarkan dari `outlets` (sales-nya bukan dari Sales
+        # Invoice), tapi target-nya harus tetap ikut dihitung.
+        monthly_target += targets.get("KMT", 0) + targets.get(_MBG_OUTLET, 0)
+    remaining_days = days_in_month - as_of.day
+
+    # "Avg perlu 90%/100%" (req_avg_90/100) dihitung dari akumulasi FULL
+    # (termasuk SEMUA Kemitraan, bukan cuma SKM) + MBG, krn target-nya (di
+    # atas) jg full termasuk KMT+MBG - divalidasi exact thd sheet "Grafik
+    # Dept.". Beda dgn accumulated_so_far/avg_current (dipakai utk "Avg daily
+    # sales 2026" di chart) yg sengaja TIDAK ikut Kemitraan sama sekali.
+    if dept == "FMCG":
+        full_kmtmbg = _daily_kmt_mbg_by_date(month_start, as_of, include_mbg=True)
+        accumulated_so_far_req = sum(
+            (cur_si.get(str(d), 0) + full_kmtmbg.get(str(d), 0))
+            for d in [frappe.utils.add_days(month_start, i) for i in range(as_of.day)]
+        )
+    else:
+        accumulated_so_far_req = accumulated_so_far
+
+    req_avg_90 = None
+    req_avg_100 = None
+    if remaining_days > 0:
+        req_avg_90 = round((monthly_target * 0.9 - accumulated_so_far_req) / remaining_days, 2)
+        req_avg_100 = round((monthly_target - accumulated_so_far_req) / remaining_days, 2)
+
+    return {
+        "as_of_date": str(as_of), "bulan": bulan_ini,
+        "days_in_month": days_in_month, "remaining_days": remaining_days,
+        "max_days": max_days,
+        "current_month": current_series,
+        "last_month": last_month_series,
+        "last_year": last_year_series,
+        "avg_daily_sales_current": round(avg_current, 2),
+        "avg_daily_sales_last_month": round(avg_last_month, 2),
+        "avg_daily_sales_last_year": round(avg_last_year, 2),
+        "vs_last_month_pct": pct_change(avg_current, avg_last_month),
+        "vs_last_year_pct": pct_change(avg_current, avg_last_year),
+        "monthly_target": monthly_target,
+        "accumulated_so_far": accumulated_so_far,
+        "required_avg_daily_90pct": req_avg_90,
+        "required_avg_daily_100pct": req_avg_100,
+    }
+
+
+# --- Ditambahkan: Sales Achievement MINGGUAN (TC/Sales/AC) per outlet, per
+# departemen, dan ALL/HOLDING - dibandingkan minggu sebelumnya (growth), tahun
+# lalu (minggu yg sama), dan 2 bulan terakhir (minggu yg sama).
+# URL: /api/method/custom_reports.sales_api.get_weekly_sales_achievement?month=8&year=2026
+#
+# Definisi minggu (divalidasi thd file "SALES REPORT HO AGT 2026.xlsx" sheet
+# "Data weekly" - jumlah TC Week1+2+3+4 cocok persis dgn MTD):
+#   Week 1 = tgl 1-7, Week 2 = tgl 8-14, Week 3 = tgl 15-21, Week 4 = tgl 22-akhir bulan.
+# Selalu 4 minggu, minggu ke-4 menyerap sisa hari bulan (7-10 hari tergantung
+# panjang bulan).
+
+_WEEKLY_STARTS = [1, 8, 15, 22]
+
+
+def _week_bounds(year, month):
+    days_in_month = calendar.monthrange(year, month)[1]
+    bounds = []
+    for i, s in enumerate(_WEEKLY_STARTS):
+        e = (_WEEKLY_STARTS[i + 1] - 1) if i < 3 else days_in_month
+        e = min(e, days_in_month)
+        bounds.append((s, e))
+    return bounds
+
+
+def _month_tc_sales(year, month, outlets):
+    """TC & Sales per outlet, per Week1-4, utk 1 bulan tertentu. Pakai Sales
+    Invoice (live) kalau bulan itu >= April 2026, kalau lebih lama pakai
+    histori 'Outlet Daily Sales History'. KMT selalu dari 'Kemitraan MBG Sales
+    History' (outlet ini gak pernah punya Sales Invoice) - MBG ikut kalau
+    bulan itu 'current-ish' (bkn pembanding tahun lalu), krn blm py histori
+    tahun lalu (program baru mulai Sept 2025)."""
+    month_start = frappe.utils.getdate(f"{year}-{month:02d}-01")
+    is_history = month_start < frappe.utils.getdate("2026-04-27")
+
+    weeks = []
+    for s, e in _week_bounds(year, month):
+        start_date = frappe.utils.getdate(f"{year}-{month:02d}-{s:02d}")
+        end_date = frappe.utils.getdate(f"{year}-{month:02d}-{e:02d}")
+        src = _sales_by_outlet_history(start_date, end_date) if is_history else _sales_by_outlet(start_date, end_date)
+        if is_history:
+            kmtmbg = _kmt_only(start_date, end_date)
+        else:
+            kmtmbg = _sales_by_kmt_mbg(start_date, end_date)
+        merged = dict(src)
+        merged.update(kmtmbg)
+        weeks.append({o: merged.get(o, {"sales": 0, "trx": 0}) for o in outlets})
+    return weeks
+
+
+_WEEKLY_OUTLETS = _FASHION_OUTLETS + [o for o in _FMCG_OUTLETS if o != "KMT"] + [_MINI_SOCCER_OUTLET, "KMT", _MBG_OUTLET]
+
+
+def _pct(new, old):
+    if not old or new is None:
+        return None
+    return round((new / old - 1) * 100, 2)
+
+
+def _ac(sales, trx):
+    return round(sales / trx, 2) if trx else None
+
+
+@frappe.whitelist()
+def get_weekly_sales_achievement(month=None, year=None):
+    today = frappe.utils.getdate(frappe.utils.today())
+    month = int(month) if month else today.month
+    year = int(year) if year else today.year
+
+    # bulan ini, 2 bulan sebelumnya, dan bulan yg sama tahun lalu (utk pembanding per-week)
+    m1 = month - 1 if month > 1 else 12
+    y1 = year if month > 1 else year - 1
+    m2 = m1 - 1 if m1 > 1 else 12
+    y2 = y1 if m1 > 1 else y1 - 1
+    last_year = year - 1
+
+    cur = _month_tc_sales(year, month, _WEEKLY_OUTLETS)
+    lm1 = _month_tc_sales(y1, m1, _WEEKLY_OUTLETS)
+    lm2 = _month_tc_sales(y2, m2, _WEEKLY_OUTLETS)
+    ly = _month_tc_sales(last_year, month, _WEEKLY_OUTLETS)
+
+    def week_metrics(outlet):
+        weeks_out = []
+        prev = None
+        for i in range(4):
+            c = cur[i].get(outlet, {"sales": 0, "trx": 0})
+            tc, sales = c["trx"], c["sales"]
+            ac = _ac(sales, tc)
+            growth_tc = _pct(tc, prev["trx"]) if prev else None
+            growth_sales = _pct(sales, prev["sales"]) if prev else None
+            growth_ac = _pct(ac, _ac(prev["sales"], prev["trx"])) if prev else None
+            ly_w = ly[i].get(outlet, {"sales": 0, "trx": 0})
+            lm1_w = lm1[i].get(outlet, {"sales": 0, "trx": 0})
+            lm2_w = lm2[i].get(outlet, {"sales": 0, "trx": 0})
+            weeks_out.append({
+                "week": i + 1, "tc": tc, "sales": sales, "ac": ac,
+                "growth_tc_pct": growth_tc, "growth_sales_pct": growth_sales, "growth_ac_pct": growth_ac,
+                "last_year": {"tc": ly_w["trx"], "sales": ly_w["sales"],
+                              "growth_tc_pct": _pct(tc, ly_w["trx"]), "growth_sales_pct": _pct(sales, ly_w["sales"])},
+                "month_minus_1": {"tc": lm1_w["trx"], "sales": lm1_w["sales"],
+                                  "vs_pct_tc": _pct(tc, lm1_w["trx"]), "vs_pct_sales": _pct(sales, lm1_w["sales"])},
+                "month_minus_2": {"tc": lm2_w["trx"], "sales": lm2_w["sales"],
+                                  "vs_pct_tc": _pct(tc, lm2_w["trx"]), "vs_pct_sales": _pct(sales, lm2_w["sales"])},
+            })
+            prev = c
+        mtd_tc = sum(w["tc"] for w in weeks_out)
+        mtd_sales = sum(w["sales"] for w in weeks_out)
+        return {
+            "outlet": outlet, "label": _OUTLET_LABELS.get(outlet, outlet),
+            "weeks": weeks_out,
+            "mtd": {"tc": mtd_tc, "sales": mtd_sales, "ac": _ac(mtd_sales, mtd_tc)},
+        }
+
+    def group_metrics(label, outlets):
+        weeks_out = []
+        prev = None
+        for i in range(4):
+            tc = sum(cur[i].get(o, {"trx": 0})["trx"] for o in outlets)
+            sales = sum(cur[i].get(o, {"sales": 0})["sales"] for o in outlets)
+            ac = _ac(sales, tc)
+            growth_tc = _pct(tc, prev["trx"]) if prev else None
+            growth_sales = _pct(sales, prev["sales"]) if prev else None
+            growth_ac = _pct(ac, _ac(prev["sales"], prev["trx"])) if prev else None
+            ly_tc = sum(ly[i].get(o, {"trx": 0})["trx"] for o in outlets)
+            ly_sales = sum(ly[i].get(o, {"sales": 0})["sales"] for o in outlets)
+            lm1_tc = sum(lm1[i].get(o, {"trx": 0})["trx"] for o in outlets)
+            lm1_sales = sum(lm1[i].get(o, {"sales": 0})["sales"] for o in outlets)
+            lm2_tc = sum(lm2[i].get(o, {"trx": 0})["trx"] for o in outlets)
+            lm2_sales = sum(lm2[i].get(o, {"sales": 0})["sales"] for o in outlets)
+            weeks_out.append({
+                "week": i + 1, "tc": tc, "sales": sales, "ac": ac,
+                "growth_tc_pct": growth_tc, "growth_sales_pct": growth_sales, "growth_ac_pct": growth_ac,
+                "last_year": {"tc": ly_tc, "sales": ly_sales,
+                              "growth_tc_pct": _pct(tc, ly_tc), "growth_sales_pct": _pct(sales, ly_sales)},
+                "month_minus_1": {"tc": lm1_tc, "sales": lm1_sales,
+                                  "vs_pct_tc": _pct(tc, lm1_tc), "vs_pct_sales": _pct(sales, lm1_sales)},
+                "month_minus_2": {"tc": lm2_tc, "sales": lm2_sales,
+                                  "vs_pct_tc": _pct(tc, lm2_tc), "vs_pct_sales": _pct(sales, lm2_sales)},
+            })
+            prev = {"trx": tc, "sales": sales}
+        mtd_tc = sum(w["tc"] for w in weeks_out)
+        mtd_sales = sum(w["sales"] for w in weeks_out)
+        return {
+            "outlet": label, "label": label,
+            "weeks": weeks_out,
+            "mtd": {"tc": mtd_tc, "sales": mtd_sales, "ac": _ac(mtd_sales, mtd_tc)},
+        }
+
+    fashion_outlets = _FASHION_OUTLETS
+    fmcg_outlets = [o for o in _FMCG_OUTLETS if o != "KMT"]
+
+    fashion_rows = [week_metrics(o) for o in fashion_outlets]
+    fashion_rows.append(group_metrics("FASHION & H S", fashion_outlets))
+
+    fmcg_rows = [week_metrics(o) for o in fmcg_outlets]
+    fmcg_rows.append(group_metrics("FMCG", fmcg_outlets))
+
+    ho_rows = [
+        week_metrics(_MINI_SOCCER_OUTLET),
+        week_metrics("KMT"),
+        week_metrics(_MBG_OUTLET),
+    ]
+
+    holding_outlets = _WEEKLY_OUTLETS
+    holding_row = group_metrics("HOLDING", holding_outlets)
+
+    return {
+        "bulan": f"{year}-{month:02d}",
+        "week_bounds": [{"week": i + 1, "start": s, "end": e} for i, (s, e) in enumerate(_week_bounds(year, month))],
+        "fashion": fashion_rows,
+        "fmcg": fmcg_rows,
+        "ho": ho_rows,
+        "holding": holding_row,
+    }
+
+
+# --- Ditambahkan: VISITOR TC AC Achievement, per outlet/departemen, per
+# minggu (konvensi minggu SAMA spt get_weekly_sales_achievement: blok
+# 1-7/8-14/15-21/22-akhir bulan). Sumbernya doctype standar ERPNext "POS
+# Closing Shift" field "visitor" (Int) - TERNYATA ADA & terisi konsisten sejak
+# Agustus 2026 (sebelumnya dikira tdk ada di ERP sama sekali - baru ketemu
+# krn ini field bawaan standar, bukan custom field, jadi kelewat di pencarian
+# custom field sebelumnya). Divalidasi thd "SALES REPORT HO AGT 2026.xlsx"
+# kolom VISITOR - 11 dari 14 outlet exact match, sisanya beda tipis (~1-7%,
+# wajar krn data terus diedit setelah file dibuat).
+_POS_PROFILE_TO_OUTLET = {
+    "HCW": "HCW", "MNR": "MNR", "OCW": "OCW", "PSR": "PSR", "TASMU": "TASMU",
+    "UIN": "UIN", "XCR": "XCR", "XCW": "XCW", "XJB": "XJB", "XSHA FURNITURE JB": "XJB",
+    "XMJ": "XMJ", "XPH": "XPH", "XPY": "XPY", "XSC": "XSC", "XSC-OL": "XSC-OL",
+    "XSL": "XSL", "XSM": "XSM", "XSM GROW": "XSMGROW", "XSP": "XSP", "XSP-OL": "XSP-OL",
+    "XTJ": "XTJ", "XWP": "XWP", "KMT": "KMT",
+}
+
+
+def _visitor_by_outlet(start_date, end_date):
+    rows = frappe.db.sql("""
+        SELECT pos_profile, SUM(visitor) AS total_visitor
+        FROM `tabPOS Closing Shift`
+        WHERE posting_date BETWEEN %s AND %s
+        GROUP BY pos_profile
+    """, (start_date, end_date), as_dict=True)
+    result = {}
+    for r in rows:
+        outlet = _POS_PROFILE_TO_OUTLET.get(r["pos_profile"])
+        if not outlet:
+            continue
+        result[outlet] = result.get(outlet, 0) + (r["total_visitor"] or 0)
+    return result
+
+
+def _month_visitor(year, month, outlets):
+    weeks = []
+    for s, e in _week_bounds(year, month):
+        start_date = frappe.utils.getdate(f"{year}-{month:02d}-{s:02d}")
+        end_date = frappe.utils.getdate(f"{year}-{month:02d}-{e:02d}")
+        v = _visitor_by_outlet(start_date, end_date)
+        weeks.append({o: v.get(o, 0) for o in outlets})
+    return weeks
+
+
+@frappe.whitelist()
+def get_weekly_visitor_achievement(month=None, year=None):
+    today = frappe.utils.getdate(frappe.utils.today())
+    month = int(month) if month else today.month
+    year = int(year) if year else today.year
+
+    cur = _month_tc_sales(year, month, _WEEKLY_OUTLETS)
+    visitor = _month_visitor(year, month, _WEEKLY_OUTLETS)
+
+    def week_row(i, outlet):
+        c = cur[i].get(outlet, {"sales": 0, "trx": 0})
+        tc, sales = c["trx"], c["sales"]
+        ac = _ac(sales, tc)
+        v = visitor[i].get(outlet, 0)
+        achv_pct = round(tc / v * 100, 2) if v else None
+        return tc, sales, ac, v, achv_pct
+
+    def week_metrics(outlet):
+        weeks_out = []
+        prev = None
+        for i in range(4):
+            tc, sales, ac, v, achv_pct = week_row(i, outlet)
+            weeks_out.append({
+                "week": i + 1, "tc": tc, "sales": sales, "ac": ac,
+                "visitor": v, "achievement_pct": achv_pct,
+                "growth_tc_pct": _pct(tc, prev["tc"]) if prev else None,
+                "growth_sales_pct": _pct(sales, prev["sales"]) if prev else None,
+                "growth_ac_pct": _pct(ac, prev["ac"]) if prev else None,
+                "growth_visitor_pct": _pct(v, prev["visitor"]) if prev else None,
+                "growth_achievement_pct": _pct(achv_pct, prev["achievement_pct"]) if prev else None,
+            })
+            prev = {"tc": tc, "sales": sales, "ac": ac, "visitor": v, "achievement_pct": achv_pct}
+        return {"outlet": outlet, "label": _OUTLET_LABELS.get(outlet, outlet), "weeks": weeks_out}
+
+    def group_metrics(label, outlets):
+        weeks_out = []
+        prev = None
+        for i in range(4):
+            tc = sum(cur[i].get(o, {"trx": 0})["trx"] for o in outlets)
+            sales = sum(cur[i].get(o, {"sales": 0})["sales"] for o in outlets)
+            ac = _ac(sales, tc)
+            v = sum(visitor[i].get(o, 0) for o in outlets)
+            achv_pct = round(tc / v * 100, 2) if v else None
+            weeks_out.append({
+                "week": i + 1, "tc": tc, "sales": sales, "ac": ac,
+                "visitor": v, "achievement_pct": achv_pct,
+                "growth_tc_pct": _pct(tc, prev["tc"]) if prev else None,
+                "growth_sales_pct": _pct(sales, prev["sales"]) if prev else None,
+                "growth_ac_pct": _pct(ac, prev["ac"]) if prev else None,
+                "growth_visitor_pct": _pct(v, prev["visitor"]) if prev else None,
+                "growth_achievement_pct": _pct(achv_pct, prev["achievement_pct"]) if prev else None,
+            })
+            prev = {"tc": tc, "sales": sales, "ac": ac, "visitor": v, "achievement_pct": achv_pct}
+        return {"outlet": label, "label": label, "weeks": weeks_out}
+
+    fashion_outlets = _FASHION_OUTLETS
+    fmcg_outlets = [o for o in _FMCG_OUTLETS if o != "KMT"]
+
+    fashion_rows = [week_metrics(o) for o in fashion_outlets]
+    fashion_rows.append(group_metrics("FASHION & H S", fashion_outlets))
+
+    fmcg_rows = [week_metrics(o) for o in fmcg_outlets]
+    fmcg_rows.append(group_metrics("FMCG", fmcg_outlets))
+
+    ho_rows = [
+        week_metrics(_MINI_SOCCER_OUTLET),
+        week_metrics("KMT"),
+        week_metrics(_MBG_OUTLET),
+    ]
+
+    holding_row = group_metrics("HOLDING", _WEEKLY_OUTLETS)
+
+    return {
+        "bulan": f"{year}-{month:02d}",
+        "week_bounds": [{"week": i + 1, "start": s, "end": e} for i, (s, e) in enumerate(_week_bounds(year, month))],
+        "fashion": fashion_rows,
+        "fmcg": fmcg_rows,
+        "ho": ho_rows,
+        "holding": holding_row,
+    }
+
+
+# --- Ditambahkan: Kontribusi Sales per KATEGORI PRODUK (item_group), per
+# departemen, dibandingkan minggu sebelumnya (bukan per outlet spt laporan lain
+# - ini breakdown per kategori barang, mis. BEVERAGE/SNACK/dll).
+# URL: /api/method/custom_reports.sales_api.get_kontribusi_sales_category?department=FASHION&as_of_date=YYYY-MM-DD
+#
+# CATATAN: tabel child 'Sales Invoice Item' tidak bisa diakses via REST list
+# API biasa (Frappe blok akses child table di luar konteks parent-nya) - jadi
+# HARUS lewat SQL server-side spt ini, bukan via client REST.
+# item_group yg dipakai adalah snapshot pada saat invoice dibuat (tersimpan di
+# baris Sales Invoice Item itu sendiri), BUKAN item_group Item master saat ini
+# - supaya laporan historis tetap konsisten walau ada barang yg direkategori
+# ulang di kemudian hari.
+# MBG tidak disertakan (sama spt laporan lain - outlet ini tidak py Sales
+# Invoice di ERP sama sekali, datanya cuma ada di luar ERP).
+
+def _category_sales(start_date, end_date, outlets):
+    # Kategori "TOPUP" di-exclude - mekanisme voucher/saldo (harga Rp1/unit,
+    # qty sangat besar), bukan barang dagangan beneran, jadi tdk relevan utk
+    # laporan kontribusi sales per kategori produk.
+    #
+    # Di-ROLLUP ke PARENT item_group (bukan leaf item_group mentah) - divalidasi
+    # thd file referensi "KONTRIBUSI SALES CATEGORY W4 VS W3.xlsx": leaf
+    # item_group ada 347+ (terlalu granular, mis. "ACNE CARE"), sementara
+    # laporan Excel cuma ~56-59 kategori yaitu level PARENT-nya (mis. "ACNE
+    # CARE" & sejenisnya digabung jadi "FACIAL CARE", "BABY BATH & HYGIENE"
+    # dkk digabung jadi "ACC BABY") - 51 dari 56 nama kategori Excel cocok
+    # persis setelah rollup ini.
+    if not outlets:
+        return {}
+    placeholders = ", ".join(["%s"] * len(outlets))
+    rows = frappe.db.sql(f"""
+        SELECT COALESCE(ig.parent_item_group, sii.item_group, '(Tanpa Kategori)') AS category,
+               SUM(sii.qty) AS qty,
+               SUM(sii.amount) AS amount
+        FROM `tabSales Invoice Item` sii
+        JOIN `tabSales Invoice` si ON si.name = sii.parent
+        LEFT JOIN `tabItem Group` ig ON ig.name = sii.item_group
+        WHERE si.docstatus = 1 AND si.is_return = 0
+          AND si.posting_date BETWEEN %s AND %s
+          AND si.custom_outlet IN ({placeholders})
+          AND sii.item_group != 'TOPUP'
+        GROUP BY COALESCE(ig.parent_item_group, sii.item_group, '(Tanpa Kategori)')
+    """, [start_date, end_date] + list(outlets), as_dict=True)
+    return {r["category"]: {"qty": r["qty"] or 0, "amount": r["amount"] or 0} for r in rows}
+
+
+_KATEGORI_DEPT_OUTLETS = {
+    "FASHION": _FASHION_OUTLETS,
+    "FMCG": [o for o in _FMCG_OUTLETS if o != "KMT"],
+    "XSL": [_MINI_SOCCER_OUTLET],
+}
+
+
+@frappe.whitelist()
+def get_kontribusi_sales_category(department="FASHION", as_of_date=None):
+    as_of = frappe.utils.getdate(as_of_date or frappe.utils.today())
+    year, month = as_of.year, as_of.month
+    bounds = _week_bounds(year, month)
+
+    cur_week_idx = 3
+    for i, (s, e) in enumerate(bounds):
+        if s <= as_of.day <= e:
+            cur_week_idx = i
+            break
+
+    def week_range(idx):
+        if idx < 0:
+            prev_month = month - 1 if month > 1 else 12
+            prev_year = year if month > 1 else year - 1
+            prev_bounds = _week_bounds(prev_year, prev_month)
+            s, e = prev_bounds[-1]
+            return (frappe.utils.getdate(f"{prev_year}-{prev_month:02d}-{s:02d}"),
+                    frappe.utils.getdate(f"{prev_year}-{prev_month:02d}-{e:02d}"))
+        s, e = bounds[idx]
+        return (frappe.utils.getdate(f"{year}-{month:02d}-{s:02d}"),
+                frappe.utils.getdate(f"{year}-{month:02d}-{e:02d}"))
+
+    cur_start, cur_end = week_range(cur_week_idx)
+    prev_start, prev_end = week_range(cur_week_idx - 1)
+
+    outlets = _KATEGORI_DEPT_OUTLETS.get(department.upper(), [])
+    cur_data = _category_sales(cur_start, cur_end, outlets)
+    prev_data = _category_sales(prev_start, prev_end, outlets)
+
+    cur_total = sum(v["amount"] for v in cur_data.values())
+    prev_total = sum(v["amount"] for v in prev_data.values())
+
+    rows = []
+    for cat in sorted(set(cur_data) | set(prev_data)):
+        c = cur_data.get(cat, {"qty": 0, "amount": 0})
+        p = prev_data.get(cat, {"qty": 0, "amount": 0})
+        c_kontribusi = (c["amount"] / cur_total) if cur_total else 0
+        p_kontribusi = (p["amount"] / prev_total) if prev_total else 0
+        growth = (c_kontribusi / p_kontribusi - 1) if p_kontribusi else 0
+        rows.append({
+            "category": cat,
+            "week_current": {"qty": c["qty"], "sales": c["amount"], "kontribusi_pct": round(c_kontribusi * 100, 6)},
+            "week_previous": {"qty": p["qty"], "sales": p["amount"], "kontribusi_pct": round(p_kontribusi * 100, 6)},
+            "growth_kontribusi_pct": round(growth * 100, 6),
+        })
+    rows.sort(key=lambda r: r["category"])
+
+    return {
+        "department": department.upper(),
+        "as_of_date": str(as_of),
+        "week_current": {"week_no": cur_week_idx + 1, "start": str(cur_start), "end": str(cur_end),
+                          "total_qty": sum(v["qty"] for v in cur_data.values()), "total_sales": cur_total},
+        "week_previous": {"week_no": cur_week_idx, "start": str(prev_start), "end": str(prev_end),
+                           "total_qty": sum(v["qty"] for v in prev_data.values()), "total_sales": prev_total},
+        "rows": rows,
+    }
+
+
+# --- Ditambahkan: WEEKLY MARGIN (Target vs Achievement), per outlet & departemen.
+# URL: /api/method/custom_reports.sales_api.get_weekly_margin?department=FASHION&as_of_date=YYYY-MM-DD
+#
+# PENTING - minggu di laporan ini beda dgn "Weekly Sales Achievement": di sini
+# minggu = Senin-Minggu (kalender), BUKAN blok 1-7/8-14/15-21/22-akhir. Divalidasi
+# thd file "WEEKLY MARGIN AGUSTUS 2026" - sheet2 per minggu persis Senin-Minggu
+# (mis. "24-30 Agustus" = Senin 24 s/d Minggu 30).
+#
+# Formula (divalidasi manual thd file perhitungan "WEEKLY MARGIN 24-30 AGT"):
+#   SALES BRUTO       = SUM(grand_total) invoice non-retur (is_return=0)
+#   - MEMBER-X, Potongan Penjualan, Promo-X, RAFAKSI DISCOUNT-X
+#     (4 akun GL Entry terpisah, voucher_type='Sales Invoice', net debit-credit
+#     per cost_center = outlet - BUKAN field loyalty_amount/discount_amount di
+#     invoice, itu field lain yg tdk dipakai laporan ini)
+#   = SALES BRUTO 2
+#   - RETUR PENJUALAN  = SUM(ABS(grand_total)) invoice retur (is_return=1)
+#   = SALES - RETUR  (ini "SALES" versi EXCLUDE PROMO di laporan)
+#   + Promo-X (ditambah balik)
+#   = SALES ACHV     (ini "SALES" versi INCLUDE PROMO di laporan)
+#   HPP            = ABS(SUM(stock_value_difference)) utk voucher_type='Sales
+#                    Invoice' di warehouse2 outlet itu (sama mekanisme dgn HPP
+#                    "penjualan" di inventory_api.py)
+#   deal margin clear = (SALES - RETUR) - HPP  ; % = deal margin clear / (SALES-RETUR)
+#   deal margin +     = SALES ACHV - HPP       ; dipakai utk Achievement vs Target
+
+_OUTLET_COST_CENTER = {
+    "HCW": "HCW - X", "OCW": "OCW - X", "PSR": "PSR - X", "XCW": "XCW - X",
+    "XJB": "XJB - X", "XPY": "XPY - X", "XSC": "XSC - X", "XSP": "XSP - X",
+    "XSC-OL": "XSC-OL - X", "XSP-OL": "XSP-OL - X",
+    "XSM": "XSM - X", "XMJ": "XMJ - X", "XWP": "XWP - X", "XPH": "XPH - X",
+    "XTJ": "XTJ - X", "XCR": "XCR - X", "TASMU": "TASMU - X", "MNR": "MNR - X",
+    "UIN": "UIN - X", "XSMGROW": "XSM GROW - X",
+    "KMT": "KEMITRAAN - X", "MBG": "MBG - X", "XSL": "XSL - X",
+}
+
+_DEDUCTION_ACCOUNTS = ["MEMBER - X", "Potongan Penjualan", "Promo - X", "RAFAKSI DISCOUNT - X"]
+
+# SALES BRUTO & RETUR PENJUALAN paling presisi diambil langsung dari akun GL
+# income "Penjualan"/"Retur Penjualan" (bukan dihitung dari grand_total Sales
+# Invoice, yg ternyata SUDAH netto dari ke-4 potongan) - divalidasi persis ke
+# rupiah thd file referensi "WEEKLY MARGIN 24-30 AGT".
+_GL_MARGIN_ACCOUNTS = ["Penjualan", "Retur Penjualan"] + _DEDUCTION_ACCOUNTS
+
+
+def _monday_week_bounds(a_date):
+    weekday = a_date.weekday()  # Senin=0
+    monday = frappe.utils.add_days(a_date, -weekday)
+    sunday = frappe.utils.add_days(monday, 6)
+    return monday, sunday
+
+
+def _gl_deductions_by_outlet(start_date, end_date, outlets):
+    cost_centers = [_OUTLET_COST_CENTER[o] for o in outlets if o in _OUTLET_COST_CENTER]
+    if not cost_centers:
+        return {}
+    cc_placeholders = ", ".join(["%s"] * len(cost_centers))
+    acc_placeholders = ", ".join(["%s"] * len(_GL_MARGIN_ACCOUNTS))
+    rows = frappe.db.sql(f"""
+        SELECT cost_center, account, SUM(debit - credit) AS net
+        FROM `tabGL Entry`
+        WHERE voucher_type = 'Sales Invoice'
+          AND posting_date BETWEEN %s AND %s
+          AND cost_center IN ({cc_placeholders})
+          AND account IN ({acc_placeholders})
+        GROUP BY cost_center, account
+    """, [start_date, end_date] + cost_centers + _GL_MARGIN_ACCOUNTS, as_dict=True)
+    cc_to_outlet = {v: k for k, v in _OUTLET_COST_CENTER.items()}
+    result = {}
+    for r in rows:
+        outlet = cc_to_outlet.get(r["cost_center"])
+        if not outlet:
+            continue
+        result.setdefault(outlet, {})[r["account"]] = r["net"] or 0
+    return result
+
+
+def _hpp_by_outlet(start_date, end_date, outlets):
+    # HPP dihitung dgn JOIN Stock Ledger Entry -> Sales Invoice lewat voucher_no,
+    # lalu group by custom_outlet (BUKAN by warehouse). Warehouse fisik bisa
+    # dipakai BERSAMA oleh >1 outlet (mis. "SELLING AREA XSM - X" dipakai baik
+    # oleh Supermart maupun XSM Grow sekaligus - terbukti dari pengecekan
+    # langsung: warehouse "XSM GROW - X" yg terpisah ternyata kosong/tdk dipakai
+    # utk transaksi penjualan), jadi mapping per-warehouse tdk bisa diandalkan
+    # utk memisahkan outlet. Join via custom_outlet jauh lebih akurat & sekalian
+    # menghilangkan ambiguitas XSL vs SOCCERLITE.
+    if not outlets:
+        return {}
+    placeholders = ", ".join(["%s"] * len(outlets))
+    rows = frappe.db.sql(f"""
+        SELECT si.custom_outlet AS outlet, SUM(sle.stock_value_difference) AS val
+        FROM `tabStock Ledger Entry` sle
+        INNER JOIN `tabSales Invoice` si ON si.name = sle.voucher_no
+        WHERE sle.is_cancelled = 0
+          AND sle.voucher_type = 'Sales Invoice'
+          AND si.docstatus = 1
+          AND si.posting_date BETWEEN %s AND %s
+          AND si.custom_outlet IN ({placeholders})
+        GROUP BY si.custom_outlet
+    """, [start_date, end_date] + list(outlets), as_dict=True)
+    return {r["outlet"]: abs(r["val"] or 0) for r in rows}
+
+
+# Target margin % per outlet, Semester II 2026 - sumber: file "TARGET SALES
+# UNIT BISNIS BARU", sheet "RESUME TARGET MARGIN". Nilai tetap (bukan per
+# bulan) kecuali dinyatakan lain oleh tim. Disimpan sbg pecahan (0.255=25.5%).
+_MARGIN_TARGET_PCT = {
+    "XSC": 0.255, "PSR": 0.25, "XPY": 0.18, "XJB": 0.18, "XCW": 0.26, "XSP": 0.255,
+    "HCW": 0.18, "XSC-OL": 0.22, "OCW": 0.22, "XSP-OL": 0.22,
+    "XSM": 0.16, "XMJ": 0.16, "XWP": 0.16, "XPH": 0.16, "XTJ": 0.16, "XCR": 0.16,
+    "TASMU": 0.16, "MNR": 0.16, "UIN": 0.25, "XSMGROW": 0.3,
+    "MBG": 0.05, "KMT": 0.10, "XSL": 0.74,
+}
+_MARGIN_DEPT_TARGET_PCT = {"FASHION": 0.24, "FMCG": 0.16}
+
+
+def _margin_row(outlet, label, gl, hpp, target_pct=None):
+    # SALES BRUTO & RETUR diambil langsung dari akun GL income "Penjualan" /
+    # "Retur Penjualan" (voucher_type Sales Invoice, cost_center=outlet) -
+    # divalidasi cocok persis ke rupiah thd file referensi "24-30 AGT",
+    # jauh lebih presisi drpd dihitung tdk langsung dari grand_total invoice.
+    sales_bruto = -gl.get("Penjualan", 0)  # akun income: credit-normal -> net negatif saat ada penjualan
+    retur = gl.get("Retur Penjualan", 0)
+    member = gl.get("MEMBER - X", 0)
+    potongan = gl.get("Potongan Penjualan", 0)
+    promo = gl.get("Promo - X", 0)
+    rafaksi = gl.get("RAFAKSI DISCOUNT - X", 0)
+    sales_bruto_2 = sales_bruto - member - potongan - promo - rafaksi
+    sales_retur = sales_bruto_2 - retur
+    # SALES ACHV = SALES-RETUR + Promo + RAFAKSI (keduanya ditambah balik) -
+    # ketahuan dari validasi Monthly Margin: FASHION sempat kelihatan cocok
+    # cuma +Promo krn RAFAKSI FASHION kecil, tapi FMCG (RAFAKSI besar, mis.
+    # Supermart Rp26jt) langsung ketahuan salah kalau RAFAKSI tdk diikutkan -
+    # exact match ke Sheet4 "SALES ACHV" setelah RAFAKSI ditambahkan.
+    sales_achv = sales_retur + promo + rafaksi
+    deal_margin_clear = sales_retur - hpp
+    deal_margin_plus = sales_achv - hpp
+    # % margin (exclude promo) = deal margin clear / SALES-RETUR (exclude
+    # promo) - ini formula File 1 "WEEKLY MARGIN AGUSTUS 2026" (laporan
+    # resmi/output final), BUKAN dibagi SALES ACHV (incl promo) spt di file
+    # kalkulasi "24-30 AGT" (beda ~0.8pp utk Cikiray: 19.79% vs 19.0%) - File 1
+    # dikonfirmasi sbg acuan output resmi, jadi ikut formulanya.
+    margin_pct = (deal_margin_clear / sales_retur * 100) if sales_retur else None
+    # margin_pct_incl & achv_pct dipakai utk bandingkan ke target - divalidasi
+    # persis thd referensi: ACHV = (deal_margin_plus/sales_achv) / target_pct
+    margin_pct_incl = (deal_margin_plus / sales_achv * 100) if sales_achv else None
+    achv_pct = (margin_pct_incl / (target_pct * 100) * 100) if (target_pct and margin_pct_incl is not None) else None
+    return {
+        "outlet": outlet, "label": label,
+        "sales_bruto": sales_bruto, "member": member, "potongan_penjualan": potongan,
+        "promo": promo, "rafaksi_discount": rafaksi, "sales_bruto_2": sales_bruto_2,
+        "retur_penjualan": retur, "sales_retur": sales_retur, "sales_achv": sales_achv,
+        "hpp": hpp, "deal_margin_clear": deal_margin_clear, "margin_pct": margin_pct,
+        "deal_margin_plus": deal_margin_plus, "margin_pct_incl": margin_pct_incl,
+        "target_pct": (target_pct * 100) if target_pct else None, "achv_pct": achv_pct,
+    }
+
+
+_MARGIN_FASHION_OUTLETS = ["XSC", "XSC-OL", "PSR", "XPY", "XJB", "XCW", "OCW", "XSP", "XSP-OL", "HCW"]
+_MARGIN_FMCG_OUTLETS = ["XSM", "XMJ", "XWP", "XPH", "XTJ", "XCR", "TASMU", "MNR", "UIN", "XSMGROW"]
+
+# outlet offline+online (atau grup lain) yg di laporan asli ditampilkan sbg
+# 1 baris gabungan "All" tambahan, muncul tepat setelah pasangan komponennya -
+# divalidasi thd struktur "WEEKLY MARGIN AGUSTUS 2026" (Cikiray All, Ciawi
+# All, SP Fashion All, Supermart All).
+_MARGIN_COMBINE_AFTER = {
+    "XSC-OL": ("Cikiray All", ["XSC", "XSC-OL"]),
+    "OCW": ("Ciawi All", ["XCW", "OCW"]),
+    "XSP-OL": ("SP Fashion All", ["XSP", "XSP-OL"]),
+    "XSMGROW": ("Supermart All", ["XSM", "XSMGROW"]),
+}
+
+
+def _combined_margin_row(label, member_outlets, gl_data, hpp_data):
+    gl_sum = {acc: sum(gl_data.get(o, {}).get(acc, 0) for o in member_outlets) for acc in _GL_MARGIN_ACCOUNTS}
+    hpp_sum = sum(hpp_data.get(o, 0) for o in member_outlets)
+    return _margin_row("+".join(member_outlets), label, gl_sum, hpp_sum)
+
+
+def _margin_row_sales_only(outlet, label, sales_bruto):
+    # Dipakai utk KMT/MBG: sales-nya ada (dari doctype "Kemitraan MBG Sales
+    # History", input manual krn blm ada transaksi Sales Invoice di ERP utk
+    # 2 outlet ini), tapi HPP/margin TIDAK tersedia sama sekali - baik di ERP
+    # maupun di file Excel referensi (angka margin di sana jg ternyata diketik
+    # manual, bukan hasil rumus - lihat percakapan). Field margin diisi None
+    # drpd angka yg salah/mengada-ada.
+    target = _MARGIN_TARGET_PCT.get(outlet)
+    return {
+        "outlet": outlet, "label": label,
+        "sales_bruto": sales_bruto, "member": None, "potongan_penjualan": None,
+        "promo": None, "rafaksi_discount": None, "sales_bruto_2": None,
+        "retur_penjualan": None, "sales_retur": None, "sales_achv": None,
+        "hpp": None, "deal_margin_clear": None, "margin_pct": None,
+        "deal_margin_plus": None, "margin_pct_incl": None,
+        "target_pct": (target * 100) if target else None, "achv_pct": None,
+        "note": "Margin belum tersedia (data blm terhubung ke ERP)",
+    }
+
+
+_MARGIN_HO_OUTLETS = ["KMT", "XSL", "MBG"]
+
+
+@frappe.whitelist()
+def get_weekly_margin(department="FASHION", as_of_date=None):
+    as_of = frappe.utils.getdate(as_of_date or frappe.utils.today())
+    week_start, week_end = _monday_week_bounds(as_of)
+
+    dept = department.upper()
+
+    if dept == "HO":
+        kmt_mbg_sales = _sales_by_kmt_mbg(week_start, week_end)
+        gl_data = _gl_deductions_by_outlet(week_start, week_end, ["XSL"])
+        hpp_data = _hpp_by_outlet(week_start, week_end, ["XSL"])
+
+        rows = [
+            _margin_row_sales_only("KMT", "Kemitraan", kmt_mbg_sales.get("KMT", {}).get("sales", 0)),
+            _margin_row("XSL", "Mini Soccer", gl_data.get("XSL", {}), hpp_data.get("XSL", 0),
+                        target_pct=_MARGIN_TARGET_PCT.get("XSL")),
+            _margin_row_sales_only("MBG", "MBG", kmt_mbg_sales.get("MBG", {}).get("sales", 0)),
+        ]
+        return {
+            "department": dept, "as_of_date": str(as_of),
+            "week_start": str(week_start), "week_end": str(week_end),
+            "rows": rows,
+            "note": "Total Dept.Holding tdk dihitung krn margin KMT & MBG blm tersedia dari ERP",
+        }
+
+    outlets = _MARGIN_FASHION_OUTLETS if dept == "FASHION" else (
+        _MARGIN_FMCG_OUTLETS if dept == "FMCG" else [dept] if dept in _OUTLET_COST_CENTER else []
+    )
+
+    gl_data = _gl_deductions_by_outlet(week_start, week_end, outlets)
+    hpp_data = _hpp_by_outlet(week_start, week_end, outlets)
+
+    rows = []
+    for o in outlets:
+        row = _margin_row(o, _OUTLET_LABELS.get(o, o), gl_data.get(o, {}), hpp_data.get(o, 0),
+                           target_pct=_MARGIN_TARGET_PCT.get(o))
+        rows.append(row)
+        if o in _MARGIN_COMBINE_AFTER:
+            label, members = _MARGIN_COMBINE_AFTER[o]
+            rows.append(_combined_margin_row(label, members, gl_data, hpp_data))
+
+    total_gl = {acc: sum(gl_data.get(o, {}).get(acc, 0) for o in outlets) for acc in _GL_MARGIN_ACCOUNTS}
+    total_hpp = sum(hpp_data.get(o, 0) for o in outlets)
+    total_row = _margin_row("TOTAL", "Total", total_gl, total_hpp,
+                             target_pct=_MARGIN_DEPT_TARGET_PCT.get(dept))
+    rows.append(total_row)
+
+    return {
+        "department": dept, "as_of_date": str(as_of),
+        "week_start": str(week_start), "week_end": str(week_end),
+        "rows": rows,
+    }
+
+
+# --- Ditambahkan: Sales Achievement yang SUDAH dikurangi retur produk &
+# potongan (MEMBER/Potongan Penjualan/Promo/RAFAKSI) - All/Per Department/Per
+# Outlet/Per week. Sumbernya file "WEEKLY MARGIN AGUSTUS 2026", jadi pakai
+# minggu Senin-Minggu (sama spt get_weekly_margin), BUKAN blok 1-7/8-14 spt
+# get_weekly_sales_achievement. Reuse _margin_row yg sudah tervalidasi -
+# field "sales_net" di sini = field "sales_retur" di get_weekly_margin
+# (SALES BRUTO - 4 potongan - RETUR), cuma dipisah jadi endpoint sendiri +
+# growth vs minggu sebelumnya, tanpa perlu HPP/margin/target.
+def _net_sales_row(outlet, label, gl, gl_prev):
+    m = _margin_row(outlet, label, gl, 0)  # hpp=0, dummy - tdk dipakai
+    m_prev = _margin_row(outlet, label, gl_prev, 0)
+    return {
+        "outlet": outlet, "label": label,
+        "sales_bruto": m["sales_bruto"], "member": m["member"],
+        "potongan_penjualan": m["potongan_penjualan"], "promo": m["promo"],
+        "rafaksi_discount": m["rafaksi_discount"], "retur_penjualan": m["retur_penjualan"],
+        "sales_net": m["sales_retur"],  # = SALES BRUTO - 4 potongan - RETUR
+        "sales_net_prev_week": m_prev["sales_retur"],
+        "growth_pct": _pct(m["sales_retur"], m_prev["sales_retur"]),
+    }
+
+
+def _combined_net_sales_row(label, member_outlets, gl_data, gl_prev_data):
+    gl_sum = {acc: sum(gl_data.get(o, {}).get(acc, 0) for o in member_outlets) for acc in _GL_MARGIN_ACCOUNTS}
+    gl_prev_sum = {acc: sum(gl_prev_data.get(o, {}).get(acc, 0) for o in member_outlets) for acc in _GL_MARGIN_ACCOUNTS}
+    return _net_sales_row("+".join(member_outlets), label, gl_sum, gl_prev_sum)
+
+
+@frappe.whitelist()
+def get_weekly_sales_net_achievement(department="FASHION", as_of_date=None):
+    as_of = frappe.utils.getdate(as_of_date or frappe.utils.today())
+    week_start, week_end = _monday_week_bounds(as_of)
+    prev_start, prev_end = _monday_week_bounds(frappe.utils.add_days(week_start, -1))
+
+    dept = department.upper()
+    outlets = _MARGIN_FASHION_OUTLETS if dept == "FASHION" else (
+        _MARGIN_FMCG_OUTLETS if dept == "FMCG" else [dept] if dept in _OUTLET_COST_CENTER else []
+    )
+
+    gl_cur = _gl_deductions_by_outlet(week_start, week_end, outlets)
+    gl_prev = _gl_deductions_by_outlet(prev_start, prev_end, outlets)
+
+    rows = []
+    for o in outlets:
+        row = _net_sales_row(o, _OUTLET_LABELS.get(o, o), gl_cur.get(o, {}), gl_prev.get(o, {}))
+        rows.append(row)
+        if o in _MARGIN_COMBINE_AFTER:
+            label, members = _MARGIN_COMBINE_AFTER[o]
+            rows.append(_combined_net_sales_row(label, members, gl_cur, gl_prev))
+
+    total_gl = {acc: sum(gl_cur.get(o, {}).get(acc, 0) for o in outlets) for acc in _GL_MARGIN_ACCOUNTS}
+    total_gl_prev = {acc: sum(gl_prev.get(o, {}).get(acc, 0) for o in outlets) for acc in _GL_MARGIN_ACCOUNTS}
+    rows.append(_net_sales_row("TOTAL", "Total", total_gl, total_gl_prev))
+
+    return {
+        "department": dept, "as_of_date": str(as_of),
+        "week_start": str(week_start), "week_end": str(week_end),
+        "week_previous_start": str(prev_start), "week_previous_end": str(prev_end),
+        "rows": rows,
+    }
+
+
+# --- Ditambahkan: Monthly Sales Achievement vs Target, SUDAH dikurangi retur
+# produk & potongan - All/Per Department/Per Outlet (BUKAN per kategori),
+# dibandingkan bulan sebelumnya (MoM) & bulan yg sama tahun sebelumnya (YoY).
+# Sumbernya sama dgn get_weekly_margin/get_weekly_sales_net_achievement (GL
+# Entry akun "Penjualan"/"Retur Penjualan"/4 potongan), cuma rentang tanggal-
+# nya per BULAN, bukan per minggu - divalidasi thd formula file "SALES CLEAR
+# ACHV VS TARGET MoM YoY.xlsx" (Sheet4 "SALES ACHV" = persis field sales_retur
+# yg sama dgn Weekly Margin).
+#
+# CATATAN: krn data live Sales Invoice/GL Entry baru ada sejak akhir April
+# 2026, perbandingan "vs tahun lalu" (YoY) TERPAKSA pakai sales histori mentah
+# (blm dikurangi retur/potongan scr presisi spt bulan berjalan) - itu satu2nya
+# data yg tersedia utk periode itu. KMT & MBG jg sales apa adanya (data manual,
+# tdk py breakdown retur/potongan sama sekali).
+def _month_range(year, month):
+    start = frappe.utils.getdate(f"{year}-{month:02d}-01")
+    days = calendar.monthrange(year, month)[1]
+    return start, start.replace(day=days)
+
+
+@frappe.whitelist()
+def get_monthly_sales_net_achievement(department="FASHION", month=None, year=None):
+    today = frappe.utils.getdate(frappe.utils.today())
+    target_month = int(month) if month else today.month
+    target_year = int(year) if year else today.year
+    month_start, month_full_end = _month_range(target_year, target_month)
+    is_current_month = (target_year, target_month) == (today.year, today.month)
+    as_of = today if is_current_month else month_full_end
+
+    bulan_label = _BULAN_ID[target_month - 1]
+    day_cutoff = as_of.day
+
+    m1 = target_month - 1 if target_month > 1 else 12
+    y1 = target_year if target_month > 1 else target_year - 1
+    lm_start, _ = _month_range(y1, m1)
+    lm_end = lm_start.replace(day=min(day_cutoff, calendar.monthrange(y1, m1)[1]))
+
+    last_year = target_year - 1
+    ly_start, _ = _month_range(last_year, target_month)
+    ly_end = ly_start.replace(day=min(day_cutoff, calendar.monthrange(last_year, target_month)[1]))
+
+    targets = _target_by_outlet(bulan_label)
+
+    def net_amt(gl):
+        # "SALES ACHV" versi laporan BULANAN ini = SALES-RETUR + Promo + RAFAKSI
+        # (beda dari get_weekly_margin yg cuma +Promo) - divalidasi persis ke
+        # rupiah thd file "SALES CLEAR ACHV VS TARGET MoM YoY.xlsx" (Cikiray &
+        # Pasar Agustus, exact match stlh ditambah RAFAKSI juga).
+        m = _margin_row("x", "x", gl, 0)
+        return m["sales_retur"] + m["promo"] + m["rafaksi_discount"]
+
+    def make_row(outlet_key, label, target_outlets, cur_net, lm_net, ly_net, note=None):
+        target = sum(targets.get(o, 0) for o in target_outlets)
+        achv = round(cur_net / target * 100, 2) if target else None
+        row = {
+            "outlet": outlet_key, "label": label, "target": target,
+            "sales_net": cur_net, "achv_vs_target_pct": achv,
+            "sales_net_last_month": lm_net, "growth_vs_last_month_pct": _pct_change(cur_net, lm_net),
+            "sales_net_last_year": ly_net, "growth_vs_last_year_pct": _pct_change(cur_net, ly_net),
+        }
+        if note:
+            row["note"] = note
+        return row
+
+    dept = department.upper()
+
+    if dept == "HO":
+        kmt_mbg_cur = _sales_by_kmt_mbg(month_start, as_of)
+        kmt_mbg_lm = _sales_by_kmt_mbg(lm_start, lm_end)
+        kmt_ly = _kmt_only(ly_start, ly_end)  # MBG blm py histori tahun lalu
+
+        gl_xsl_cur = _gl_deductions_by_outlet(month_start, as_of, ["XSL"])
+        gl_xsl_lm = _gl_deductions_by_outlet(lm_start, lm_end, ["XSL"])
+        hist_xsl_ly = _sales_by_outlet_history(ly_start, ly_end)
+
+        note_manual = "Sales KMT/MBG data manual, blm ada breakdown retur/potongan - sales_net = sales apa adanya."
+        rows = [
+            make_row("KMT", "Kemitraan", ["KMT"],
+                     kmt_mbg_cur.get("KMT", {}).get("sales", 0), kmt_mbg_lm.get("KMT", {}).get("sales", 0),
+                     kmt_ly.get("KMT", {}).get("sales", 0), note_manual),
+            make_row("XSL", "Mini Soccer", ["XSL"],
+                     net_amt(gl_xsl_cur.get("XSL", {})), net_amt(gl_xsl_lm.get("XSL", {})),
+                     hist_xsl_ly.get("XSL", {}).get("sales", 0)),
+            make_row("MBG", "MBG", ["MBG"],
+                     kmt_mbg_cur.get("MBG", {}).get("sales", 0), kmt_mbg_lm.get("MBG", {}).get("sales", 0),
+                     0, note_manual),
+        ]
+        return {
+            "department": dept, "bulan": bulan_label, "tahun": target_year,
+            "period_start": str(month_start), "period_end": str(as_of), "rows": rows,
+        }
+
+    outlets = _MARGIN_FASHION_OUTLETS if dept == "FASHION" else (
+        _MARGIN_FMCG_OUTLETS if dept == "FMCG" else [dept] if dept in _OUTLET_COST_CENTER else []
+    )
+
+    gl_cur = _gl_deductions_by_outlet(month_start, as_of, outlets)
+    gl_lm = _gl_deductions_by_outlet(lm_start, lm_end, outlets)
+    hist_ly = _sales_by_outlet_history(ly_start, ly_end)
+
+    def outlet_net(o):
+        return net_amt(gl_cur.get(o, {})), net_amt(gl_lm.get(o, {})), hist_ly.get(o, {}).get("sales", 0)
+
+    def combined_net(members):
+        gl_sum = {acc: sum(gl_cur.get(o, {}).get(acc, 0) for o in members) for acc in _GL_MARGIN_ACCOUNTS}
+        gl_lm_sum = {acc: sum(gl_lm.get(o, {}).get(acc, 0) for o in members) for acc in _GL_MARGIN_ACCOUNTS}
+        ly_sum = sum(hist_ly.get(o, {}).get("sales", 0) for o in members)
+        return net_amt(gl_sum), net_amt(gl_lm_sum), ly_sum
+
+    rows = []
+    for o in outlets:
+        cur_net, lm_net, ly_net = outlet_net(o)
+        rows.append(make_row(o, _OUTLET_LABELS.get(o, o), [o], cur_net, lm_net, ly_net))
+        if o in _MARGIN_COMBINE_AFTER:
+            label, members = _MARGIN_COMBINE_AFTER[o]
+            cur_net, lm_net, ly_net = combined_net(members)
+            rows.append(make_row("+".join(members), label, members, cur_net, lm_net, ly_net))
+
+    cur_net, lm_net, ly_net = combined_net(outlets)
+    rows.append(make_row("TOTAL", "Total", outlets, cur_net, lm_net, ly_net))
+
+    return {
+        "department": dept, "bulan": bulan_label, "tahun": target_year,
+        "period_start": str(month_start), "period_end": str(as_of), "rows": rows,
+    }
+
+
+# --- Ditambahkan: Monthly VISITOR TC AC Achievement, All/Per Department/Per
+# Outlet, vs bulan sebelumnya (MoM) & tahun sebelumnya (YoY). EXCLUDE
+# MBG/KMT/XSL (sesuai nama sheet file referensi "EXC MBG,KMT,XSL" - visitor
+# fisik toko tdk relevan utk 3 outlet itu).
+#
+# CATATAN: TARGET VISITOR sudah ada (doctype baru "Outlet Visitor Target",
+# diimport dari file "TARGET PROGRAM MARKETING 2026" sheet "TARGET VISITOR").
+# TARGET TC & TARGET AC msh BELUM ada sumbernya sama sekali (beda dari target
+# SALES yg sudah ada di 'Sales Target Monthly'). Field 'visitor' di POS
+# Closing Shift jg baru aktif terisi mulai Agustus 2026, jadi perbandingan
+# VISITOR vs tahun lalu (2025) kemungkinan besar bakal 0/kosong krn datanya
+# blm ada di periode itu.
+def _target_visitor_by_outlet(bulan_label):
+    rows = frappe.db.sql("""
+        SELECT outlet, target_visitor FROM `tabOutlet Visitor Target` WHERE bulan = %s
+    """, (bulan_label,), as_dict=True)
+    return {r["outlet"]: r["target_visitor"] or 0 for r in rows}
+
+
+def _target_tc_ac_by_outlet(bulan_label):
+    # TARGET TC & AC: FMCG lengkap 12 bulan (dari "Dashboard FMCG" sheet
+    # "Target Transaksi"/"Target Basket Size"), FASHION baru ada utk
+    # Juli & Agustus 2026 saja (dari file "VISITOR, TC, AC ACHV VS TARGET") -
+    # bulan lain utk FASHION msh kosong sampai ada data tambahan.
+    rows = frappe.db.sql("""
+        SELECT outlet, target_tc, target_ac FROM `tabOutlet TC AC Target` WHERE bulan = %s
+    """, (bulan_label,), as_dict=True)
+    return {r["outlet"]: {"tc": r["target_tc"] or 0, "ac": r["target_ac"] or 0} for r in rows}
+
+
+@frappe.whitelist()
+def get_monthly_visitor_achievement(department="FASHION", month=None, year=None):
+    today = frappe.utils.getdate(frappe.utils.today())
+    target_month = int(month) if month else today.month
+    target_year = int(year) if year else today.year
+    month_start, month_full_end = _month_range(target_year, target_month)
+    is_current_month = (target_year, target_month) == (today.year, today.month)
+    as_of = today if is_current_month else month_full_end
+    day_cutoff = as_of.day
+
+    m1 = target_month - 1 if target_month > 1 else 12
+    y1 = target_year if target_month > 1 else target_year - 1
+    lm_start, _ = _month_range(y1, m1)
+    lm_end = lm_start.replace(day=min(day_cutoff, calendar.monthrange(y1, m1)[1]))
+
+    last_year = target_year - 1
+    ly_start, _ = _month_range(last_year, target_month)
+    ly_end = ly_start.replace(day=min(day_cutoff, calendar.monthrange(last_year, target_month)[1]))
+
+    dept = department.upper()
+    outlets = _MARGIN_FASHION_OUTLETS if dept == "FASHION" else (
+        _MARGIN_FMCG_OUTLETS if dept == "FMCG" else [dept]
+    )
+
+    sales_cur = _sales_by_outlet(month_start, as_of)
+    sales_lm = _sales_by_outlet(lm_start, lm_end)
+    sales_ly = _sales_by_outlet_history(ly_start, ly_end)
+    visitor_cur = _visitor_by_outlet(month_start, as_of)
+    visitor_lm = _visitor_by_outlet(lm_start, lm_end)
+    visitor_ly = _visitor_by_outlet(ly_start, ly_end)
+    targets_visitor = _target_visitor_by_outlet(_BULAN_ID[target_month - 1])
+    targets_tc_ac = _target_tc_ac_by_outlet(_BULAN_ID[target_month - 1])
+
+    def metrics(outlets_list):
+        tc = sum(sales_cur.get(o, {}).get("trx", 0) for o in outlets_list)
+        sales = sum(sales_cur.get(o, {}).get("sales", 0) for o in outlets_list)
+        visitor = sum(visitor_cur.get(o, 0) for o in outlets_list)
+        lm_tc = sum(sales_lm.get(o, {}).get("trx", 0) for o in outlets_list)
+        lm_sales = sum(sales_lm.get(o, {}).get("sales", 0) for o in outlets_list)
+        lm_visitor = sum(visitor_lm.get(o, 0) for o in outlets_list)
+        ly_tc = sum(sales_ly.get(o, {}).get("trx", 0) for o in outlets_list)
+        ly_sales = sum(sales_ly.get(o, {}).get("sales", 0) for o in outlets_list)
+        ly_visitor = sum(visitor_ly.get(o, 0) for o in outlets_list)
+        target_visitor = sum(targets_visitor.get(o, 0) for o in outlets_list)
+        target_tc = sum(targets_tc_ac.get(o, {}).get("tc", 0) for o in outlets_list)
+        target_ac_vals = [targets_tc_ac.get(o, {}).get("ac", 0) for o in outlets_list if targets_tc_ac.get(o, {}).get("ac")]
+        target_ac = round(sum(target_ac_vals) / len(target_ac_vals), 2) if target_ac_vals else 0
+        ac = _ac(sales, tc)
+        return {
+            "tc": tc, "sales": sales, "ac": ac, "visitor": visitor,
+            "achievement_pct": round(tc / visitor * 100, 2) if visitor else None,
+            "target_visitor": target_visitor,
+            "achv_visitor_vs_target_pct": round(visitor / target_visitor * 100, 2) if target_visitor else None,
+            "target_tc": target_tc, "achv_tc_vs_target_pct": round(tc / target_tc * 100, 2) if target_tc else None,
+            "target_ac": target_ac, "achv_ac_vs_target_pct": round(ac / target_ac * 100, 2) if (target_ac and ac) else None,
+            "growth_tc_pct": _pct_change(tc, lm_tc), "growth_sales_pct": _pct_change(sales, lm_sales),
+            "growth_ac_pct": _pct_change(ac, _ac(lm_sales, lm_tc)),
+            "growth_visitor_pct": _pct_change(visitor, lm_visitor),
+            "tc_last_month": lm_tc, "sales_last_month": lm_sales, "visitor_last_month": lm_visitor,
+            "vs_last_year_tc_pct": _pct_change(tc, ly_tc), "vs_last_year_sales_pct": _pct_change(sales, ly_sales),
+            "vs_last_year_visitor_pct": _pct_change(visitor, ly_visitor),
+            "tc_last_year": ly_tc, "sales_last_year": ly_sales, "visitor_last_year": ly_visitor,
+        }
+
+    rows = []
+    for o in outlets:
+        row = {"outlet": o, "label": _OUTLET_LABELS.get(o, o)}
+        row.update(metrics([o]))
+        rows.append(row)
+    total_row = {"outlet": "TOTAL", "label": "Total"}
+    total_row.update(metrics(outlets))
+    rows.append(total_row)
+
+    return {
+        "department": dept, "bulan": _BULAN_ID[target_month - 1], "tahun": target_year,
+        "period_start": str(month_start), "period_end": str(as_of), "rows": rows,
+    }
+
+
+# --- Ditambahkan: MONTHLY Margin Target vs Achievement - reuse PERSIS
+# mekanisme get_weekly_margin (GL Entry Penjualan/Retur/4 potongan + HPP via
+# Stock Ledger Entry + _margin_row), cuma rentang tanggalnya per BULAN. Sudah
+# divalidasi formulanya identik (Sheet4 file "SALES & MARGIN ACHV AGUSTUS
+# 2026" = struktur sama persis dgn file margin mingguan). TARGET MARGIN %
+# reuse _MARGIN_TARGET_PCT yg sudah ada (baru ditambah XSMGROW=0.3, sebelumnya
+# blm ada - ketemu dari file ini, dicek cocok dgn outlet "X-sha Grow SP" yg
+# ternyata nama lain utk XSMGROW/XSM Grow di file ini).
+@frappe.whitelist()
+def get_monthly_margin(department="FASHION", month=None, year=None):
+    today = frappe.utils.getdate(frappe.utils.today())
+    target_month = int(month) if month else today.month
+    target_year = int(year) if year else today.year
+    month_start, month_full_end = _month_range(target_year, target_month)
+    is_current_month = (target_year, target_month) == (today.year, today.month)
+    as_of = today if is_current_month else month_full_end
+
+    dept = department.upper()
+
+    if dept == "HO":
+        kmt_mbg_sales = _sales_by_kmt_mbg(month_start, as_of)
+        gl_data = _gl_deductions_by_outlet(month_start, as_of, ["XSL"])
+        hpp_data = _hpp_by_outlet(month_start, as_of, ["XSL"])
+
+        rows = [
+            _margin_row_sales_only("KMT", "Kemitraan", kmt_mbg_sales.get("KMT", {}).get("sales", 0)),
+            _margin_row("XSL", "Mini Soccer", gl_data.get("XSL", {}), hpp_data.get("XSL", 0),
+                        target_pct=_MARGIN_TARGET_PCT.get("XSL")),
+            _margin_row_sales_only("MBG", "MBG", kmt_mbg_sales.get("MBG", {}).get("sales", 0)),
+        ]
+        return {
+            "department": dept, "bulan": _BULAN_ID[target_month - 1], "tahun": target_year,
+            "period_start": str(month_start), "period_end": str(as_of), "rows": rows,
+            "note": "Total Dept.Holding tdk dihitung krn margin KMT & MBG blm tersedia dari ERP",
+        }
+
+    outlets = _MARGIN_FASHION_OUTLETS if dept == "FASHION" else (
+        _MARGIN_FMCG_OUTLETS if dept == "FMCG" else [dept] if dept in _OUTLET_COST_CENTER else []
+    )
+
+    gl_data = _gl_deductions_by_outlet(month_start, as_of, outlets)
+    hpp_data = _hpp_by_outlet(month_start, as_of, outlets)
+
+    rows = []
+    for o in outlets:
+        row = _margin_row(o, _OUTLET_LABELS.get(o, o), gl_data.get(o, {}), hpp_data.get(o, 0),
+                           target_pct=_MARGIN_TARGET_PCT.get(o))
+        rows.append(row)
+        if o in _MARGIN_COMBINE_AFTER:
+            label, members = _MARGIN_COMBINE_AFTER[o]
+            rows.append(_combined_margin_row(label, members, gl_data, hpp_data))
+
+    total_gl = {acc: sum(gl_data.get(o, {}).get(acc, 0) for o in outlets) for acc in _GL_MARGIN_ACCOUNTS}
+    total_hpp = sum(hpp_data.get(o, 0) for o in outlets)
+    total_row = _margin_row("TOTAL", "Total", total_gl, total_hpp,
+                             target_pct=_MARGIN_DEPT_TARGET_PCT.get(dept))
+    rows.append(total_row)
+
+    return {
+        "department": dept, "bulan": _BULAN_ID[target_month - 1], "tahun": target_year,
+        "period_start": str(month_start), "period_end": str(as_of), "rows": rows,
+    }
+
+
+# --- Ditambahkan: MONTHLY Kontribusi Sales per Category - reuse PERSIS
+# mekanisme get_kontribusi_sales_category (rollup ke parent item_group,
+# TOPUP di-exclude), cuma rentang tanggalnya per BULAN vs bulan lalu, PLUS
+# vs tahun lalu. EXCLUDE MBG/KMT/XSL (sesuai file referensi "KONTRIBUSI SALES
+# CATEGORY AGUSTUS MoM YoY" - cuma sheet F&H.S & FMCG).
+#
+# CATATAN: kolom "VS LAST YEAR" TIDAK bisa dihitung scr presisi - data
+# kategori (item_group) per Sales Invoice Item baru tersedia live sejak akhir
+# April 2026 (sama spt limitasi historis lain di project ini), jadi utk bulan
+# Agustus 2025 dkk TIDAK ADA sumber data kategori sama sekali. Field
+# 'last_year' selalu None dgn catatan, BUKAN 0/dikira-kira.
+@frappe.whitelist()
+def get_monthly_kontribusi_sales_category(department="FASHION", month=None, year=None):
+    today = frappe.utils.getdate(frappe.utils.today())
+    target_month = int(month) if month else today.month
+    target_year = int(year) if year else today.year
+    month_start, month_full_end = _month_range(target_year, target_month)
+    is_current_month = (target_year, target_month) == (today.year, today.month)
+    as_of = today if is_current_month else month_full_end
+
+    m1 = target_month - 1 if target_month > 1 else 12
+    y1 = target_year if target_month > 1 else target_year - 1
+    lm_start, _ = _month_range(y1, m1)
+    lm_end = lm_start.replace(day=min(as_of.day, calendar.monthrange(y1, m1)[1]))
+
+    outlets = _KATEGORI_DEPT_OUTLETS.get(department.upper(), [])
+    cur_data = _category_sales(month_start, as_of, outlets)
+    lm_data = _category_sales(lm_start, lm_end, outlets)
+
+    cur_total = sum(v["amount"] for v in cur_data.values())
+    lm_total = sum(v["amount"] for v in lm_data.values())
+
+    rows = []
+    for cat in sorted(set(cur_data) | set(lm_data)):
+        c = cur_data.get(cat, {"qty": 0, "amount": 0})
+        l = lm_data.get(cat, {"qty": 0, "amount": 0})
+        c_pct = round(c["amount"] / cur_total * 100, 6) if cur_total else 0
+        l_pct = round(l["amount"] / lm_total * 100, 6) if lm_total else 0
+        rows.append({
+            "category": cat,
+            "month_current": {"qty": c["qty"], "sales": c["amount"], "kontribusi_pct": c_pct},
+            "month_last_month": {"qty": l["qty"], "sales": l["amount"], "kontribusi_pct": l_pct},
+            "growth_vs_last_month_pct": _pct_change(c_pct, l_pct),
+            "month_last_year": None,
+        })
+
+    return {
+        "department": department.upper(), "bulan": _BULAN_ID[target_month - 1], "tahun": target_year,
+        "period_start": str(month_start), "period_end": str(as_of),
+        "period_last_month_start": str(lm_start), "period_last_month_end": str(lm_end),
+        "rows": rows,
+        "note": "Perbandingan vs tahun lalu blm tersedia - data kategori (item_group) baru live sejak akhir April 2026, jadi tdk ada sumber data kategori utk periode tahun lalu.",
+    }
+
+
+# --- Pareto Sales per Item & per Kategori (80/20 analysis) + versi yg
+# dibandingkan dgn Inventory saat ini. Dasar sort & klasifikasi ABC pakai
+# nilai Rp (standar analisis ABC); qty tetap ditampilkan & dihitung cumulative
+# %-nya sendiri, tapi di urutan yg sama (urutan Rp) spt tabel pareto pd
+# umumnya - bukan di-sort ulang per metric.
+#
+# URL:
+#   /api/method/custom_reports.sales_api.get_pareto_sales?department=FASHION&level=item&start_date=&end_date=
+#   /api/method/custom_reports.sales_api.get_pareto_vs_inventory?department=FASHION&level=item&start_date=&end_date=
+
+def _item_sales(start_date, end_date, outlets):
+    if not outlets:
+        return {}
+    placeholders = ", ".join(["%s"] * len(outlets))
+    rows = frappe.db.sql(f"""
+        SELECT sii.item_code, MAX(sii.item_name) AS item_name,
+               SUM(sii.qty) AS qty, SUM(sii.amount) AS amount
+        FROM `tabSales Invoice Item` sii
+        JOIN `tabSales Invoice` si ON si.name = sii.parent
+        WHERE si.docstatus = 1 AND si.is_return = 0
+          AND si.posting_date BETWEEN %s AND %s
+          AND si.custom_outlet IN ({placeholders})
+          AND sii.item_group != 'TOPUP'
+        GROUP BY sii.item_code
+    """, [start_date, end_date] + list(outlets), as_dict=True)
+    return {r["item_code"]: {"label": r["item_name"] or r["item_code"], "qty": r["qty"] or 0, "amount": r["amount"] or 0} for r in rows}
+
+
+def _pareto_dept_outlets(department):
+    dept = (department or "FASHION").upper()
+    if dept == "ALL":
+        outlets = _FASHION_OUTLETS + [o for o in _FMCG_OUTLETS if o != "KMT"] + [_MINI_SOCCER_OUTLET]
+    else:
+        outlets = _KATEGORI_DEPT_OUTLETS.get(dept, [])
+    return dept, outlets
+
+
+def _pareto_default_dates(start_date, end_date):
+    today = frappe.utils.getdate(frappe.utils.today())
+    end = frappe.utils.getdate(end_date) if end_date else today
+    start = frappe.utils.getdate(start_date) if start_date else end.replace(day=1)
+    return start, end
+
+
+def _pareto_rows(start_date, end_date, outlets, level):
+    data = _item_sales(start_date, end_date, outlets) if level == "item" else _category_sales(start_date, end_date, outlets)
+    items = []
+    for key, d in data.items():
+        label = d["label"] if level == "item" else key
+        items.append({"key": key, "label": label, "qty": d.get("qty", 0), "sales_rp": d.get("amount", 0)})
+    items.sort(key=lambda r: r["sales_rp"], reverse=True)
+
+    total_qty = sum(r["qty"] for r in items) or 0
+    total_sales = sum(r["sales_rp"] for r in items) or 0
+
+    cum_qty, cum_sales = 0, 0
+    for i, r in enumerate(items):
+        cum_qty += r["qty"]
+        cum_sales += r["sales_rp"]
+        sales_cum_pct = round(cum_sales / total_sales * 100, 2) if total_sales else 0
+        r.update({
+            "rank": i + 1,
+            "qty_pct": round(r["qty"] / total_qty * 100, 2) if total_qty else 0,
+            "sales_pct": round(r["sales_rp"] / total_sales * 100, 2) if total_sales else 0,
+            "qty_cum_pct": round(cum_qty / total_qty * 100, 2) if total_qty else 0,
+            "sales_cum_pct": sales_cum_pct,
+            "pareto_class": "A" if sales_cum_pct <= 80 else ("B" if sales_cum_pct <= 95 else "C"),
+        })
+    return items, total_qty, total_sales
+
+
+@frappe.whitelist()
+def get_pareto_sales(department="FASHION", level="item", start_date=None, end_date=None):
+    level = "category" if (level or "item").lower().startswith("cat") else "item"
+    dept, outlets = _pareto_dept_outlets(department)
+    start, end = _pareto_default_dates(start_date, end_date)
+
+    rows, total_qty, total_sales = _pareto_rows(start, end, outlets, level)
+    key_label = "item_code" if level == "item" else "category"
+    for r in rows:
+        r[key_label] = r.pop("key")
+        if level == "item":
+            r["item_name"] = r.pop("label")
+        else:
+            r.pop("label", None)
+
+    return {
+        "department": dept, "level": level,
+        "start_date": str(start), "end_date": str(end),
+        "total_qty": total_qty, "total_sales_rp": total_sales,
+        "rows": rows,
+        "note": "Kategori TOPUP di-exclude. pareto_class (A/B/C) dihitung dari cumulative % nilai Rp (A s.d. 80%, B s.d. 95%, C sisanya); urutan baris & cumulative % qty mengikuti urutan Rp yg sama, bukan di-sort ulang per metric.",
+    }
+
+
+def _current_stock_by(level, warehouses, exclude_item_groups=None):
+    if not warehouses:
+        return {}
+    wh_placeholders = ", ".join(["%s"] * len(warehouses))
+    params = list(warehouses)
+    item_cond = ""
+    if exclude_item_groups:
+        ig_placeholders = ", ".join(["%s"] * len(exclude_item_groups))
+        item_cond = f"AND i.item_group NOT IN ({ig_placeholders})"
+        params += list(exclude_item_groups)
+
+    if level == "item":
+        rows = frappe.db.sql(f"""
+            SELECT b.item_code AS k, SUM(b.actual_qty) AS qty, SUM(b.stock_value) AS value
+            FROM `tabBin` b
+            JOIN `tabItem` i ON i.name = b.item_code
+            WHERE b.warehouse IN ({wh_placeholders})
+            {item_cond}
+            GROUP BY b.item_code
+        """, params, as_dict=True)
+    else:
+        rows = frappe.db.sql(f"""
+            SELECT COALESCE(ig.parent_item_group, i.item_group, '(Tanpa Kategori)') AS k,
+                   SUM(b.actual_qty) AS qty, SUM(b.stock_value) AS value
+            FROM `tabBin` b
+            JOIN `tabItem` i ON i.name = b.item_code
+            LEFT JOIN `tabItem Group` ig ON ig.name = i.item_group
+            WHERE b.warehouse IN ({wh_placeholders})
+            {item_cond}
+            GROUP BY COALESCE(ig.parent_item_group, i.item_group, '(Tanpa Kategori)')
+        """, params, as_dict=True)
+    return {r["k"]: {"qty": r["qty"] or 0, "value": r["value"] or 0} for r in rows}
+
+
+@frappe.whitelist()
+def get_pareto_vs_inventory(department="FASHION", level="item", start_date=None, end_date=None):
+    from custom_reports.inventory_api import _OUTLET_WAREHOUSES, _FASHION_ROWS, _FMCG_ROWS
+
+    level = "category" if (level or "item").lower().startswith("cat") else "item"
+    dept, outlets = _pareto_dept_outlets(department)
+    start, end = _pareto_default_dates(start_date, end_date)
+
+    dept_u = dept.upper()
+    if dept_u == "FASHION":
+        wh_outlet_codes = _FASHION_ROWS
+    elif dept_u == "FMCG":
+        wh_outlet_codes = _FMCG_ROWS
+    elif dept_u == "ALL":
+        wh_outlet_codes = _FASHION_ROWS + _FMCG_ROWS
+    else:
+        wh_outlet_codes = []
+    warehouses = [wh for code in wh_outlet_codes for wh in _OUTLET_WAREHOUSES.get(code, [])]
+
+    rows, total_qty, total_sales = _pareto_rows(start, end, outlets, level)
+    stock = _current_stock_by(level, warehouses, exclude_item_groups=["TOPUP"])
+
+    stock_as_of = str(frappe.utils.getdate(frappe.utils.today()))
+    key_label = "item_code" if level == "item" else "category"
+    for r in rows:
+        key = r.pop("key")
+        r[key_label] = key
+        if level == "item":
+            r["item_name"] = r.pop("label")
+        else:
+            r.pop("label", None)
+        s = stock.get(key, {"qty": 0, "value": 0})
+        r["stock_qty"] = s["qty"]
+        r["stock_value_rp"] = s["value"]
+
+    return {
+        "department": dept, "level": level,
+        "start_date": str(start), "end_date": str(end),
+        "stock_as_of": stock_as_of,
+        "total_qty": total_qty, "total_sales_rp": total_sales,
+        "rows": rows,
+        "note": (
+            "stock_qty/stock_value_rp adalah posisi stok SAAT INI (real-time dari Bin, bukan historis per "
+            "tanggal end_date) - dibandingkan dengan sales pada rentang start_date s.d. end_date. Kategori TOPUP "
+            "di-exclude dari kedua sisi. XSMGROW blm py pemetaan warehouse di sistem ini, jadi stock_qty/value "
+            "utk item yg cuma dijual di XSMGROW kemungkinan 0/kurang lengkap."
+        ),
+    }
+
+
+# --- SEMENTARA utk debug/validasi: Service Level per Category, TANPA filter
+# department dulu (blm tau mekanisme scoping FASHION vs FMCG utk data
+# Purchase Order/Receipt). Formula: SERVEL = Nilai RCV / Nilai PO, dimana
+# Nilai = SUM(qty * Item.last_purchase_rate), di-rollup ke parent item_group
+# (sama pola dgn Kontribusi Sales Category).
+@frappe.whitelist()
+def debug_servel_raw(month=None, year=None):
+    """Debug tanpa JOIN Item Group sama sekali - cek apakah nilai mentahnya
+    sudah wajar sebelum ditambah rollup kategori (isolasi sumber bug fan-out)."""
+    today = frappe.utils.getdate(frappe.utils.today())
+    target_month = int(month) if month else today.month
+    target_year = int(year) if year else today.year
+    month_start, month_full_end = _month_range(target_year, target_month)
+    as_of = today if (target_year, target_month) == (today.year, today.month) else month_full_end
+
+    po_total = frappe.db.sql("""
+        SELECT SUM(poi.qty * it.last_purchase_rate) AS nilai, COUNT(*) AS n
+        FROM `tabPurchase Order Item` poi
+        JOIN `tabPurchase Order` po ON po.name = poi.parent
+        JOIN `tabItem` it ON it.name = poi.item_code
+        WHERE po.docstatus = 1 AND po.transaction_date BETWEEN %s AND %s
+    """, (month_start, as_of), as_dict=True)[0]
+
+    rcv_total = frappe.db.sql("""
+        SELECT SUM(pri.qty * it.last_purchase_rate) AS nilai, COUNT(*) AS n
+        FROM `tabPurchase Receipt Item` pri
+        JOIN `tabPurchase Receipt` pr ON pr.name = pri.parent
+        JOIN `tabItem` it ON it.name = pri.item_code
+        WHERE pr.docstatus = 1 AND pr.posting_date BETWEEN %s AND %s
+    """, (month_start, as_of), as_dict=True)[0]
+
+    # cek jg count item group duplikat by name case-insensitive (kemungkinan
+    # penyebab fan-out JOIN)
+    dup_check = frappe.db.sql("""
+        SELECT LOWER(name) AS lname, COUNT(*) AS n
+        FROM `tabItem Group`
+        GROUP BY LOWER(name)
+        HAVING COUNT(*) > 1
+    """, as_dict=True)
+
+    return {
+        "po_total": po_total, "rcv_total": rcv_total,
+        "item_group_name_dup_case_insensitive": dup_check,
+    }
+
+
+@frappe.whitelist()
+def debug_service_level_category(month=None, year=None):
+    today = frappe.utils.getdate(frappe.utils.today())
+    target_month = int(month) if month else today.month
+    target_year = int(year) if year else today.year
+    month_start, month_full_end = _month_range(target_year, target_month)
+    is_current_month = (target_year, target_month) == (today.year, today.month)
+    as_of = today if is_current_month else month_full_end
+
+    po_rows = frappe.db.sql("""
+        SELECT COALESCE(ig.parent_item_group, it.item_group, '(Tanpa Kategori)') AS category,
+               SUM(poi.qty * it.last_purchase_rate) AS nilai
+        FROM `tabPurchase Order Item` poi
+        JOIN `tabPurchase Order` po ON po.name = poi.parent
+        JOIN `tabItem` it ON it.name = poi.item_code
+        LEFT JOIN `tabItem Group` ig ON ig.name = it.item_group
+        WHERE po.docstatus = 1
+          AND po.transaction_date BETWEEN %s AND %s
+        GROUP BY category
+    """, (month_start, as_of), as_dict=True)
+
+    rcv_rows = frappe.db.sql("""
+        SELECT COALESCE(ig.parent_item_group, it.item_group, '(Tanpa Kategori)') AS category,
+               SUM(pri.qty * it.last_purchase_rate) AS nilai
+        FROM `tabPurchase Receipt Item` pri
+        JOIN `tabPurchase Receipt` pr ON pr.name = pri.parent
+        JOIN `tabItem` it ON it.name = pri.item_code
+        LEFT JOIN `tabItem Group` ig ON ig.name = it.item_group
+        WHERE pr.docstatus = 1
+          AND pr.posting_date BETWEEN %s AND %s
+        GROUP BY category
+    """, (month_start, as_of), as_dict=True)
+
+    po_map = {r["category"]: r["nilai"] or 0 for r in po_rows}
+    rcv_map = {r["category"]: r["nilai"] or 0 for r in rcv_rows}
+
+    rows = []
+    for cat in sorted(set(po_map) | set(rcv_map)):
+        po_val = po_map.get(cat, 0)
+        rcv_val = rcv_map.get(cat, 0)
+        rows.append({
+            "category": cat, "nilai_po": po_val, "nilai_rcv": rcv_val,
+            "servel": round(rcv_val / po_val, 6) if po_val else None,
+        })
+
+    total_po = sum(po_map.values())
+    total_rcv = sum(rcv_map.values())
+    return {
+        "period_start": str(month_start), "period_end": str(as_of),
+        "grand_total": {"nilai_po": total_po, "nilai_rcv": total_rcv,
+                         "servel": round(total_rcv / total_po, 6) if total_po else None},
+        "rows": rows,
+    }

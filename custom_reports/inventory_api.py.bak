@@ -1,0 +1,186 @@
+# Copyright (c) 2026, X-SHA and contributors
+# For license information, please see license.txt
+#
+# Satu API call untuk laporan "Daily Inventory" (Saldo Awal/Pembelian/Penjualan/
+# Transfer Masuk/Transfer Keluar/Lainnya/Saldo Akhir) per outlet, 3 varian sekaligus
+# (ALL, EXC_TOPUP, EXC_TOPUP_SEM).
+#
+# PERFORMA: versi awal scan SELURUH histori Stock Ledger Entry pakai window function
+# (ROW_NUMBER/LAG) -> timeout di production (>120s, jutaan baris SLE). Versi ini
+# jauh lebih cepat krn:
+#   - Saldo Akhir dihitung dari tabBin (saldo real-time yg SELALU ter-update ERPNext,
+#     bukan scan histori) dikurangi mutasi SETELAH as_of_date (biasanya cuma beberapa
+#     hari kalau as_of_date baru2 ini).
+#   - Mutasi harian dihitung cuma utk tanggal as_of_date itu sendiri (range sempit,
+#     bukan seluruh histori dari awal).
+#   - Saldo Awal = Saldo Akhir dikurangi net mutasi hari itu (identitas akuntansi
+#     dasar), bukan query terpisah.
+# Catatan: efisien utk as_of_date yg relatif baru (beberapa hari/minggu terakhir).
+# Kalau butuh tanggal yg sangat lampau, query "mutasi setelah as_of_date" bisa jadi
+# berat lagi krn rentangnya makin lebar.
+#
+# URL: /api/method/custom_reports.inventory_api.get_daily_inventory?as_of_date=YYYY-MM-DD
+
+import frappe
+
+_OUTLET_WAREHOUSE = {
+    "HCW": "SELLING AREA HCW - X", "OCW": "GUDANG OCW - X", "PSR": "SELLING AREA PSR - X",
+    "XPY": "SELLING AREA XPY - X", "XJB": "SELLING AREA XJB - X", "XCW": "SELLING AREA XCW - X",
+    "XSP": "SELLING AREA XSP - X", "XSC": "SELLING AREA XSC - X",
+    "XSC-OL": "GUDANG XSC-OL - X", "XSP-OL": "GUDANG XSP-OL - X",
+    "XSM": "SELLING AREA XSM - X", "XMJ": "SELLING AREA XMJ - X", "XWP": "SELLING AREA XWP - X",
+    "XPH": "SELLING AREA XPH - X", "XTJ": "SELLING AREA XTJ - X", "XCR": "SELLING AREA XCR - X",
+    "TASMU": "SELLING AREA TASMU - X", "MNR": "SELLING AREA MENARA - X", "UIN": "UIN - X",
+    "KMT": "GUDANG KEMITRAAN - X", "MBG": "MBG - X", "XSL": "SOCCERLITE - X",
+    "GD": "GUDANG FHS - X", "DC": "GUDANG FMCG - X",
+}
+
+_FASHION_ROWS = ["XSC", "XSC-OL", "PSR", "XPY", "XJB", "XCW", "OCW", "XSP", "XSP-OL", "HCW", "GD"]
+_FMCG_ROWS = ["XSM", "XMJ", "XWP", "XPH", "XTJ", "XCR", "TASMU", "MNR", "UIN", "DC"]
+_HO_ROWS = ["KMT", "MBG", "XSL"]
+
+_OUTLET_LABELS = {
+    "HCW": "X-sha Rumah Kedua", "MNR": "Menara", "UIN": "UIN Grow",
+    "KMT": "KMT IPOS", "MBG": "MBG IPOS",
+}
+
+_VARIANTS = {
+    "ALL": [],
+    "EXC_TOPUP": ["TOPUP"],
+    "EXC_TOPUP_SEM": ["TOPUP", "SEM"],
+}
+
+
+def _item_group_cond(exclude_item_groups, params):
+    if not exclude_item_groups:
+        return ""
+    placeholders = ", ".join(["%s"] * len(exclude_item_groups))
+    params += list(exclude_item_groups)
+    return f"AND i.item_group NOT IN ({placeholders})"
+
+
+def _current_balance_by_warehouse(warehouses, exclude_item_groups):
+    """Saldo SEKARANG per warehouse dari tabBin (materialized, real-time)."""
+    if not warehouses:
+        return {}
+    wh_placeholders = ", ".join(["%s"] * len(warehouses))
+    params = list(warehouses)
+    item_cond = _item_group_cond(exclude_item_groups, params)
+    rows = frappe.db.sql(f"""
+        SELECT b.warehouse, SUM(b.stock_value) as val
+        FROM `tabBin` b
+        JOIN `tabItem` i ON i.name = b.item_code
+        WHERE b.warehouse IN ({wh_placeholders})
+        {item_cond}
+        GROUP BY b.warehouse
+    """, params, as_dict=True)
+    return {r["warehouse"]: r["val"] or 0 for r in rows}
+
+
+def _sle_sum_by_warehouse(date_cond, date_params, warehouses, exclude_item_groups):
+    """Total stock_value_difference per warehouse utk kondisi tanggal tertentu."""
+    if not warehouses:
+        return {}
+    wh_placeholders = ", ".join(["%s"] * len(warehouses))
+    params = list(date_params) + list(warehouses)
+    item_cond = _item_group_cond(exclude_item_groups, params)
+    rows = frappe.db.sql(f"""
+        SELECT sle.warehouse, SUM(sle.stock_value_difference) as val
+        FROM `tabStock Ledger Entry` sle
+        JOIN `tabItem` i ON i.name = sle.item_code
+        WHERE sle.is_cancelled = 0
+          AND {date_cond}
+          AND sle.warehouse IN ({wh_placeholders})
+          {item_cond}
+        GROUP BY sle.warehouse
+    """, params, as_dict=True)
+    return {r["warehouse"]: r["val"] or 0 for r in rows}
+
+
+def _sle_by_warehouse_voucher(as_of_date, warehouses, exclude_item_groups):
+    """Breakdown mutasi (per voucher_type) HANYA utk tanggal as_of_date (range sempit)."""
+    if not warehouses:
+        return {}
+    wh_placeholders = ", ".join(["%s"] * len(warehouses))
+    params = [as_of_date] + list(warehouses)
+    item_cond = _item_group_cond(exclude_item_groups, params)
+    rows = frappe.db.sql(f"""
+        SELECT sle.warehouse, sle.voucher_type, SUM(sle.stock_value_difference) as val
+        FROM `tabStock Ledger Entry` sle
+        JOIN `tabItem` i ON i.name = sle.item_code
+        WHERE sle.is_cancelled = 0
+          AND sle.posting_date = %s
+          AND sle.warehouse IN ({wh_placeholders})
+          {item_cond}
+        GROUP BY sle.warehouse, sle.voucher_type
+    """, params, as_dict=True)
+
+    result = {}
+    for r in rows:
+        wh = r["warehouse"]
+        result.setdefault(wh, {"pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0})
+        vt, val = r["voucher_type"], (r["val"] or 0)
+        if vt in ("Purchase Invoice", "Purchase Receipt"):
+            if val >= 0:
+                result[wh]["pembelian"] += val
+            else:
+                result[wh]["lainnya"] += val
+        elif vt == "Sales Invoice":
+            result[wh]["penjualan"] += val
+        elif vt == "Stock Entry":
+            if val >= 0:
+                result[wh]["transfer_masuk"] += val
+            else:
+                result[wh]["transfer_keluar"] += abs(val)
+        else:
+            result[wh]["lainnya"] += val
+    return result
+
+
+def _build_variant(as_of_date, exclude_item_groups):
+    all_rows = _FASHION_ROWS + _FMCG_ROWS + _HO_ROWS
+    warehouses = [_OUTLET_WAREHOUSE[r] for r in all_rows]
+
+    current_balance = _current_balance_by_warehouse(warehouses, exclude_item_groups)
+    future_movement = _sle_sum_by_warehouse("sle.posting_date > %s", [as_of_date], warehouses, exclude_item_groups)
+    mutasi = _sle_by_warehouse_voucher(as_of_date, warehouses, exclude_item_groups)
+
+    def row_for(code):
+        wh = _OUTLET_WAREHOUSE[code]
+        akhir = current_balance.get(wh, 0) - future_movement.get(wh, 0)
+        m = mutasi.get(wh, {"pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0})
+        net_hari_ini = m["pembelian"] + m["penjualan"] + m["transfer_masuk"] - m["transfer_keluar"] + m["lainnya"]
+        awal = akhir - net_hari_ini
+        return {
+            "outlet": code, "label": _OUTLET_LABELS.get(code, code),
+            "saldo_awal": awal,
+            "pembelian": m["pembelian"], "penjualan": m["penjualan"],
+            "transfer_masuk": m["transfer_masuk"], "transfer_keluar": m["transfer_keluar"],
+            "lainnya": m["lainnya"], "saldo_akhir": akhir,
+        }
+
+    def section(rows):
+        data = [row_for(c) for c in rows]
+        total = {"outlet": "TOTAL INVENTORY", "label": "TOTAL INVENTORY"}
+        for k in ("saldo_awal", "pembelian", "penjualan", "transfer_masuk", "transfer_keluar", "lainnya", "saldo_akhir"):
+            total[k] = sum(d[k] for d in data)
+        data.append(total)
+        return data
+
+    return {
+        "fashion": section(_FASHION_ROWS),
+        "fmcg": section(_FMCG_ROWS),
+        "ho": section(_HO_ROWS),
+    }
+
+
+@frappe.whitelist()
+def get_daily_inventory(as_of_date=None):
+    as_of_date = as_of_date or frappe.utils.today()
+    return {
+        "as_of_date": as_of_date,
+        "variants": {
+            variant_key: _build_variant(as_of_date, exclude_groups)
+            for variant_key, exclude_groups in _VARIANTS.items()
+        },
+    }

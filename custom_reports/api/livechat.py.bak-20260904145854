@@ -1,0 +1,337 @@
+"""
+Livechat AI - X-SHA ERPNext
+=============================
+Backend tool-calling ke OpenRouter (model: openai/gpt-5.6-luna).
+Endpoint: /api/method/custom_reports.api.livechat.chat
+
+Setup sekali:
+  bench --site erp.x-sha.id set-config openrouter_api_key "sk-or-xxxxxxxx"
+  bench --site erp.x-sha.id clear-cache
+  bench restart
+
+Akses dibatasi ke role tertentu (lihat ALLOWED_ROLES) - request dari user
+di luar role itu ditolak. Semua query ke database pakai parametrized SQL
+(%(param)s), tidak ada raw SQL dari input user - aman dari SQL injection.
+"""
+
+import json
+
+import frappe
+import requests
+
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+MODEL = "openai/gpt-5.6-luna"
+MAX_TOOL_ROUNDTRIPS = 5
+
+# Role yang boleh pakai Livechat AI ini. Sesuaikan kalau perlu.
+ALLOWED_ROLES = {"System Manager", "Purchase Manager", "Purchase User", "Stock Manager", "Accounts Manager"}
+
+SYSTEM_PROMPT = (
+	"Kamu adalah asisten AI internal untuk staff ERPNext PT. Meta Global Triasha (X-SHA), "
+	"retail chain FMCG & Fashion multi-outlet di Tasikmalaya, Jawa Barat. "
+	"Jawab dalam Bahasa Indonesia, singkat, langsung ke angka/fakta. "
+	"Kalau butuh data spesifik, WAJIB panggil tool yang tersedia - jangan pernah mengarang angka. "
+	"Kalau data tidak ketemu atau tool return error, bilang terus terang ke user, jangan ditutup-tutupi."
+)
+
+TOOLS = [
+	{
+		"type": "function",
+		"function": {
+			"name": "get_sales_summary",
+			"description": "Total omzet (grand_total, exclude retur) dan jumlah struk dari Sales Invoice, untuk 1 outlet atau semua outlet, dalam rentang tanggal.",
+			"parameters": {
+				"type": "object",
+				"properties": {
+					"outlet_code": {"type": "string", "description": "Kode custom_outlet, misal 'XSM'. Kosongkan untuk semua outlet."},
+					"date_from": {"type": "string", "description": "Format YYYY-MM-DD"},
+					"date_to": {"type": "string", "description": "Format YYYY-MM-DD"},
+				},
+				"required": ["date_from", "date_to"],
+			},
+		},
+	},
+	{
+		"type": "function",
+		"function": {
+			"name": "get_stock_balance",
+			"description": "Cari stock balance (actual_qty) suatu item, di 1 warehouse atau semua warehouse. Bisa pakai item_code persis atau kata kunci nama item.",
+			"parameters": {
+				"type": "object",
+				"properties": {
+					"item_search": {"type": "string", "description": "item_code persis, atau kata kunci nama item"},
+					"warehouse": {"type": "string", "description": "nama warehouse persis, misal 'GUDANG DC - X'. Kosongkan untuk semua warehouse."},
+				},
+				"required": ["item_search"],
+			},
+		},
+	},
+	{
+		"type": "function",
+		"function": {
+			"name": "get_po_status",
+			"description": "Cek status Purchase Order: per_received (%), per_billed (%), grand_total, status. Bisa cari by nomor PO persis, atau by nama supplier + rentang tanggal (list beberapa PO terakhir).",
+			"parameters": {
+				"type": "object",
+				"properties": {
+					"po_name": {"type": "string", "description": "Nomor PO persis, misal 'PUR-ORD-2026-00014'"},
+					"supplier_search": {"type": "string", "description": "Kata kunci nama supplier"},
+					"date_from": {"type": "string"},
+					"date_to": {"type": "string"},
+				},
+			},
+		},
+	},
+	{
+		"type": "function",
+		"function": {
+			"name": "get_service_level",
+			"description": "Hitung service level (total PO vs total RCV yang link ke PO itu, %fulfillment) per supplier atau per item group, dalam rentang tanggal, untuk scope warehouse FMCG atau FASHION.",
+			"parameters": {
+				"type": "object",
+				"properties": {
+					"date_from": {"type": "string"},
+					"date_to": {"type": "string"},
+					"warehouse_root": {"type": "string", "enum": ["FMCG - X", "FASHION - X"], "description": "Default 'FMCG - X'"},
+					"group_by": {"type": "string", "enum": ["Supplier", "Item Group"], "description": "Default 'Supplier'"},
+				},
+				"required": ["date_from", "date_to"],
+			},
+		},
+	},
+]
+
+
+def _check_access():
+	if frappe.session.user == "Guest":
+		frappe.throw("Silakan login dulu", frappe.PermissionError)
+	user_roles = set(frappe.get_roles(frappe.session.user))
+	if not (user_roles & ALLOWED_ROLES):
+		frappe.throw("Kamu tidak punya akses ke Livechat AI ini", frappe.PermissionError)
+
+
+def _get_fmcg_warehouses(root):
+	r = frappe.db.get_value("Warehouse", root, ["lft", "rgt"], as_dict=True)
+	if not r:
+		return [root]
+	rows = frappe.db.sql(
+		"""
+		select name from `tabWarehouse`
+		where lft > %(lft)s and rgt < %(rgt)s and is_group = 0
+		""",
+		{"lft": r.lft, "rgt": r.rgt},
+		as_dict=True,
+	)
+	return [x.name for x in rows] or [root]
+
+
+def _tool_get_sales_summary(date_from, date_to, outlet_code=None):
+	conditions = ["docstatus = 1", "posting_date between %(date_from)s and %(date_to)s", "is_return = 0"]
+	params = {"date_from": date_from, "date_to": date_to}
+	if outlet_code:
+		conditions.append("custom_outlet = %(outlet_code)s")
+		params["outlet_code"] = outlet_code
+	where = " and ".join(conditions)
+	row = frappe.db.sql(
+		f"""
+		select count(name) as total_trx, sum(grand_total) as total_omzet
+		from `tabSales Invoice`
+		where {where}
+		""",
+		params,
+		as_dict=True,
+	)[0]
+	return {
+		"outlet": outlet_code or "ALL",
+		"period": f"{date_from} s/d {date_to}",
+		"total_transaksi": row.total_trx or 0,
+		"total_omzet": float(row.total_omzet or 0),
+	}
+
+
+def _tool_get_stock_balance(item_search, warehouse=None):
+	params = {"search": f"%{item_search}%", "code": item_search}
+	where = "(b.item_code = %(code)s or i.item_name like %(search)s)"
+	if warehouse:
+		where += " and b.warehouse = %(warehouse)s"
+		params["warehouse"] = warehouse
+	rows = frappe.db.sql(
+		f"""
+		select b.item_code, i.item_name, b.warehouse, b.actual_qty, b.stock_uom
+		from `tabBin` b
+		join `tabItem` i on i.name = b.item_code
+		where {where} and b.actual_qty != 0
+		order by b.actual_qty desc
+		limit 20
+		""",
+		params,
+		as_dict=True,
+	)
+	return {"results": rows, "count": len(rows)}
+
+
+def _tool_get_po_status(po_name=None, supplier_search=None, date_from=None, date_to=None):
+	if po_name:
+		doc = frappe.db.get_value(
+			"Purchase Order",
+			po_name,
+			["supplier_name", "transaction_date", "grand_total", "per_received", "per_billed", "status"],
+			as_dict=True,
+		)
+		return doc or {"error": f"PO {po_name} tidak ditemukan"}
+
+	conditions = ["docstatus = 1"]
+	params = {}
+	if supplier_search:
+		conditions.append("supplier_name like %(supplier)s")
+		params["supplier"] = f"%{supplier_search}%"
+	if date_from and date_to:
+		conditions.append("transaction_date between %(date_from)s and %(date_to)s")
+		params["date_from"] = date_from
+		params["date_to"] = date_to
+	where = " and ".join(conditions)
+	rows = frappe.db.sql(
+		f"""
+		select name, supplier_name, transaction_date, grand_total, per_received, per_billed, status
+		from `tabPurchase Order`
+		where {where}
+		order by transaction_date desc
+		limit 20
+		""",
+		params,
+		as_dict=True,
+	)
+	return {"results": rows, "count": len(rows)}
+
+
+def _tool_get_service_level(date_from, date_to, warehouse_root="FMCG - X", group_by="Supplier"):
+	warehouses = _get_fmcg_warehouses(warehouse_root)
+	params = {"date_from": date_from, "date_to": date_to, "warehouses": warehouses}
+
+	if group_by == "Item Group":
+		po_rows = frappe.db.sql(
+			"""
+			select poi.item_group as key_, sum(poi.base_amount) as po_amount
+			from `tabPurchase Order Item` poi
+			join `tabPurchase Order` po on po.name = poi.parent
+			where po.docstatus = 1 and po.transaction_date between %(date_from)s and %(date_to)s
+			  and poi.warehouse in %(warehouses)s
+			group by poi.item_group
+			""",
+			params,
+			as_dict=True,
+		)
+		rcv_rows = frappe.db.sql(
+			"""
+			select pri.item_group as key_, sum(pri.base_amount) as rcv_amount
+			from `tabPurchase Receipt Item` pri
+			join `tabPurchase Receipt` pr on pr.name = pri.parent
+			join `tabPurchase Order` po on po.name = pri.purchase_order
+			where pr.docstatus = 1 and pr.is_return = 0
+			  and po.transaction_date between %(date_from)s and %(date_to)s
+			  and pri.warehouse in %(warehouses)s
+			group by pri.item_group
+			""",
+			params,
+			as_dict=True,
+		)
+	else:
+		po_rows = frappe.db.sql(
+			"""
+			select po.supplier as key_, sum(poi.base_amount) as po_amount
+			from `tabPurchase Order Item` poi
+			join `tabPurchase Order` po on po.name = poi.parent
+			where po.docstatus = 1 and po.transaction_date between %(date_from)s and %(date_to)s
+			  and poi.warehouse in %(warehouses)s
+			group by po.supplier
+			""",
+			params,
+			as_dict=True,
+		)
+		rcv_rows = frappe.db.sql(
+			"""
+			select po.supplier as key_, sum(pri.base_amount) as rcv_amount
+			from `tabPurchase Receipt Item` pri
+			join `tabPurchase Receipt` pr on pr.name = pri.parent
+			join `tabPurchase Order` po on po.name = pri.purchase_order
+			where pr.docstatus = 1 and pr.is_return = 0
+			  and po.transaction_date between %(date_from)s and %(date_to)s
+			  and pri.warehouse in %(warehouses)s
+			group by po.supplier
+			""",
+			params,
+			as_dict=True,
+		)
+
+	rcv_map = {r.key_: (r.rcv_amount or 0) for r in rcv_rows}
+	results = []
+	for r in po_rows:
+		po_amt = r.po_amount or 0
+		rcv_amt = rcv_map.get(r.key_, 0)
+		servel = (rcv_amt / po_amt * 100) if po_amt else 0
+		results.append({"key": r.key_, "po_amount": po_amt, "rcv_amount": rcv_amt, "servel_pct": round(servel, 1)})
+	results.sort(key=lambda x: x["po_amount"], reverse=True)
+	return {"group_by": group_by, "period": f"{date_from} s/d {date_to}", "results": results[:20]}
+
+
+TOOL_FUNCS = {
+	"get_sales_summary": _tool_get_sales_summary,
+	"get_stock_balance": _tool_get_stock_balance,
+	"get_po_status": _tool_get_po_status,
+	"get_service_level": _tool_get_service_level,
+}
+
+
+@frappe.whitelist()
+def chat(message, history=None):
+	_check_access()
+
+	api_key = frappe.conf.get("openrouter_api_key")
+	if not api_key:
+		frappe.throw("openrouter_api_key belum diset di site_config.json (lihat komentar di atas file ini)")
+
+	if isinstance(history, str):
+		history = json.loads(history)
+	history = history or []
+
+	messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history + [{"role": "user", "content": message}]
+
+	for _ in range(MAX_TOOL_ROUNDTRIPS):
+		resp = requests.post(
+			OPENROUTER_URL,
+			headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+			json={"model": MODEL, "messages": messages, "tools": TOOLS, "tool_choice": "auto"},
+			timeout=30,
+		)
+		resp.raise_for_status()
+		result = resp.json()
+		msg = result["choices"][0]["message"]
+		messages.append(msg)
+
+		tool_calls = msg.get("tool_calls")
+		if not tool_calls:
+			return {"reply": msg.get("content", ""), "history": messages[1:]}
+
+		for tc in tool_calls:
+			fn_name = tc["function"]["name"]
+			try:
+				args = json.loads(tc["function"]["arguments"] or "{}")
+			except Exception:
+				args = {}
+			fn = TOOL_FUNCS.get(fn_name)
+			try:
+				tool_result = fn(**args) if fn else {"error": f"tool {fn_name} tidak dikenal"}
+			except Exception as e:
+				tool_result = {"error": str(e)}
+			messages.append(
+				{
+					"role": "tool",
+					"tool_call_id": tc["id"],
+					"content": json.dumps(tool_result, default=str),
+				}
+			)
+
+	return {
+		"reply": "Maaf, terlalu banyak langkah untuk jawab ini. Coba pertanyaan yang lebih spesifik.",
+		"history": messages[1:],
+	}
