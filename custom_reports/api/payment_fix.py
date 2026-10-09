@@ -235,7 +235,7 @@ def change_payment_mode(invoice, from_mode, to_mode, reason, dry_run=1):
     inv = frappe.db.get_value(
         "Sales Invoice",
         invoice,
-        ["name", "docstatus", "company", "posting_date", "currency"],
+        ["name", "docstatus", "company", "posting_date", "currency", "pos_profile"],
         as_dict=True,
     )
     if not inv:
@@ -250,6 +250,15 @@ def change_payment_mode(invoice, from_mode, to_mode, reason, dry_run=1):
         frappe.throw(_("Tipe {0} tidak diizinkan").format(to_type))
     if not frappe.db.get_value("Mode of Payment", to_mode, "enabled"):
         frappe.throw(_("Mode of Payment {0} nonaktif").format(to_mode))
+
+    # Mode tujuan harus sah di POS Profile invoice. Tanpa ini, invoice outlet A
+    # bisa dipindah ke kas outlet B (akunnya valid, tapi uangnya salah tempat).
+    if inv.pos_profile and not frappe.db.exists(
+        "POS Payment Method", {"parent": inv.pos_profile, "mode_of_payment": to_mode}
+    ):
+        frappe.throw(
+            _("Mode {0} tidak terdaftar di POS Profile {1} milik invoice ini").format(to_mode, inv.pos_profile)
+        )
 
     _check_period_open(inv.posting_date, inv.company)
 
