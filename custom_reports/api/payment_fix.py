@@ -16,25 +16,41 @@ customer, bukan akun kas/bank.
 Pemanggil wajib punya role ROLE (lihat create_fixer_user). Role itu sengaja
 TANPA DocPerm apa pun — izinnya hanya untuk memanggil method ini.
 
-Pemakaian:
-    POST /api/method/custom_reports.api.payment_fix.change_payment_mode
-    invoice, from_mode, to_mode, reason, dry_run (default 1)
+Pemakaian (agent eksternal, mis. ALE):
+    1. POST .../custom_reports.api.payment_fix.change_payment_mode
+       invoice, from_mode, to_mode, reason, dry_run=1      -> rencana, tidak menulis
+    2. POST .../custom_reports.api.payment_fix.request_payment_mode_change
+       invoice, from_mode, to_mode, reason                 -> server kirim ringkasan
+       + KODE ke WhatsApp admin (payfix_admin_wa). Kode tidak dikembalikan ke agent.
+    3. Admin memberi kode ke agent (DM).
+    4. POST .../change_payment_mode dengan dry_run=0 dan approval_code=<kode>.
 
-dry_run=1 hanya mengembalikan rencana perubahan. Tulis betulan butuh dry_run=0.
+Eksekusi tanpa kode yang sah ditolak server. Kode berlaku 30 menit, sekali pakai,
+terikat pada invoice + mode + alasan yang sama, dan hangus setelah 3 kali salah.
 
 Setup user:
     bench --site <site> execute custom_reports.api.payment_fix.create_fixer_user
 """
+
+import hmac
+import secrets
 
 import frappe
 from frappe import _
 from frappe.utils import flt, getdate
 
 ROLE = "Payment Mode Fixer"
-EMAIL = "hermes-accounting@x-sha.id"
-FULL_NAME = "Hermes Accounting (Payment Mode Fixer)"
+EMAIL = "ale@x-sha.id"
+FULL_NAME = "ALE (Payment Mode Fixer)"
 
 ALLOWED_TYPES = ("Cash", "Bank", "General")
+
+# Persetujuan admin dipaksa server: eksekusi (dry_run=0) wajib membawa kode yang
+# HANYA dikirim server ke WhatsApp admin (site_config: payfix_admin_wa, pisahkan
+# koma). Agent tidak pernah menerima kode itu dari API; dia baru tahu kalau admin
+# memberikannya.
+APPROVAL_TTL = 30 * 60
+APPROVAL_MAX_ATTEMPTS = 3
 
 
 def _account_for(mode, company):
@@ -221,8 +237,113 @@ def _shift_plan(inv, row, from_mode, to_mode, checks):
     return {"shift": shift, "perubahan": perubahan}
 
 
+def _approval_key(invoice):
+    return f"payfix_approval:{invoice}"
+
+
+def _signature(from_mode, to_mode, reason):
+    return [from_mode, to_mode, (reason or "").strip()]
+
+
+def _create_approval(invoice, from_mode, to_mode, reason, requester):
+    code = secrets.token_hex(4).upper()
+    frappe.cache().set_value(
+        _approval_key(invoice),
+        {
+            "code": code,
+            "sig": _signature(from_mode, to_mode, reason),
+            "requester": requester,
+            "attempts": 0,
+        },
+        expires_in_sec=APPROVAL_TTL,
+    )
+    return code
+
+
+def _verify_approval(invoice, from_mode, to_mode, reason, code):
+    """Lempar error kalau tidak sah. Mengembalikan data persetujuan kalau sah."""
+    key = _approval_key(invoice)
+    ap = frappe.cache().get_value(key)
+    if not ap:
+        frappe.throw(
+            _("Belum ada permintaan persetujuan yang berlaku untuk {0} (atau sudah lewat 30 menit). "
+              "Jalankan request_payment_mode_change dulu.").format(invoice)
+        )
+    if not code:
+        frappe.throw(_("approval_code wajib untuk eksekusi. Minta kodenya ke admin."))
+    if ap["sig"] != _signature(from_mode, to_mode, reason):
+        frappe.throw(_("Parameter tidak sama dengan yang diminta persetujuannya"))
+    if not hmac.compare_digest(str(code).strip().upper(), ap["code"]):
+        ap["attempts"] += 1
+        if ap["attempts"] >= APPROVAL_MAX_ATTEMPTS:
+            frappe.cache().delete_value(key)
+            frappe.throw(_("Kode salah {0} kali. Permintaan dibatalkan; ajukan ulang.").format(APPROVAL_MAX_ATTEMPTS))
+        frappe.cache().set_value(key, ap, expires_in_sec=APPROVAL_TTL)
+        frappe.throw(_("Kode persetujuan salah"))
+    return ap
+
+
+def _notify_admins(text):
+    from custom_reports.api.whatsapp import normalize_wa_number, send_whatsapp_message
+
+    raw = frappe.conf.get("payfix_admin_wa") or ""
+    numbers = [n for n in (normalize_wa_number(x) for x in str(raw).split(",")) if n]
+    if not numbers:
+        frappe.throw(_("payfix_admin_wa belum diset di site_config.json; permintaan tidak bisa dikirim"))
+    sent = [n for n in numbers if send_whatsapp_message(n, text)]
+    if not sent:
+        frappe.throw(_("Gagal mengirim WhatsApp ke admin; permintaan dibatalkan"))
+    return len(sent)
+
+
 @frappe.whitelist(methods=["POST"])
-def change_payment_mode(invoice, from_mode, to_mode, reason, dry_run=1):
+def request_payment_mode_change(invoice, from_mode, to_mode, reason):
+    """Ajukan koreksi: dry-run + kirim ringkasan dan kode ke WhatsApp admin.
+
+    Kode TIDAK dikembalikan ke pemanggil. Eksekusi (change_payment_mode dengan
+    dry_run=0) butuh kode itu, yang hanya diketahui admin.
+    """
+    frappe.only_for(ROLE)
+    plan = change_payment_mode(invoice, from_mode, to_mode, reason, dry_run=1)
+    if not plan.get("siap_dieksekusi"):
+        plan["status"] = "ditolak_pengecekan"
+        return plan
+
+    code = _create_approval(invoice, from_mode, to_mode, reason, frappe.session.user)
+
+    baris = [
+        "PERSETUJUAN KOREKSI MODE PEMBAYARAN",
+        f"Invoice : {invoice}",
+        f"Ubah    : {from_mode} ({plan['dari']['account']}) -> {to_mode} ({plan['ke']['account']})",
+        f"Nominal : Rp {plan['nominal']:,.0f}",
+        f"Alasan  : {reason}",
+        f"Diminta : {frappe.session.user}",
+    ]
+    shift = plan.get("closing_shift")
+    if shift:
+        baris.append(f"Shift   : {shift['shift']} (closing kasir tidak diubah)")
+        for p_ in shift["perubahan"]:
+            baris.append(
+                f"  {p_['mode']}: expected {p_['expected_sebelum']:,.0f} -> {p_['expected_sesudah']:,.0f}, "
+                f"selisih {p_['difference_sesudah']:,.0f}"
+            )
+    else:
+        baris.append("Shift   : invoice tidak masuk shift")
+    baris += [
+        "",
+        f"KODE: {code}",
+        "Berikan kode ini ke agent HANYA kalau kamu setuju. Berlaku 30 menit.",
+    ]
+    jumlah = _notify_admins(chr(10).join(baris))
+
+    plan["status"] = "menunggu_persetujuan_admin"
+    plan["dikirim_ke_admin"] = jumlah
+    plan["berlaku_menit"] = APPROVAL_TTL // 60
+    return plan
+
+
+@frappe.whitelist(methods=["POST"])
+def change_payment_mode(invoice, from_mode, to_mode, reason, dry_run=1, approval_code=None):
     frappe.only_for(ROLE)
 
     dry_run = str(dry_run) not in ("0", "false", "False")
@@ -358,6 +479,8 @@ def change_payment_mode(invoice, from_mode, to_mode, reason, dry_run=1):
     if dry_run:
         return plan
 
+    approval = _verify_approval(invoice, from_mode, to_mode, reason, approval_code)
+
     frappe.db.set_value(
         "Sales Invoice Payment",
         row.name,
@@ -397,16 +520,18 @@ def change_payment_mode(invoice, from_mode, to_mode, reason, dry_run=1):
             "reference_name": invoice,
             "content": (
                 f"Mode pembayaran diubah {from_mode} ({from_account}) -> {to_mode} ({to_account}), "
-                f"nominal {flt(row.base_amount)}. Oleh {frappe.session.user}. Alasan: {reason}"
+                f"nominal {flt(row.base_amount)}. Diminta oleh {approval['requester']}, "
+                f"disetujui admin (kode WhatsApp). Alasan: {reason}"
             ),
         }
     ).insert(ignore_permissions=True)
+    frappe.cache().delete_value(_approval_key(invoice))
     frappe.db.commit()
 
     return plan
 
 
-def create_fixer_user(regenerate=0):
+def create_fixer_user(email=EMAIL, full_name=FULL_NAME, regenerate=0):
     """Bikin role + user + API key. Aman diulang.
 
     Sengaja TIDAK di-whitelist: hanya bisa dijalankan lewat bench execute, bukan REST.
@@ -421,16 +546,16 @@ def create_fixer_user(regenerate=0):
         ).insert(ignore_permissions=True)
 
     created = False
-    if not frappe.db.exists("User", EMAIL):
+    if not frappe.db.exists("User", email):
         user = frappe.new_doc("User")
-        user.email = EMAIL
-        user.first_name = FULL_NAME
+        user.email = email
+        user.first_name = full_name
         user.enabled = 1
         user.send_welcome_email = 0
         user.insert(ignore_permissions=True)
         created = True
 
-    user = frappe.get_doc("User", EMAIL)
+    user = frappe.get_doc("User", email)
     user.set("roles", [])
     user.append("roles", {"role": ROLE})
 
@@ -443,7 +568,7 @@ def create_fixer_user(regenerate=0):
     user.save(ignore_permissions=True)
     frappe.db.commit()
 
-    out = {"user": EMAIL, "role": ROLE, "user_dibuat": created, "api_key": user.api_key}
+    out = {"user": email, "role": ROLE, "user_dibuat": created, "api_key": user.api_key}
     if secret:
         out["token"] = f"{user.api_key}:{secret}"
     return out
