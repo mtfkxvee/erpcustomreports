@@ -237,6 +237,69 @@ def _shift_plan(inv, row, from_mode, to_mode, checks):
     return {"shift": shift, "perubahan": perubahan}
 
 
+@frappe.whitelist()
+def get_payment_info(invoice):
+    """Baca-saja: mode pembayaran yang tercatat sekarang, plus pilihan mode tujuan.
+
+    Peminta cukup mengirim nomor transaksi; agent memanggil ini untuk tahu mode
+    sekarang (from_mode) dan mode apa yang sah di outlet itu.
+    """
+    frappe.only_for(ROLE)
+
+    inv = frappe.db.get_value(
+        "Sales Invoice",
+        invoice,
+        ["name", "docstatus", "status", "posting_date", "pos_profile", "grand_total", "is_return", "company"],
+        as_dict=True,
+    )
+    if not inv:
+        frappe.throw(_("Sales Invoice {0} tidak ditemukan").format(invoice))
+
+    payments = frappe.get_all(
+        "Sales Invoice Payment",
+        filters={"parent": invoice, "parenttype": "Sales Invoice"},
+        fields=["mode_of_payment", "type", "account", "amount"],
+        order_by="idx",
+    )
+    options, mode_cash, shift = [], None, None
+    if inv.pos_profile:
+        mode_cash = frappe.db.get_value("POS Profile", inv.pos_profile, "posa_cash_mode_of_payment")
+        options = [
+            r.mode_of_payment
+            for r in frappe.get_all(
+                "POS Payment Method",
+                filters={"parent": inv.pos_profile},
+                fields=["mode_of_payment"],
+                order_by="idx",
+            )
+        ]
+    ref = frappe.get_all(
+        "Sales Invoice Reference",
+        filters={"sales_invoice": invoice, "parenttype": "POS Closing Shift"},
+        pluck="parent",
+    )
+    if ref:
+        shift = ref[0]
+
+    return {
+        "invoice": inv.name,
+        "status": inv.status,
+        "docstatus": inv.docstatus,
+        "tanggal": str(inv.posting_date),
+        "pos_profile": inv.pos_profile,
+        "grand_total": flt(inv.grand_total),
+        "is_return": inv.is_return,
+        "pembayaran_sekarang": [
+            {"mode": p.mode_of_payment, "type": p.type, "account": p.account, "amount": flt(p.amount)}
+            for p in payments
+        ],
+        "mode_kas_outlet": mode_cash,
+        "mode_tujuan_yang_sah": options,
+        "closing_shift": shift,
+        "bisa_dikoreksi": inv.docstatus == 1 and not inv.is_return and len(payments) >= 1,
+    }
+
+
 def _approval_key(invoice):
     return f"payfix_approval:{invoice}"
 
@@ -297,7 +360,7 @@ def _notify_admins(text):
 
 
 @frappe.whitelist(methods=["POST"])
-def request_payment_mode_change(invoice, from_mode, to_mode, reason):
+def request_payment_mode_change(invoice, from_mode=None, to_mode=None, reason=None):
     """Ajukan koreksi: dry-run + kirim ringkasan dan kode ke WhatsApp admin.
 
     Kode TIDAK dikembalikan ke pemanggil. Eksekusi (change_payment_mode dengan
@@ -309,6 +372,7 @@ def request_payment_mode_change(invoice, from_mode, to_mode, reason):
         plan["status"] = "ditolak_pengecekan"
         return plan
 
+    from_mode, to_mode = plan["dari"]["mode"], plan["ke"]["mode"]
     code = _create_approval(invoice, from_mode, to_mode, reason, frappe.session.user)
 
     baris = [
@@ -343,15 +407,17 @@ def request_payment_mode_change(invoice, from_mode, to_mode, reason):
 
 
 @frappe.whitelist(methods=["POST"])
-def change_payment_mode(invoice, from_mode, to_mode, reason, dry_run=1, approval_code=None):
+def change_payment_mode(invoice, from_mode=None, to_mode=None, reason=None, dry_run=1, approval_code=None):
     frappe.only_for(ROLE)
 
     dry_run = str(dry_run) not in ("0", "false", "False")
     reason = (reason or "").strip()
     if len(reason) < 5:
         frappe.throw(_("reason wajib diisi (minimal 5 karakter) untuk audit"))
-    if from_mode == to_mode:
-        frappe.throw(_("from_mode dan to_mode sama"))
+    if not to_mode:
+        frappe.throw(_("to_mode wajib diisi (boleh 'CASH' untuk kas outlet invoice itu)"))
+    from_mode = (from_mode or "").strip() or None
+    to_mode = str(to_mode).strip()
 
     inv = frappe.db.get_value(
         "Sales Invoice",
@@ -363,6 +429,31 @@ def change_payment_mode(invoice, from_mode, to_mode, reason, dry_run=1, approval
         frappe.throw(_("Sales Invoice {0} tidak ditemukan").format(invoice))
     if inv.docstatus != 1:
         frappe.throw(_("Sales Invoice {0} belum submitted atau sudah cancel").format(invoice))
+
+    # to_mode "CASH" = mode kas milik POS Profile invoice ini (CASH XSL, CASH XWP, ...),
+    # supaya peminta tidak perlu tahu nama persisnya dan tidak salah outlet.
+    if to_mode.upper() == "CASH":
+        cash = frappe.db.get_value("POS Profile", inv.pos_profile, "posa_cash_mode_of_payment") if inv.pos_profile else None
+        if not cash:
+            frappe.throw(_("POS Profile invoice ini tidak punya mode kas default; sebutkan nama mode persisnya"))
+        to_mode = cash
+
+    # from_mode kosong: ambil dari invoice, asal hanya ada satu baris pembayaran.
+    if not from_mode:
+        modes = frappe.get_all(
+            "Sales Invoice Payment",
+            filters={"parent": invoice, "parenttype": "Sales Invoice"},
+            pluck="mode_of_payment",
+        )
+        if len(modes) != 1:
+            frappe.throw(
+                _("Invoice punya {0} baris pembayaran ({1}); sebutkan from_mode yang mau diubah").format(
+                    len(modes), ", ".join(modes) or "-"
+                )
+            )
+        from_mode = modes[0]
+    if from_mode == to_mode:
+        frappe.throw(_("Mode pembayaran sudah {0}; tidak ada yang perlu diubah").format(to_mode))
 
     to_type = frappe.db.get_value("Mode of Payment", to_mode, "type")
     if not frappe.db.exists("Mode of Payment", from_mode) or to_type is None:
