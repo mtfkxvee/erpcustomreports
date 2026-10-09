@@ -1902,7 +1902,7 @@ def _current_stock_by(level, warehouses, exclude_item_groups=None):
 
 @frappe.whitelist()
 def get_pareto_vs_inventory(department="FASHION", level="item", start_date=None, end_date=None):
-    from custom_reports.inventory_api import _OUTLET_WAREHOUSES, _FASHION_ROWS, _FMCG_ROWS
+    from custom_reports.inventory_api import _outlet_warehouses, _FASHION_ROWS, _FMCG_ROWS
 
     level = "category" if (level or "item").lower().startswith("cat") else "item"
     dept, outlets = _pareto_dept_outlets(department)
@@ -1917,7 +1917,8 @@ def get_pareto_vs_inventory(department="FASHION", level="item", start_date=None,
         wh_outlet_codes = _FASHION_ROWS + _FMCG_ROWS
     else:
         wh_outlet_codes = []
-    warehouses = [wh for code in wh_outlet_codes for wh in _OUTLET_WAREHOUSES.get(code, [])]
+    outlet_warehouses = _outlet_warehouses()
+    warehouses = [wh for code in wh_outlet_codes for wh in outlet_warehouses.get(code, [])]
 
     rows, total_qty, total_sales = _pareto_rows(start, end, outlets, level)
     stock = _current_stock_by(level, warehouses, exclude_item_groups=["TOPUP"])

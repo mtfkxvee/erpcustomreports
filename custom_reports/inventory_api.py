@@ -27,6 +27,7 @@
 # URL: /api/method/custom_reports.inventory_api.get_daily_inventory?as_of_date=YYYY-MM-DD
 
 import calendar
+from decimal import ROUND_HALF_DOWN, ROUND_HALF_UP, Decimal
 
 import frappe
 
@@ -41,7 +42,8 @@ _OUTLET_WAREHOUSES = {
     "XSP": ["GUDANG XSP - X", "SELLING AREA XSP - X", "TRANSIT XSP - X"],
     "XSP-OL": ["GUDANG XSP-OL - X"],
     "HCW": ["SELLING AREA HCW - X", "TRANSIT HCW - X"],
-    "XSM": ["GUDANG XSM - X", "SELLING AREA XSM - X", "TRANSIT XSM - X"],
+    # "XSM GROW  - X" (spasi 2, sesuai nama di ERP) ikut ke XSM - laporan asli tdk py baris XSM Grow sendiri
+    "XSM": ["GUDANG XSM - X", "SELLING AREA XSM - X", "TRANSIT XSM - X", "XSM GROW  - X"],
     "XMJ": ["GUDANG XMJ - X", "SELLING AREA XMJ - X", "TRANSIT XMJ - X"],
     "XWP": ["GUDANG XWP - X", "SELLING AREA XWP - X", "TRANSIT XWP - X"],
     "XPH": ["GUDANG XPH - X", "SELLING AREA XPH - X", "TRANSIT XPH - X"],
@@ -56,6 +58,33 @@ _OUTLET_WAREHOUSES = {
     "GD": ["GUDANG FHS - X", "Transit fhs  - X"],
     "DC": ["GUDANG DC - X"],
 }
+
+# Warehouse group yg SEMUA leaf di bawahnya (termasuk yg sudah disabled) ikut
+# dihitung ke outlet tsb. XSM punya ratusan warehouse rak ("XSM 1 - X" dst, lalu
+# rak baru "B1-CIGA - X" dst) di bawah AREA XSM - X. Rak lama di-disable &
+# stoknya dipindah ke SELLING AREA XSM tgl 2026-10-09, tapi utk tanggal sebelum
+# itu stok & penjualannya masih tercatat di rak - kalau tdk diikutkan, Saldo XSM
+# 7/10/26 kurang Rp1,98 M & Penjualan kurang Rp19,5 jt. Sengaja pakai AREA XSM,
+# bukan XSM - X, krn GUDANG DC - X juga ada di bawah XSM - X (baris sendiri).
+_OUTLET_WAREHOUSE_GROUPS = {
+    "XSM": ["AREA XSM - X"],
+}
+
+
+def _outlet_warehouses():
+    """_OUTLET_WAREHOUSES + semua leaf warehouse di bawah _OUTLET_WAREHOUSE_GROUPS."""
+    result = {code: list(whs) for code, whs in _OUTLET_WAREHOUSES.items()}
+    for code, groups in _OUTLET_WAREHOUSE_GROUPS.items():
+        for group in groups:
+            bounds = frappe.db.get_value("Warehouse", group, ["lft", "rgt"], as_dict=True)
+            if not bounds:
+                continue
+            leaves = frappe.db.sql_list("""
+                SELECT name FROM `tabWarehouse`
+                WHERE lft > %s AND rgt < %s AND is_group = 0
+            """, (bounds.lft, bounds.rgt))
+            result[code] += [wh for wh in leaves if wh not in result[code]]
+    return result
 
 _FASHION_ROWS = ["XSC", "XSC-OL", "PSR", "XPY", "XJB", "XCW", "OCW", "XSP", "XSP-OL", "HCW", "GD"]
 _FMCG_ROWS = ["XSM", "XMJ", "XWP", "XPH", "XTJ", "XCR", "TASMU", "MNR", "UIN", "DC"]
@@ -73,97 +102,92 @@ _VARIANTS = {
 }
 
 
-def _item_group_cond(exclude_item_groups, params):
-    if not exclude_item_groups:
-        return ""
-    placeholders = ", ".join(["%s"] * len(exclude_item_groups))
-    params += list(exclude_item_groups)
-    return f"AND i.item_group NOT IN ({placeholders})"
+# PERFORMA (v2): data mentah diambil SEKALI per as_of_date utk semua varian
+# (3 query, bukan 3 query x 3 varian), dikelompokkan per (warehouse, grp) dgn
+# grp = item_group kalau termasuk grup yg bisa di-exclude (TOPUP/SEM), selain
+# itu ''. Filter varian & pemetaan warehouse->outlet dikerjakan di Python.
+# Query juga TIDAK membawa daftar warehouse (IN ratusan nama rak XSM) - cukup
+# filter tanggal (index posting_date bawaan ERPNext), sisanya dibuang di Python.
+
+def _grp_case(groups, params):
+    if not groups:
+        return "''"
+    params += list(groups)
+    return f"CASE WHEN i.item_group IN ({', '.join(['%s'] * len(groups))}) THEN i.item_group ELSE '' END"
 
 
-def _current_balance_by_warehouse(warehouses, exclude_item_groups):
-    """Saldo SEKARANG per warehouse dari tabBin (materialized, real-time)."""
-    if not warehouses:
-        return {}
-    wh_placeholders = ", ".join(["%s"] * len(warehouses))
-    params = list(warehouses)
-    item_cond = _item_group_cond(exclude_item_groups, params)
-    rows = frappe.db.sql(f"""
-        SELECT b.warehouse, SUM(b.stock_value) as val
-        FROM `tabBin` b
-        JOIN `tabItem` i ON i.name = b.item_code
-        WHERE b.warehouse IN ({wh_placeholders})
-        {item_cond}
-        GROUP BY b.warehouse
-    """, params, as_dict=True)
-    return {r["warehouse"]: r["val"] or 0 for r in rows}
+def _fetch_inventory_raw(as_of_date, groups):
+    """Return dict: balance {(wh, grp): val}, future {(wh, grp): val},
+    mutasi {(wh, grp): {pembelian, penjualan, transfer_masuk, transfer_keluar, lainnya}}."""
+    groups = sorted(set(groups or []))
 
+    # Saldo SEKARANG dari tabBin. Bin dgn actual_qty = 0 dianggap bernilai 0:
+    # stock_value di Bin bisa nyangkut kalau ada invoice yg di-cancel (contoh:
+    # item 31385 di GUDANG OCW - qty 0 tapi stock_value -771.900 sejak 22/07/26),
+    # laporan Excel asli tdk menghitungnya. Selain itu tetap pakai stock_value
+    # (bukan qty * rate) krn sen-nya beda & laporan asli = stock_value (terbukti
+    # dari pembulatan XPH).
+    params = []
+    grp = _grp_case(groups, params)
+    balance = {
+        (r.warehouse, r.grp): r.val or 0
+        for r in frappe.db.sql(f"""
+            SELECT b.warehouse, {grp} AS grp,
+                   SUM(CASE WHEN b.actual_qty = 0 THEN 0 ELSE b.stock_value END) AS val
+            FROM `tabBin` b
+            JOIN `tabItem` i ON i.name = b.item_code
+            GROUP BY b.warehouse, grp
+        """, params, as_dict=True)
+    }
 
-def _sle_sum_by_warehouse(date_cond, date_params, warehouses, exclude_item_groups):
-    """Total stock_value_difference per warehouse utk kondisi tanggal tertentu."""
-    if not warehouses:
-        return {}
-    wh_placeholders = ", ".join(["%s"] * len(warehouses))
-    params = list(date_params) + list(warehouses)
-    item_cond = _item_group_cond(exclude_item_groups, params)
-    rows = frappe.db.sql(f"""
-        SELECT sle.warehouse, SUM(sle.stock_value_difference) as val
+    params = []
+    grp = _grp_case(groups, params)
+    params.append(as_of_date)
+    future = {
+        (r.warehouse, r.grp): r.val or 0
+        for r in frappe.db.sql(f"""
+            SELECT sle.warehouse, {grp} AS grp, SUM(sle.stock_value_difference) AS val
+            FROM `tabStock Ledger Entry` sle
+            JOIN `tabItem` i ON i.name = sle.item_code
+            WHERE sle.is_cancelled = 0 AND sle.posting_date > %s
+            GROUP BY sle.warehouse, grp
+        """, params, as_dict=True)
+    }
+
+    # Mutasi HANYA tgl as_of_date. PENTING: pos/neg dijumlah TERPISAH per baris
+    # SLE, bukan di-net dulu baru dicek tandanya. Kalau di-net dulu, warehouse
+    # yg dalam 1 hari ada barang MASUK dan KELUAR sekaligus (2 Stock Entry
+    # berbeda) akan salah hitung - Transfer Masuk/Keluar jadi separuh dari yang
+    # sebenarnya (terbukti dari data: versi net menghasilkan Transfer Keluar FMCG
+    # Rp33,8jt padahal seharusnya Rp39,7jt sesuai breakdown pos/neg mentah).
+    params = []
+    grp = _grp_case(groups, params)
+    params.append(as_of_date)
+    mutasi = {}
+    for r in frappe.db.sql(f"""
+        SELECT sle.warehouse, sle.voucher_type, {grp} AS grp,
+               SUM(CASE WHEN sle.stock_value_difference >= 0 THEN sle.stock_value_difference ELSE 0 END) AS pos_val,
+               SUM(CASE WHEN sle.stock_value_difference < 0 THEN sle.stock_value_difference ELSE 0 END) AS neg_val
         FROM `tabStock Ledger Entry` sle
         JOIN `tabItem` i ON i.name = sle.item_code
-        WHERE sle.is_cancelled = 0
-          AND {date_cond}
-          AND sle.warehouse IN ({wh_placeholders})
-          {item_cond}
-        GROUP BY sle.warehouse
-    """, params, as_dict=True)
-    return {r["warehouse"]: r["val"] or 0 for r in rows}
-
-
-def _sle_by_warehouse_voucher(as_of_date, warehouses, exclude_item_groups):
-    """Breakdown mutasi (per voucher_type) HANYA utk tanggal as_of_date (range sempit).
-
-    PENTING: pos/neg dijumlah TERPISAH per (warehouse, voucher_type), bukan di-net
-    dulu baru dicek tandanya. Kalau di-net dulu, warehouse yg dalam 1 hari ada
-    barang MASUK dan KELUAR sekaligus (2 Stock Entry berbeda) akan salah hitung -
-    Transfer Masuk/Keluar jadi separuh dari yang sebenarnya (terbukti dari data:
-    versi net menghasilkan Transfer Keluar FMCG Rp33,8jt padahal seharusnya Rp39,7jt
-    sesuai breakdown pos/neg mentah).
-    """
-    if not warehouses:
-        return {}
-    wh_placeholders = ", ".join(["%s"] * len(warehouses))
-    params = [as_of_date] + list(warehouses)
-    item_cond = _item_group_cond(exclude_item_groups, params)
-    rows = frappe.db.sql(f"""
-        SELECT sle.warehouse, sle.voucher_type,
-               SUM(CASE WHEN sle.stock_value_difference >= 0 THEN sle.stock_value_difference ELSE 0 END) as pos_val,
-               SUM(CASE WHEN sle.stock_value_difference < 0 THEN sle.stock_value_difference ELSE 0 END) as neg_val
-        FROM `tabStock Ledger Entry` sle
-        JOIN `tabItem` i ON i.name = sle.item_code
-        WHERE sle.is_cancelled = 0
-          AND sle.posting_date = %s
-          AND sle.warehouse IN ({wh_placeholders})
-          {item_cond}
-        GROUP BY sle.warehouse, sle.voucher_type
-    """, params, as_dict=True)
-
-    result = {}
-    for r in rows:
-        wh = r["warehouse"]
-        result.setdefault(wh, {"pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0})
-        vt = r["voucher_type"]
-        pos_val, neg_val = (r["pos_val"] or 0), (r["neg_val"] or 0)
+        WHERE sle.is_cancelled = 0 AND sle.posting_date = %s
+        GROUP BY sle.warehouse, sle.voucher_type, grp
+    """, params, as_dict=True):
+        m = mutasi.setdefault((r.warehouse, r.grp), {"pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0})
+        vt = r.voucher_type
+        pos_val, neg_val = (r.pos_val or 0), (r.neg_val or 0)
         if vt in ("Purchase Invoice", "Purchase Receipt"):
-            result[wh]["pembelian"] += pos_val
-            result[wh]["lainnya"] += neg_val
+            m["pembelian"] += pos_val
+            m["lainnya"] += neg_val
         elif vt == "Sales Invoice":
-            result[wh]["penjualan"] += pos_val + neg_val
+            m["penjualan"] += pos_val + neg_val
         elif vt == "Stock Entry":
-            result[wh]["transfer_masuk"] += pos_val
-            result[wh]["transfer_keluar"] += abs(neg_val)
+            m["transfer_masuk"] += pos_val
+            m["transfer_keluar"] += abs(neg_val)
         else:
-            result[wh]["lainnya"] += pos_val + neg_val
-    return result
+            m["lainnya"] += pos_val + neg_val
+
+    return {"balance": balance, "future": future, "mutasi": mutasi}
 
 
 def _kmt_mbg_inventory_row(kategori, as_of_date):
@@ -185,14 +209,37 @@ def _kmt_mbg_inventory_row(kategori, as_of_date):
 
 _KMT_MBG_KATEGORI = {"KMT": "Kemitraan", "MBG": "MBG"}
 
+_AMOUNT_KEYS = ("saldo_awal", "pembelian", "penjualan", "transfer_masuk", "transfer_keluar", "lainnya", "saldo_akhir")
 
-def _build_variant(as_of_date, exclude_item_groups):
-    all_rows = _FASHION_ROWS + _FMCG_ROWS + _HO_ROWS
-    warehouses = [wh for code in all_rows for wh in _OUTLET_WAREHOUSES[code] if code not in _KMT_MBG_KATEGORI]
 
-    current_balance = _current_balance_by_warehouse(warehouses, exclude_item_groups)
-    future_movement = _sle_sum_by_warehouse("sle.posting_date > %s", [as_of_date], warehouses, exclude_item_groups)
-    mutasi = _sle_by_warehouse_voucher(as_of_date, warehouses, exclude_item_groups)
+def _rupiah(x):
+    """Bulatkan ke rupiah persis spt laporan Excel asli: rapikan ke sen dulu
+    (buang noise float), lalu ,50 sen ke BAWAH & >,50 ke atas. Divalidasi ke
+    laporan 7/10/26: TOTAL saldo awal FMCG mentah 4.916.059.175,50 tertulis
+    4.916.059.175 (ALL) & 4.840.353.326,50 -> 4.840.353.326 (EXC TOPUP);
+    semua sel lain cocok dgn aturan ini."""
+    sen = Decimal(repr(float(x or 0))).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    return int(sen.quantize(Decimal("1"), ROUND_HALF_DOWN))
+
+
+def _build_variant(as_of_date, exclude_item_groups, raw=None, outlet_warehouses=None):
+    exclude = set(exclude_item_groups or [])
+    raw = raw or _fetch_inventory_raw(as_of_date, exclude)
+    outlet_warehouses = outlet_warehouses or _outlet_warehouses()
+
+    # ringkas data mentah per warehouse, buang grp yg di-exclude varian ini
+    current_balance, future_movement, mutasi = {}, {}, {}
+    for (wh, grp), val in raw["balance"].items():
+        if grp not in exclude:
+            current_balance[wh] = current_balance.get(wh, 0) + val
+    for (wh, grp), val in raw["future"].items():
+        if grp not in exclude:
+            future_movement[wh] = future_movement.get(wh, 0) + val
+    for (wh, grp), m in raw["mutasi"].items():
+        if grp not in exclude:
+            acc = mutasi.setdefault(wh, {k: 0 for k in m})
+            for k, v in m.items():
+                acc[k] += v
 
     def row_for(code):
         if code in _KMT_MBG_KATEGORI:
@@ -208,7 +255,7 @@ def _build_variant(as_of_date, exclude_item_groups):
                 "lainnya": abs(r["lainnya"]), "_lainnya_signed": r["lainnya"],
                 "saldo_akhir": r["saldo_akhir"],
             }
-        whs = _OUTLET_WAREHOUSES[code]
+        whs = outlet_warehouses[code]
         akhir = sum(current_balance.get(wh, 0) - future_movement.get(wh, 0) for wh in whs)
         m_total = {"pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0}
         for wh in whs:
@@ -251,6 +298,12 @@ def _build_variant(as_of_date, exclude_item_groups):
         for d in data:
             d.pop("_lainnya_signed", None)
         data.append(total)
+        # Bulatkan ke rupiah SETELAH TOTAL dihitung dari nilai mentah (sama spt
+        # laporan Excel asli: TOTAL = bulat(jumlah mentah), bukan jumlah baris
+        # yg sudah dibulatkan - kalau dibalik, TOTAL bisa beda Rp1-2).
+        for d in data:
+            for k in _AMOUNT_KEYS:
+                d[k] = _rupiah(d[k])
         return data
 
     return {
@@ -263,10 +316,13 @@ def _build_variant(as_of_date, exclude_item_groups):
 @frappe.whitelist()
 def get_daily_inventory(as_of_date=None):
     as_of_date = as_of_date or frappe.utils.today()
+    all_groups = {g for groups in _VARIANTS.values() for g in groups}
+    raw = _fetch_inventory_raw(as_of_date, all_groups)
+    outlet_warehouses = _outlet_warehouses()
     return {
         "as_of_date": as_of_date,
         "variants": {
-            variant_key: _build_variant(as_of_date, exclude_groups)
+            variant_key: _build_variant(as_of_date, exclude_groups, raw, outlet_warehouses)
             for variant_key, exclude_groups in _VARIANTS.items()
         },
     }
