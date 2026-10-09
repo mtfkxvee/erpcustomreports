@@ -36,22 +36,11 @@
   {
     "doctype": "Custom Field",
     "dt": "Driver Activity",
-    "fieldname": "kendaraan",
-    "label": "Kendaraan",
-    "fieldtype": "Link",
-    "options": "Vehicle",
-    "insert_after": "tipe",
-    "in_list_view": 1,
-    "in_standard_filter": 1
-  },
-  {
-    "doctype": "Custom Field",
-    "dt": "Driver Activity",
     "fieldname": "kategori",
     "label": "Kategori",
     "fieldtype": "Select",
     "options": "\nBBM\nToll\nParkir\nMakan\nLainnya",
-    "insert_after": "kendaraan",
+    "insert_after": "vehicle",
     "in_list_view": 1,
     "in_standard_filter": 1,
     "depends_on": "eval:doc.tipe==\"Pengeluaran\""
