@@ -10,14 +10,40 @@ app_license = "mit"
 
 fixtures = ["Custom Field"]
 # required_apps = []
+_SHELVING_VOUCHER = {
+    "on_submit": "custom_reports.custom_reports.shelving.ledger.on_voucher_submit",
+    "on_cancel": "custom_reports.custom_reports.shelving.ledger.on_voucher_cancel",
+}
+
 doc_events = {
     "Payment Entry": {
         "validate": "custom_reports.custom_reports.giro.payment_entry_hooks.validate",
         "on_submit": "custom_reports.custom_reports.giro.payment_entry_hooks.on_submit",
-    }
+    },
+    # Shelving (lihat custom_reports/shelving/ledger.py)
+    "Sales Invoice": _SHELVING_VOUCHER,
+    "Delivery Note": _SHELVING_VOUCHER,
+    "Purchase Receipt": _SHELVING_VOUCHER,
+    "Purchase Invoice": _SHELVING_VOUCHER,
+    "Warehouse": {
+        "validate": "custom_reports.custom_reports.shelving.ledger.validate_warehouse",
+    },
+    "Stock Reconciliation": {
+        "on_submit": "custom_reports.custom_reports.shelving.ledger.on_reconciliation_submit",
+        "on_cancel": "custom_reports.custom_reports.shelving.ledger.on_voucher_cancel",
+    },
+    "Stock Entry": {
+        "validate": "custom_reports.custom_reports.shelving.ledger.validate_stock_entry",
+        "before_submit": "custom_reports.custom_reports.shelving.ledger.require_target_shelving",
+        "on_submit": "custom_reports.custom_reports.shelving.ledger.on_stock_entry_submit",
+        "on_cancel": "custom_reports.custom_reports.shelving.ledger.on_stock_entry_cancel",
+    },
 }
 
 scheduler_events = {
+    "hourly": [
+        "custom_reports.custom_reports.shelving.ledger.sync_all",
+    ],
     "daily": [
         "custom_reports.custom_reports.giro.giro_scheduler.process_cheque_clearance",
         "custom_reports.custom_reports.item_min_max.min_max_scheduler.check_overstock",
@@ -63,6 +89,8 @@ app_include_js = [
 # include js, css files in header of web form
 # webform_include_js = {"doctype": "public/js/doctype.js"}
 # webform_include_css = {"doctype": "public/css/doctype.css"}
+
+doctype_js = {"Stock Entry": "public/js/stock_entry_shelving.js"}
 
 # include js in page
 # page_js = {"page" : "public/js/file.js"}
