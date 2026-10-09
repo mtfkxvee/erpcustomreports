@@ -45,6 +45,10 @@ FULL_NAME = "ALE (Payment Mode Fixer)"
 
 ALLOWED_TYPES = ("Cash", "Bank", "General")
 
+# Alasan bawaan kalau pemanggil tidak menyebutkan. Dipakai sama di request dan eksekusi,
+# jadi tanda tangan persetujuan tetap cocok.
+DEFAULT_REASON = "Salah input kasir"
+
 # Persetujuan admin dipaksa server: eksekusi (dry_run=0) wajib membawa kode yang
 # HANYA dikirim server ke WhatsApp admin (site_config: payfix_admin_wa, pisahkan
 # koma). Agent tidak pernah menerima kode itu dari API; dia baru tahu kalau admin
@@ -367,6 +371,7 @@ def request_payment_mode_change(invoice, from_mode=None, to_mode=None, reason=No
     dry_run=0) butuh kode itu, yang hanya diketahui admin.
     """
     frappe.only_for(ROLE)
+    reason = (reason or "").strip() or DEFAULT_REASON
     plan = change_payment_mode(invoice, from_mode, to_mode, reason, dry_run=1)
     if not plan.get("siap_dieksekusi"):
         plan["status"] = "ditolak_pengecekan"
@@ -411,7 +416,7 @@ def change_payment_mode(invoice, from_mode=None, to_mode=None, reason=None, dry_
     frappe.only_for(ROLE)
 
     dry_run = str(dry_run) not in ("0", "false", "False")
-    reason = (reason or "").strip()
+    reason = (reason or "").strip() or DEFAULT_REASON
     if len(reason) < 5:
         frappe.throw(_("reason wajib diisi (minimal 5 karakter) untuk audit"))
     if not to_mode:
