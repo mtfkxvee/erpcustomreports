@@ -102,24 +102,69 @@ _VARIANTS = {
 }
 
 
-# PERFORMA (v2): data mentah diambil SEKALI per as_of_date utk semua varian
-# (3 query, bukan 3 query x 3 varian), dikelompokkan per (warehouse, grp) dgn
-# grp = item_group kalau termasuk grup yg bisa di-exclude (TOPUP/SEM), selain
-# itu ''. Filter varian & pemetaan warehouse->outlet dikerjakan di Python.
-# Query juga TIDAK membawa daftar warehouse (IN ratusan nama rak XSM) - cukup
-# filter tanggal (index posting_date bawaan ERPNext), sisanya dibuang di Python.
+# PERFORMA (v3): data mentah diambil SEKALI per as_of_date utk semua varian,
+# dikelompokkan per (warehouse, grp) dgn grp = item_group kalau termasuk grup
+# yg bisa di-exclude (TOPUP/SEM), selain itu ''. Filter varian & pemetaan
+# warehouse->outlet dikerjakan di Python. Query TIDAK membawa daftar warehouse
+# (IN ratusan nama rak XSM) & TIDAK JOIN ke tabItem: versi v2 (JOIN tabItem
+# utk CASE item_group) makan ±40 detik konstan di production, padahal query
+# yg sama tanpa join cuma 1-3 detik. Sekarang: (1) total per warehouse semua
+# item, (2) total per warehouse khusus item grup TOPUP/SEM (cuma puluhan item,
+# dicari dulu dari tabItem), lalu grp '' = (1) - (2).
 
-def _grp_case(groups, params):
+def _excluded_items(groups):
+    """{item_code: item_group} utk item yg item_group-nya termasuk groups."""
     if not groups:
-        return "''"
-    params += list(groups)
-    return f"CASE WHEN i.item_group IN ({', '.join(['%s'] * len(groups))}) THEN i.item_group ELSE '' END"
+        return {}
+    return {
+        r.name: r.item_group
+        for r in frappe.db.sql(f"""
+            SELECT name, item_group FROM `tabItem`
+            WHERE item_group IN ({', '.join(['%s'] * len(groups))})
+        """, list(groups), as_dict=True)
+    }
 
 
-def _fetch_inventory_raw(as_of_date, groups):
+def _split_by_group(total_rows, item_rows, items, key_fields, val_fields):
+    """Gabung hasil query total & query khusus item ter-exclude jadi
+    {(key..., grp): {val_field: nilai}} - grp '' = total dikurangi item ter-exclude."""
+    out = {}
+    for r in total_rows:
+        k = tuple(r[f] for f in key_fields) + ("",)
+        out[k] = {v: (r[v] or 0) for v in val_fields}
+    for r in item_rows:
+        grp = items[r.item_code]
+        base = tuple(r[f] for f in key_fields)
+        acc = out.setdefault(base + (grp,), {v: 0 for v in val_fields})
+        rest = out.setdefault(base + ("",), {v: 0 for v in val_fields})
+        for v in val_fields:
+            acc[v] += r[v] or 0
+            rest[v] -= r[v] or 0
+    return out
+
+
+def _fetch_inventory_raw(as_of_date, groups, from_date=None):
     """Return dict: balance {(wh, grp): val}, future {(wh, grp): val},
-    mutasi {(wh, grp): {pembelian, penjualan, transfer_masuk, transfer_keluar, lainnya}}."""
+    mutasi {(wh, grp): {pembelian, penjualan, transfer_masuk, transfer_keluar, lainnya}}.
+
+    Mutasi dihitung utk periode from_date s.d. as_of_date (default: as_of_date
+    saja = laporan harian). Saldo akhir = saldo di akhir as_of_date, jadi Saldo
+    Awal (= akhir - mutasi periode) otomatis = saldo di awal from_date."""
     groups = sorted(set(groups or []))
+    from_date = from_date or as_of_date
+    items = _excluded_items(groups)
+    item_list = list(items)
+    item_ph = ", ".join(["%s"] * len(item_list))
+
+    def total_and_items(select_keys, val_sql, from_where, params, key_fields, val_fields):
+        total_rows = frappe.db.sql(
+            f"SELECT {select_keys}, {val_sql} {from_where} GROUP BY {select_keys}", params, as_dict=True)
+        item_rows = []
+        if item_list:
+            item_rows = frappe.db.sql(
+                f"SELECT {select_keys}, item_code, {val_sql} {from_where} AND item_code IN ({item_ph}) "
+                f"GROUP BY {select_keys}, item_code", list(params) + item_list, as_dict=True)
+        return _split_by_group(total_rows, item_rows, items, key_fields, val_fields)
 
     # Saldo SEKARANG dari tabBin. Bin dgn actual_qty = 0 dianggap bernilai 0:
     # stock_value di Bin bisa nyangkut kalau ada invoice yg di-cancel (contoh:
@@ -127,55 +172,36 @@ def _fetch_inventory_raw(as_of_date, groups):
     # laporan Excel asli tdk menghitungnya. Selain itu tetap pakai stock_value
     # (bukan qty * rate) krn sen-nya beda & laporan asli = stock_value (terbukti
     # dari pembulatan XPH).
-    params = []
-    grp = _grp_case(groups, params)
     balance = {
-        (r.warehouse, r.grp): r.val or 0
-        for r in frappe.db.sql(f"""
-            SELECT b.warehouse, {grp} AS grp,
-                   SUM(CASE WHEN b.actual_qty = 0 THEN 0 ELSE b.stock_value END) AS val
-            FROM `tabBin` b
-            JOIN `tabItem` i ON i.name = b.item_code
-            GROUP BY b.warehouse, grp
-        """, params, as_dict=True)
+        k: v["val"] for k, v in total_and_items(
+            "warehouse", "SUM(CASE WHEN actual_qty = 0 THEN 0 ELSE stock_value END) AS val",
+            "FROM `tabBin` WHERE 1=1", [], ("warehouse",), ("val",)).items()
     }
 
-    params = []
-    grp = _grp_case(groups, params)
-    params.append(as_of_date)
     future = {
-        (r.warehouse, r.grp): r.val or 0
-        for r in frappe.db.sql(f"""
-            SELECT sle.warehouse, {grp} AS grp, SUM(sle.stock_value_difference) AS val
-            FROM `tabStock Ledger Entry` sle
-            JOIN `tabItem` i ON i.name = sle.item_code
-            WHERE sle.is_cancelled = 0 AND sle.posting_date > %s
-            GROUP BY sle.warehouse, grp
-        """, params, as_dict=True)
+        k: v["val"] for k, v in total_and_items(
+            "warehouse", "SUM(stock_value_difference) AS val",
+            "FROM `tabStock Ledger Entry` WHERE is_cancelled = 0 AND posting_date > %s",
+            [as_of_date], ("warehouse",), ("val",)).items()
     }
 
-    # Mutasi HANYA tgl as_of_date. PENTING: pos/neg dijumlah TERPISAH per baris
-    # SLE, bukan di-net dulu baru dicek tandanya. Kalau di-net dulu, warehouse
-    # yg dalam 1 hari ada barang MASUK dan KELUAR sekaligus (2 Stock Entry
-    # berbeda) akan salah hitung - Transfer Masuk/Keluar jadi separuh dari yang
-    # sebenarnya (terbukti dari data: versi net menghasilkan Transfer Keluar FMCG
-    # Rp33,8jt padahal seharusnya Rp39,7jt sesuai breakdown pos/neg mentah).
-    params = []
-    grp = _grp_case(groups, params)
-    params.append(as_of_date)
+    # Mutasi tgl from_date s.d. as_of_date. PENTING: pos/neg dijumlah TERPISAH
+    # per baris SLE, bukan di-net dulu baru dicek tandanya. Kalau di-net dulu,
+    # warehouse yg dalam 1 hari ada barang MASUK dan KELUAR sekaligus (2 Stock
+    # Entry berbeda) akan salah hitung - Transfer Masuk/Keluar jadi separuh dari
+    # yang sebenarnya (terbukti dari data: versi net menghasilkan Transfer Keluar
+    # FMCG Rp33,8jt padahal seharusnya Rp39,7jt sesuai breakdown pos/neg mentah).
+    # Krn per baris, mutasi periode = jumlah mutasi harian di periode tsb.
+    raw_mutasi = total_and_items(
+        "warehouse, voucher_type",
+        "SUM(CASE WHEN stock_value_difference >= 0 THEN stock_value_difference ELSE 0 END) AS pos_val, "
+        "SUM(CASE WHEN stock_value_difference < 0 THEN stock_value_difference ELSE 0 END) AS neg_val",
+        "FROM `tabStock Ledger Entry` WHERE is_cancelled = 0 AND posting_date BETWEEN %s AND %s",
+        [from_date, as_of_date], ("warehouse", "voucher_type"), ("pos_val", "neg_val"))
     mutasi = {}
-    for r in frappe.db.sql(f"""
-        SELECT sle.warehouse, sle.voucher_type, {grp} AS grp,
-               SUM(CASE WHEN sle.stock_value_difference >= 0 THEN sle.stock_value_difference ELSE 0 END) AS pos_val,
-               SUM(CASE WHEN sle.stock_value_difference < 0 THEN sle.stock_value_difference ELSE 0 END) AS neg_val
-        FROM `tabStock Ledger Entry` sle
-        JOIN `tabItem` i ON i.name = sle.item_code
-        WHERE sle.is_cancelled = 0 AND sle.posting_date = %s
-        GROUP BY sle.warehouse, sle.voucher_type, grp
-    """, params, as_dict=True):
-        m = mutasi.setdefault((r.warehouse, r.grp), {"pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0})
-        vt = r.voucher_type
-        pos_val, neg_val = (r.pos_val or 0), (r.neg_val or 0)
+    for (wh, vt, grp), r in raw_mutasi.items():
+        m = mutasi.setdefault((wh, grp), {"pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0})
+        pos_val, neg_val = r["pos_val"], r["neg_val"]
         if vt in ("Purchase Invoice", "Purchase Receipt"):
             m["pembelian"] += pos_val
             m["lainnya"] += neg_val
@@ -190,21 +216,30 @@ def _fetch_inventory_raw(as_of_date, groups):
     return {"balance": balance, "future": future, "mutasi": mutasi}
 
 
-def _kmt_mbg_inventory_row(kategori, as_of_date):
+_KMT_MBG_MUTASI_KEYS = ("pembelian", "penjualan", "transfer_masuk", "transfer_keluar", "lainnya")
+
+
+def _kmt_mbg_inventory_row(kategori, as_of_date, from_date=None):
     """KMT & MBG tidak tercatat di sistem warehouse ERPNext sama sekali (sudah
     dibuktikan: tabBin kosong utk warehouse mereka) - datanya diambil dari
     doctype 'Kemitraan MBG Inventory History' (input manual dari laporan tim),
     sama spt pola yg dipakai utk data Sales KMT/MBG. Kalau blm ada record utk
-    tanggal itu, kembalikan 0 (sama spt perilaku sebelumnya)."""
-    row = frappe.db.get_value(
-        "Kemitraan MBG Inventory History",
-        {"kategori": kategori, "tanggal": as_of_date},
-        ["saldo_awal", "pembelian", "penjualan", "transfer_masuk", "transfer_keluar", "lainnya", "saldo_akhir"],
-        as_dict=True,
-    )
-    if not row:
-        return {"saldo_awal": 0, "pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0, "saldo_akhir": 0}
-    return {k: (v or 0) for k, v in row.items()}
+    tanggal itu, kembalikan 0 (sama spt perilaku sebelumnya).
+
+    Utk periode (from_date < as_of_date): Saldo Awal = record from_date,
+    Saldo Akhir = record as_of_date, mutasi = jumlah record di periode tsb."""
+    from_date = from_date or as_of_date
+    rows = frappe.db.sql("""
+        SELECT tanggal, saldo_awal, pembelian, penjualan, transfer_masuk, transfer_keluar, lainnya, saldo_akhir
+        FROM `tabKemitraan MBG Inventory History`
+        WHERE kategori = %s AND tanggal BETWEEN %s AND %s
+    """, (kategori, from_date, as_of_date), as_dict=True)
+    by_date = {str(r.tanggal): r for r in rows}
+    first, last = by_date.get(str(from_date)), by_date.get(str(as_of_date))
+    result = {k: sum((r[k] or 0) for r in rows) for k in _KMT_MBG_MUTASI_KEYS}
+    result["saldo_awal"] = (first.saldo_awal or 0) if first else 0
+    result["saldo_akhir"] = (last.saldo_akhir or 0) if last else 0
+    return result
 
 
 _KMT_MBG_KATEGORI = {"KMT": "Kemitraan", "MBG": "MBG"}
@@ -222,9 +257,9 @@ def _rupiah(x):
     return int(sen.quantize(Decimal("1"), ROUND_HALF_DOWN))
 
 
-def _build_variant(as_of_date, exclude_item_groups, raw=None, outlet_warehouses=None):
+def _build_variant(as_of_date, exclude_item_groups, raw=None, outlet_warehouses=None, from_date=None):
     exclude = set(exclude_item_groups or [])
-    raw = raw or _fetch_inventory_raw(as_of_date, exclude)
+    raw = raw or _fetch_inventory_raw(as_of_date, exclude, from_date)
     outlet_warehouses = outlet_warehouses or _outlet_warehouses()
 
     # ringkas data mentah per warehouse, buang grp yg di-exclude varian ini
@@ -243,7 +278,7 @@ def _build_variant(as_of_date, exclude_item_groups, raw=None, outlet_warehouses=
 
     def row_for(code):
         if code in _KMT_MBG_KATEGORI:
-            r = _kmt_mbg_inventory_row(_KMT_MBG_KATEGORI[code], as_of_date)
+            r = _kmt_mbg_inventory_row(_KMT_MBG_KATEGORI[code], as_of_date, from_date)
             return {
                 "outlet": code, "label": _OUTLET_LABELS.get(code, code),
                 "saldo_awal": r["saldo_awal"],
