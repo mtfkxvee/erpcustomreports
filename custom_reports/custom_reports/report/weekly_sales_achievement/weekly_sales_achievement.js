@@ -28,7 +28,12 @@ frappe.query_reports["Weekly Sales Achievement"] = {
         }
     ],
     formatter: function(value, row, column, data, default_formatter) {
-        value = default_formatter(value, row, column, data);
+        // angka 0 tampil "-" spt format akuntansi di laporan Excel asli
+        if (["Int", "Float", "Currency", "Percent"].includes(column.fieldtype) && value === 0) {
+            value = '<div style="text-align: right">-</div>';
+        } else {
+            value = default_formatter(value, row, column, data);
+        }
         if (data && data.bold) {
             value = value.bold();
         }

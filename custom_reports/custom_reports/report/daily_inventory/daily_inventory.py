@@ -49,11 +49,13 @@ def execute(filters=None):
     # py snapshot; kalau ada yg blm (hari ini / sebelum fitur snapshot aktif),
     # seluruh periode dihitung live & diberi label "(live)".
     outlet_rows = load_outlet_rows(from_date, to_date, variant_key)
+    # lainnya_bertanda: kolom "Lainnya" bertanda spt laporan Excel asli (mis. GD -287.930)
     if outlet_rows is None:
         raw = _fetch_inventory_raw(str(to_date), groups, str(from_date))
-        variant = _build_variant(str(to_date), groups, raw, None, str(from_date))
+        variant = _build_variant(str(to_date), groups, raw, None, str(from_date), lainnya_bertanda=True)
     else:
-        variant = _build_variant(str(to_date), groups, from_date=str(from_date), outlet_rows=outlet_rows)
+        variant = _build_variant(str(to_date), groups, from_date=str(from_date), outlet_rows=outlet_rows,
+                                 lainnya_bertanda=True)
 
     if from_date == to_date:
         period_label = formatdate(to_date, "dd/MM/yy")

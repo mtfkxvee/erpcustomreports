@@ -297,9 +297,14 @@ def _outlet_raw_rows(raw, exclude, outlet_warehouses):
     return out
 
 
-def _build_variant(as_of_date, exclude_item_groups, raw=None, outlet_warehouses=None, from_date=None, outlet_rows=None):
+def _build_variant(as_of_date, exclude_item_groups, raw=None, outlet_warehouses=None, from_date=None, outlet_rows=None,
+                   lainnya_bertanda=False):
     """outlet_rows: hasil _outlet_raw_rows (atau dari snapshot). Kalau None,
-    dihitung live dari Bin/Stock Ledger."""
+    dihitung live dari Bin/Stock Ledger.
+    lainnya_bertanda: kolom "Lainnya" ditampilkan dgn tanda aslinya (spt laporan
+    Excel asli 7/10/26: GD -287.930, XWP -1.087.919, TOTAL FMCG -1.433.969) -
+    dipakai report Daily Inventory. Default False = nilai mutlak, perilaku lama
+    API get_daily_inventory (dipertahankan supaya pemakai API tdk berubah)."""
     exclude = set(exclude_item_groups or [])
     if outlet_rows is None:
         raw = raw or _fetch_inventory_raw(as_of_date, exclude, from_date)
@@ -326,9 +331,8 @@ def _build_variant(as_of_date, exclude_item_groups, raw=None, outlet_warehouses=
             "saldo_awal": r["saldo_awal"],
             "pembelian": r["pembelian"], "penjualan": r["penjualan"],
             "transfer_masuk": r["transfer_masuk"], "transfer_keluar": r["transfer_keluar"],
-            # kolom "Lainnya" di laporan Excel asli selalu ditampilkan positif (nilai
-            # mutlak) walau transaksinya net rugi/berkurang secara akuntansi -
-            # net_hari_ini tetap pakai nilai bertanda asli, cuma tampilannya di-abs().
+            # API menampilkan "Lainnya" sbg nilai mutlak (perilaku lama, lihat
+            # docstring lainnya_bertanda); net_hari_ini tetap pakai nilai bertanda.
             # _lainnya_signed disimpan utk dijumlah dulu (baris TOTAL) sebelum di-abs(),
             # supaya lainnya antar outlet yg tandanya beda saling menutupi dulu -
             # bukan menjumlahkan angka yg sudah positif semua.
@@ -348,9 +352,12 @@ def _build_variant(as_of_date, exclude_item_groups, raw=None, outlet_warehouses=
         total["saldo_awal"] = sum(
             d["saldo_awal"] for c, d in zip(rows, data) if c not in exclude_awal_from_total
         )
-        total["lainnya"] = abs(sum(d["_lainnya_signed"] for d in data))
+        total_lainnya = sum(d["_lainnya_signed"] for d in data)
+        total["lainnya"] = total_lainnya if lainnya_bertanda else abs(total_lainnya)
         for d in data:
-            d.pop("_lainnya_signed", None)
+            signed = d.pop("_lainnya_signed", None)
+            if lainnya_bertanda:
+                d["lainnya"] = signed
         data.append(total)
         # Bulatkan ke rupiah SETELAH TOTAL dihitung dari nilai mentah (sama spt
         # laporan Excel asli: TOTAL = bulat(jumlah mentah), bukan jumlah baris
