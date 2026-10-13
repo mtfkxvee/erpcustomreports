@@ -879,10 +879,13 @@ _POS_PROFILE_TO_OUTLET = {
 
 
 def _visitor_by_outlet(start_date, end_date):
+    # docstatus = 1: closing shift yg di-CANCEL jgn ikut dihitung - sebelumnya
+    # ikut, bikin visitor kelebihan (mis. minggu 1-7 Sept 2026: UIN +413,
+    # Mangunreja +275, Menara +196, Tanjung jaya +95, Tasmu +40 dari shift batal).
     rows = frappe.db.sql("""
         SELECT pos_profile, SUM(visitor) AS total_visitor
         FROM `tabPOS Closing Shift`
-        WHERE posting_date BETWEEN %s AND %s
+        WHERE docstatus = 1 AND posting_date BETWEEN %s AND %s
         GROUP BY pos_profile
     """, (start_date, end_date), as_dict=True)
     result = {}
