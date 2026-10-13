@@ -23,6 +23,44 @@ frappe.query_reports["Daily Inventory"] = {
             reqd: 1
         }
     ],
+    onload: function(report) {
+        if (!frappe.user.has_role("System Manager")) {
+            return;
+        }
+        report.page.add_inner_button(__("Ambil Ulang Snapshot"), function() {
+            frappe.prompt(
+                {
+                    fieldname: "date",
+                    label: __("Tanggal"),
+                    fieldtype: "Date",
+                    reqd: 1,
+                    default: frappe.datetime.add_days(frappe.datetime.get_today(), -1)
+                },
+                function(values) {
+                    frappe.confirm(
+                        __("Snapshot tanggal {0} akan dihitung ulang dari data ERP saat ini dan menggantikan angka yang tersimpan. Lanjutkan?",
+                            [frappe.datetime.str_to_user(values.date)]),
+                        function() {
+                            frappe.call({
+                                method: "custom_reports.inventory_snapshot.retake_snapshot",
+                                args: { date: values.date },
+                                freeze: true,
+                                freeze_message: __("Mengambil snapshot..."),
+                                callback: function(r) {
+                                    if (r.message) {
+                                        frappe.show_alert({ message: __("Snapshot {0} tersimpan", [r.message.name]), indicator: "green" });
+                                        report.refresh();
+                                    }
+                                }
+                            });
+                        }
+                    );
+                },
+                __("Ambil Ulang Snapshot"),
+                __("Ambil")
+            );
+        });
+    },
     formatter: function(value, row, column, data, default_formatter) {
         value = default_formatter(value, row, column, data);
         if (data && data.bold) {

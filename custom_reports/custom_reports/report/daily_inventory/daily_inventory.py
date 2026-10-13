@@ -21,6 +21,7 @@ from custom_reports.inventory_api import (
     _build_variant,
     _fetch_inventory_raw,
 )
+from custom_reports.inventory_snapshot import load_outlet_rows
 
 _VARIANT_BY_LABEL = {
     "ALL": "ALL",
@@ -44,13 +45,22 @@ def execute(filters=None):
     variant_key = _VARIANT_BY_LABEL.get(filters.get("variant") or "ALL", "ALL")
     groups = _VARIANTS[variant_key]
 
-    raw = _fetch_inventory_raw(str(to_date), groups, str(from_date))
-    variant = _build_variant(str(to_date), groups, raw, None, str(from_date))
+    # Pakai snapshot harian (angka beku) kalau SEMUA tanggal di periode sudah
+    # py snapshot; kalau ada yg blm (hari ini / sebelum fitur snapshot aktif),
+    # seluruh periode dihitung live & diberi label "(live)".
+    outlet_rows = load_outlet_rows(from_date, to_date, variant_key)
+    if outlet_rows is None:
+        raw = _fetch_inventory_raw(str(to_date), groups, str(from_date))
+        variant = _build_variant(str(to_date), groups, raw, None, str(from_date))
+    else:
+        variant = _build_variant(str(to_date), groups, from_date=str(from_date), outlet_rows=outlet_rows)
 
     if from_date == to_date:
         period_label = formatdate(to_date, "dd/MM/yy")
     else:
         period_label = f"{formatdate(from_date, 'dd/MM/yy')} - {formatdate(to_date, 'dd/MM/yy')}"
+    if outlet_rows is None:
+        period_label += " (live)"
 
     data = []
     for key, title, _rows in _SECTIONS:

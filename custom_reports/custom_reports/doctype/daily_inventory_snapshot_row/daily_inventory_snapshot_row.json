@@ -1,0 +1,92 @@
+{
+ "actions": [],
+ "creation": "2026-10-13 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "varian",
+  "outlet",
+  "saldo_awal",
+  "pembelian",
+  "penjualan",
+  "transfer_masuk",
+  "transfer_keluar",
+  "lainnya",
+  "saldo_akhir"
+ ],
+ "fields": [
+  {
+   "fieldname": "varian",
+   "fieldtype": "Select",
+   "label": "Varian",
+   "options": "ALL\nEXC_TOPUP\nEXC_TOPUP_SEM",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "outlet",
+   "fieldtype": "Data",
+   "label": "Outlet",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "saldo_awal",
+   "fieldtype": "Currency",
+   "label": "Saldo Awal",
+   "precision": "2",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "pembelian",
+   "fieldtype": "Currency",
+   "label": "Pembelian",
+   "precision": "2"
+  },
+  {
+   "fieldname": "penjualan",
+   "fieldtype": "Currency",
+   "label": "Penjualan",
+   "precision": "2",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "transfer_masuk",
+   "fieldtype": "Currency",
+   "label": "Transfer Masuk",
+   "precision": "2"
+  },
+  {
+   "fieldname": "transfer_keluar",
+   "fieldtype": "Currency",
+   "label": "Transfer Keluar",
+   "precision": "2"
+  },
+  {
+   "fieldname": "lainnya",
+   "fieldtype": "Currency",
+   "label": "Lainnya (bertanda)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "saldo_akhir",
+   "fieldtype": "Currency",
+   "label": "Saldo Akhir",
+   "precision": "2",
+   "in_list_view": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-13 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Daily Inventory Snapshot Row",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "editable_grid": 1,
+ "permissions": []
+}

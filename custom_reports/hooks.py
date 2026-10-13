@@ -54,6 +54,12 @@ scheduler_events = {
     ],
     "cron": {
         "0 8 * * *": ["custom_reports.api.repliz_sync.sync_social_content"],
+        # snapshot Daily Inventory & Daily Sales hari yg baru berakhir
+        # (lihat inventory_snapshot.py & sales_snapshot.py)
+        "0 0 * * *": [
+            "custom_reports.inventory_snapshot.daily_snapshot_job",
+            "custom_reports.sales_snapshot.daily_snapshot_job",
+        ],
     }
 }
 # Each item in the list will be shown as an app in the apps page

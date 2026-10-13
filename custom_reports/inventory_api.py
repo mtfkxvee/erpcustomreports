@@ -257,11 +257,13 @@ def _rupiah(x):
     return int(sen.quantize(Decimal("1"), ROUND_HALF_DOWN))
 
 
-def _build_variant(as_of_date, exclude_item_groups, raw=None, outlet_warehouses=None, from_date=None):
-    exclude = set(exclude_item_groups or [])
-    raw = raw or _fetch_inventory_raw(as_of_date, exclude, from_date)
-    outlet_warehouses = outlet_warehouses or _outlet_warehouses()
+_RAW_ZERO = {"saldo_awal": 0, "pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0, "saldo_akhir": 0}
 
+
+def _outlet_raw_rows(raw, exclude, outlet_warehouses):
+    """{outlet: nilai MENTAH (blm dibulatkan, 'lainnya' masih bertanda)} utk
+    semua outlet berbasis warehouse (selain KMT/MBG). Dipakai _build_variant &
+    snapshot harian (custom_reports.inventory_snapshot)."""
     # ringkas data mentah per warehouse, buang grp yg di-exclude varian ini
     current_balance, future_movement, mutasi = {}, {}, {}
     for (wh, grp), val in raw["balance"].items():
@@ -275,6 +277,34 @@ def _build_variant(as_of_date, exclude_item_groups, raw=None, outlet_warehouses=
             acc = mutasi.setdefault(wh, {k: 0 for k in m})
             for k, v in m.items():
                 acc[k] += v
+
+    out = {}
+    for code in _FASHION_ROWS + _FMCG_ROWS + _HO_ROWS:
+        if code in _KMT_MBG_KATEGORI:
+            continue
+        whs = outlet_warehouses[code]
+        akhir = sum(current_balance.get(wh, 0) - future_movement.get(wh, 0) for wh in whs)
+        m_total = {"pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0}
+        for wh in whs:
+            m = mutasi.get(wh, {})
+            for k in m_total:
+                m_total[k] += m.get(k, 0)
+        net_hari_ini = (
+            m_total["pembelian"] + m_total["penjualan"]
+            + m_total["transfer_masuk"] - m_total["transfer_keluar"] + m_total["lainnya"]
+        )
+        out[code] = dict(m_total, saldo_awal=akhir - net_hari_ini, saldo_akhir=akhir)
+    return out
+
+
+def _build_variant(as_of_date, exclude_item_groups, raw=None, outlet_warehouses=None, from_date=None, outlet_rows=None):
+    """outlet_rows: hasil _outlet_raw_rows (atau dari snapshot). Kalau None,
+    dihitung live dari Bin/Stock Ledger."""
+    exclude = set(exclude_item_groups or [])
+    if outlet_rows is None:
+        raw = raw or _fetch_inventory_raw(as_of_date, exclude, from_date)
+        outlet_warehouses = outlet_warehouses or _outlet_warehouses()
+        outlet_rows = _outlet_raw_rows(raw, exclude, outlet_warehouses)
 
     def row_for(code):
         if code in _KMT_MBG_KATEGORI:
@@ -290,31 +320,20 @@ def _build_variant(as_of_date, exclude_item_groups, raw=None, outlet_warehouses=
                 "lainnya": abs(r["lainnya"]), "_lainnya_signed": r["lainnya"],
                 "saldo_akhir": r["saldo_akhir"],
             }
-        whs = outlet_warehouses[code]
-        akhir = sum(current_balance.get(wh, 0) - future_movement.get(wh, 0) for wh in whs)
-        m_total = {"pembelian": 0, "penjualan": 0, "transfer_masuk": 0, "transfer_keluar": 0, "lainnya": 0}
-        for wh in whs:
-            m = mutasi.get(wh, {})
-            for k in m_total:
-                m_total[k] += m.get(k, 0)
-        net_hari_ini = (
-            m_total["pembelian"] + m_total["penjualan"]
-            + m_total["transfer_masuk"] - m_total["transfer_keluar"] + m_total["lainnya"]
-        )
-        awal = akhir - net_hari_ini
+        r = outlet_rows.get(code, _RAW_ZERO)
         return {
             "outlet": code, "label": _OUTLET_LABELS.get(code, code),
-            "saldo_awal": awal,
-            "pembelian": m_total["pembelian"], "penjualan": m_total["penjualan"],
-            "transfer_masuk": m_total["transfer_masuk"], "transfer_keluar": m_total["transfer_keluar"],
+            "saldo_awal": r["saldo_awal"],
+            "pembelian": r["pembelian"], "penjualan": r["penjualan"],
+            "transfer_masuk": r["transfer_masuk"], "transfer_keluar": r["transfer_keluar"],
             # kolom "Lainnya" di laporan Excel asli selalu ditampilkan positif (nilai
             # mutlak) walau transaksinya net rugi/berkurang secara akuntansi -
             # net_hari_ini tetap pakai nilai bertanda asli, cuma tampilannya di-abs().
             # _lainnya_signed disimpan utk dijumlah dulu (baris TOTAL) sebelum di-abs(),
             # supaya lainnya antar outlet yg tandanya beda saling menutupi dulu -
             # bukan menjumlahkan angka yg sudah positif semua.
-            "lainnya": abs(m_total["lainnya"]), "_lainnya_signed": m_total["lainnya"],
-            "saldo_akhir": akhir,
+            "lainnya": abs(r["lainnya"]), "_lainnya_signed": r["lainnya"],
+            "saldo_akhir": r["saldo_akhir"],
         }
 
     def section(rows, exclude_awal_from_total=None):
