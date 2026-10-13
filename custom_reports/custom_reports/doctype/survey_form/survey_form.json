@@ -21,6 +21,11 @@
   "sec_questions",
   "questions",
   "banner_image",
+  "sec_thankyou",
+  "thankyou_title",
+  "thankyou_message",
+  "thankyou_link_label",
+  "thankyou_link_url",
   "sec_notif",
   "send_confirmation_email",
   "confirmation_email_subject",
@@ -111,6 +116,36 @@
    "fieldname": "banner_image",
    "fieldtype": "Attach Image",
    "label": "Banner Foto"
+  },
+  {
+   "fieldname": "sec_thankyou",
+   "fieldtype": "Section Break",
+   "label": "Setelah Submit (Halaman Terima Kasih)"
+  },
+  {
+   "description": "Opsional. Kosongkan untuk pakai default: \"Terima kasih!\".",
+   "fieldname": "thankyou_title",
+   "fieldtype": "Data",
+   "label": "Judul Setelah Submit"
+  },
+  {
+   "description": "Opsional. Pesan yang tampil setelah responden submit. Bisa berisi teks berformat dan link. Kosongkan untuk pakai default: \"Jawaban kamu sudah tersimpan.\".",
+   "fieldname": "thankyou_message",
+   "fieldtype": "Text Editor",
+   "label": "Deskripsi Setelah Submit"
+  },
+  {
+   "description": "Teks tombol, contoh: Gabung Grup WhatsApp. Kalau kosong, dipakai teks \"Buka Link\".",
+   "fieldname": "thankyou_link_label",
+   "fieldtype": "Data",
+   "label": "Teks Tombol Link"
+  },
+  {
+   "description": "Opsional. Link yang tampil sebagai tombol di halaman setelah submit. Harus diawali http:// atau https://.",
+   "fieldname": "thankyou_link_url",
+   "fieldtype": "Data",
+   "label": "Link Setelah Submit",
+   "options": "URL"
   },
   {
    "depends_on": "eval:doc.collect_email",

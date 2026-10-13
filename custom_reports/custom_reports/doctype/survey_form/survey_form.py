@@ -30,6 +30,11 @@ class SurveyForm(Document):
 		else:
 			self.form_key = frappe.generate_hash(length=12)
 
+		if self.thankyou_link_url:
+			self.thankyou_link_url = self.thankyou_link_url.strip()
+			if not re.match(r"^https?://", self.thankyou_link_url, re.IGNORECASE):
+				frappe.throw("Link Setelah Submit harus diawali http:// atau https://")
+
 		if self.status == "Published" and not self.questions:
 			frappe.throw("Tambahkan minimal 1 pertanyaan sebelum survey di-Publish.")
 

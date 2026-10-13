@@ -8,7 +8,8 @@ def get_context(context):
     survey = frappe.db.get_value(
         "Survey Form",
         {"form_key": form_key},
-        ["name", "title", "description", "status", "collect_email", "allow_multiple_responses", "banner_image"],
+        ["name", "title", "description", "status", "collect_email", "allow_multiple_responses", "banner_image",
+         "thankyou_title", "thankyou_message", "thankyou_link_label", "thankyou_link_url"],
         as_dict=True,
     )
 
