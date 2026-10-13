@@ -12,7 +12,8 @@
   "tanggal",
   "col_break_1",
   "nominal",
-  "jumlah_transaksi"
+  "jumlah_transaksi",
+  "hpp"
  ],
  "fields": [
   {
@@ -58,12 +59,19 @@
    "in_list_view": 1,
    "label": "Jumlah Transaksi",
    "reqd": 1
+  },
+  {
+   "description": "Opsional. Harga pokok (modal) barang yg terjual hari itu - dipakai laporan Weekly Margin utk menghitung margin MBG/Kemitraan (HPP-nya tidak tercatat di stok ERP). Kosongkan kalau belum ada datanya.",
+   "fieldname": "hpp",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "HPP"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-18 00:00:00.000000",
+ "modified": "2026-10-13 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Custom Reports",
  "name": "Kemitraan MBG Sales History",
