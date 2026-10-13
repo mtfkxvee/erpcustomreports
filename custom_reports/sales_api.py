@@ -709,25 +709,29 @@ def _week_bounds(year, month):
     return bounds
 
 
-def _month_tc_sales(year, month, outlets):
+def _month_tc_sales(year, month, outlets, sales_fn=None):
     """TC & Sales per outlet, per Week1-4, utk 1 bulan tertentu. Pakai Sales
     Invoice (live) kalau bulan itu >= April 2026, kalau lebih lama pakai
-    histori 'Outlet Daily Sales History'. KMT selalu dari 'Kemitraan MBG Sales
-    History' (outlet ini gak pernah punya Sales Invoice) - MBG ikut kalau
-    bulan itu 'current-ish' (bkn pembanding tahun lalu), krn blm py histori
-    tahun lalu (program baru mulai Sept 2025)."""
+    histori 'Outlet Daily Sales History'. KMT & MBG selalu dari 'Kemitraan MBG
+    Sales History' (outlet ini gak pernah punya Sales Invoice) - TERMASUK utk
+    bulan histori/pembanding tahun lalu: file "SALES REPORT HO" sheet Data
+    weekly memasukkan MBG tahun lalu (Sept 2025 W1 45.724.093 & W2 54.333.856,
+    sama persis dgn data di ERP; sebelumnya MBG histori di-exclude & jadi 0).
+    MBG baru ada datanya mulai Sept 2025 - bulan sebelum itu otomatis 0.
+    (Sales vs Target TIDAK pakai fungsi ini - di sana MBG tahun lalu memang
+    tdk dihitung, lihat _kmt_only.)
+    sales_fn: pengganti _sales_by_outlet utk bulan non-histori (dipakai report
+    Weekly Sales Achievement utk baca snapshot harian); default live."""
     month_start = frappe.utils.getdate(f"{year}-{month:02d}-01")
     is_history = month_start < frappe.utils.getdate("2026-04-27")
+    sales_fn = sales_fn or _sales_by_outlet
 
     weeks = []
     for s, e in _week_bounds(year, month):
         start_date = frappe.utils.getdate(f"{year}-{month:02d}-{s:02d}")
         end_date = frappe.utils.getdate(f"{year}-{month:02d}-{e:02d}")
-        src = _sales_by_outlet_history(start_date, end_date) if is_history else _sales_by_outlet(start_date, end_date)
-        if is_history:
-            kmtmbg = _kmt_only(start_date, end_date)
-        else:
-            kmtmbg = _sales_by_kmt_mbg(start_date, end_date)
+        src = _sales_by_outlet_history(start_date, end_date) if is_history else sales_fn(start_date, end_date)
+        kmtmbg = _sales_by_kmt_mbg(start_date, end_date)
         merged = dict(src)
         merged.update(kmtmbg)
         weeks.append({o: merged.get(o, {"sales": 0, "trx": 0}) for o in outlets})
