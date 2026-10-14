@@ -5,3 +5,4 @@
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
 custom_reports.patches.add_shelving_custom_fields
+custom_reports.patches.add_driver_activity_custom_fields
