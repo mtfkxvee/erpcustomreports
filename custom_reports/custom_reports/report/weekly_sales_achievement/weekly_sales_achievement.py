@@ -14,6 +14,10 @@
 #    sama dgn Daily Sales vs Target) kalau minggu itu lengkap snapshot-nya,
 #    kalau tidak dihitung live & diberi label "(live)". Visitor (POS Closing
 #    Shift), data histori & KMT/MBG tetap dibaca langsung.
+#  - Filter opsional "Sampai Tanggal": bulan terpilih dihitung s/d tgl itu saja
+#    (admin bikin laporan hari Senin sebelum minggunya selesai, mis. SALES
+#    REPORT HO OCT 2026: W1 = tgl 1-4). Kolom pembanding (bulan lalu/tahun
+#    lalu) tetap minggu penuh.
 
 import frappe
 from frappe import _
@@ -76,6 +80,10 @@ def execute(filters=None):
     if tampilan not in _TAMPILAN:
         frappe.throw(_("Tampilan tidak dikenal: {0}").format(tampilan))
 
+    until = getdate(filters["sampai_tanggal"]) if filters.get("sampai_tanggal") else None
+    if until and (until.year, until.month) != (year, month):
+        frappe.throw(_("Sampai Tanggal harus di bulan {0} {1}").format(_BULAN_ID[month - 1], year))
+
     m1, y1 = (month - 1, year) if month > 1 else (12, year - 1)
     m2, y2 = (m1 - 1, y1) if m1 > 1 else (12, y1 - 1)
 
@@ -91,8 +99,8 @@ def execute(filters=None):
             return snap
         return fn
 
-    cur = _month_tc_sales(year, month, _WEEKLY_OUTLETS, sales_fn_for(f"{_BULAN_ID[month - 1]} {year}"))
-    visitor = _month_visitor(year, month, _WEEKLY_OUTLETS)
+    cur = _month_tc_sales(year, month, _WEEKLY_OUTLETS, sales_fn_for(f"{_BULAN_ID[month - 1]} {year}"), until=until)
+    visitor = _month_visitor(year, month, _WEEKLY_OUTLETS, until=until)
     if tampilan == "Pembanding":
         lm1 = _month_tc_sales(y1, m1, _WEEKLY_OUTLETS, sales_fn_for(f"{_BULAN_ID[m1 - 1]} {y1}"))
         lm2 = _month_tc_sales(y2, m2, _WEEKLY_OUTLETS, sales_fn_for(f"{_BULAN_ID[m2 - 1]} {y2}"))
@@ -150,6 +158,8 @@ def execute(filters=None):
 
     bounds = _week_bounds(year, month)
     info = f"{_BULAN_ID[month - 1]} {year}  |  " + "  ".join(f"W{i + 1}: tgl {s}-{e}" for i, (s, e) in enumerate(bounds))
+    if until:
+        info += f"  |  bulan ini s/d tgl {until.day}"
     if live_weeks:
         info += f"  |  (live: {', '.join(sorted(live_weeks))})"
     data.insert(0, {"outlet": info, "bold": 1, "is_info": 1})

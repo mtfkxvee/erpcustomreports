@@ -19,6 +19,12 @@ frappe.query_reports["Weekly Sales Achievement"] = {
             reqd: 1
         },
         {
+            fieldname: "sampai_tanggal",
+            label: __("Sampai Tanggal (opsional)"),
+            fieldtype: "Date",
+            description: __("Kosongkan utk minggu penuh. Isi mis. tgl 4 kalau laporan dibuat Senin tgl 5 (bulan terpilih dihitung s/d tgl ini).")
+        },
+        {
             fieldname: "tampilan",
             label: __("Tampilan"),
             fieldtype: "Select",

@@ -709,7 +709,19 @@ def _week_bounds(year, month):
     return bounds
 
 
-def _month_tc_sales(year, month, outlets, sales_fn=None):
+def _clip_week(start_date, end_date, until):
+    """Potong minggu s/d tgl `until` (laporan admin dibuat hari Senin sebelum
+    minggunya selesai, mis. W1 Okt 2026 = tgl 1-4 saja). None = minggu
+    sesudah `until` (dianggap kosong)."""
+    if until is None:
+        return start_date, end_date
+    until = frappe.utils.getdate(until)
+    if start_date > until:
+        return None
+    return start_date, min(end_date, until)
+
+
+def _month_tc_sales(year, month, outlets, sales_fn=None, until=None):
     """TC & Sales per outlet, per Week1-4, utk 1 bulan tertentu. Pakai Sales
     Invoice (live) kalau bulan itu >= April 2026, kalau lebih lama pakai
     histori 'Outlet Daily Sales History'. KMT & MBG selalu dari 'Kemitraan MBG
@@ -721,15 +733,20 @@ def _month_tc_sales(year, month, outlets, sales_fn=None):
     (Sales vs Target TIDAK pakai fungsi ini - di sana MBG tahun lalu memang
     tdk dihitung, lihat _kmt_only.)
     sales_fn: pengganti _sales_by_outlet utk bulan non-histori (dipakai report
-    Weekly Sales Achievement utk baca snapshot harian); default live."""
+    Weekly Sales Achievement utk baca snapshot harian); default live.
+    until: opsional, data dihitung s/d tgl ini saja (lihat _clip_week)."""
     month_start = frappe.utils.getdate(f"{year}-{month:02d}-01")
     is_history = month_start < frappe.utils.getdate("2026-04-27")
     sales_fn = sales_fn or _sales_by_outlet
 
     weeks = []
     for s, e in _week_bounds(year, month):
-        start_date = frappe.utils.getdate(f"{year}-{month:02d}-{s:02d}")
-        end_date = frappe.utils.getdate(f"{year}-{month:02d}-{e:02d}")
+        clipped = _clip_week(frappe.utils.getdate(f"{year}-{month:02d}-{s:02d}"),
+                             frappe.utils.getdate(f"{year}-{month:02d}-{e:02d}"), until)
+        if clipped is None:
+            weeks.append({o: {"sales": 0, "trx": 0} for o in outlets})
+            continue
+        start_date, end_date = clipped
         src = _sales_by_outlet_history(start_date, end_date) if is_history else sales_fn(start_date, end_date)
         kmtmbg = _sales_by_kmt_mbg(start_date, end_date)
         merged = dict(src)
@@ -901,12 +918,15 @@ def _visitor_by_outlet(start_date, end_date):
     return result
 
 
-def _month_visitor(year, month, outlets):
+def _month_visitor(year, month, outlets, until=None):
     weeks = []
     for s, e in _week_bounds(year, month):
-        start_date = frappe.utils.getdate(f"{year}-{month:02d}-{s:02d}")
-        end_date = frappe.utils.getdate(f"{year}-{month:02d}-{e:02d}")
-        v = _visitor_by_outlet(start_date, end_date)
+        clipped = _clip_week(frappe.utils.getdate(f"{year}-{month:02d}-{s:02d}"),
+                             frappe.utils.getdate(f"{year}-{month:02d}-{e:02d}"), until)
+        if clipped is None:
+            weeks.append({o: 0 for o in outlets})
+            continue
+        v = _visitor_by_outlet(*clipped)
         weeks.append({o: v.get(o, 0) for o in outlets})
     return weeks
 
@@ -1095,14 +1115,18 @@ def _kontribusi_week_range(year, month, idx):
     return frappe.utils.getdate(f"{year}-{month:02d}-{s:02d}"), frappe.utils.getdate(f"{year}-{month:02d}-{e:02d}")
 
 
-def _kontribusi_category(department, year, month, week_idx, sales_fn=None):
+def _kontribusi_category(department, year, month, week_idx, sales_fn=None, until=None):
     """Hitungan Kontribusi Sales per Category minggu week_idx vs minggu sebelumnya.
     sales_fn(start, end, warehouse_group): pengganti _category_sales_by_warehouse
-    (dipakai report utk baca snapshot harian)."""
+    (dipakai report utk baca snapshot harian). until: opsional, minggu ini
+    dihitung s/d tgl ini saja (file W1 VS W4 Okt 2026: W1 = tgl 1-4, W4 penuh);
+    minggu pembanding tetap penuh."""
     sales_fn = sales_fn or _category_sales_by_warehouse
     dept = (department or "FASHION").upper()
     wh = _KATEGORI_DEPT_WAREHOUSE.get(dept)
     cur_start, cur_end = _kontribusi_week_range(year, month, week_idx)
+    if until is not None:
+        cur_end = min(cur_end, frappe.utils.getdate(until))
     prev_start, prev_end = _kontribusi_week_range(year, month, week_idx - 1)
     cur_data = sales_fn(cur_start, cur_end, wh) if wh else {}
     prev_data = sales_fn(prev_start, prev_end, wh) if wh else {}
@@ -1258,7 +1282,10 @@ def _hpp_by_outlet(start_date, end_date, outlets):
 # UNIT BISNIS BARU", sheet "RESUME TARGET MARGIN". Nilai tetap (bukan per
 # bulan) kecuali dinyatakan lain oleh tim. Disimpan sbg pecahan (0.255=25.5%).
 _MARGIN_TARGET_PCT = {
-    "XSC": 0.255, "PSR": 0.25, "XPY": 0.18, "XJB": 0.18, "XCW": 0.26, "XSP": 0.255,
+    # XCW 0.25: dokumen Semester II tulis 26%, tapi file admin terbaru (WEEKLY
+    # MARGIN OCTOBER 2026, juga "Ciawi offline" di file Agustus & SALES & MARGIN
+    # ACHV AGUSTUS) pakai 25% - user (2026-10-14): ikut file terbaru.
+    "XSC": 0.255, "PSR": 0.25, "XPY": 0.18, "XJB": 0.18, "XCW": 0.25, "XSP": 0.255,
     "HCW": 0.18, "XSC-OL": 0.22, "OCW": 0.22, "XSP-OL": 0.22,
     "XSM": 0.16, "XMJ": 0.16, "XWP": 0.16, "XPH": 0.16, "XTJ": 0.16, "XCR": 0.16,
     "TASMU": 0.16, "MNR": 0.16, "UIN": 0.25, "XSMGROW": 0.3,

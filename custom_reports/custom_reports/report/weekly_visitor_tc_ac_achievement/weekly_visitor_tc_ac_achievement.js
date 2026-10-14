@@ -17,6 +17,12 @@ frappe.query_reports["Weekly Visitor TC AC Achievement"] = {
             fieldtype: "Int",
             default: frappe.datetime.str_to_obj(frappe.datetime.get_today()).getFullYear(),
             reqd: 1
+        },
+        {
+            fieldname: "sampai_tanggal",
+            label: __("Sampai Tanggal (opsional)"),
+            fieldtype: "Date",
+            description: __("Kosongkan utk minggu penuh. Isi mis. tgl 4 kalau laporan dibuat Senin tgl 5 (bulan terpilih dihitung s/d tgl ini).")
         }
     ],
     formatter: function(value, row, column, data, default_formatter) {

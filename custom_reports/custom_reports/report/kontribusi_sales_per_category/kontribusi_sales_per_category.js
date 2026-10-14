@@ -53,6 +53,12 @@ frappe.query_reports["Kontribusi Sales per Category"] = {
             options: ["W1", "W2", "W3", "W4"],
             default: KSC_DEFAULT.minggu,
             reqd: 1
+        },
+        {
+            fieldname: "sampai_tanggal",
+            label: __("Sampai Tanggal (opsional)"),
+            fieldtype: "Date",
+            description: __("Kosongkan utk minggu penuh. Isi mis. tgl 4 kalau laporan dibuat Senin tgl 5 (minggu ini dihitung s/d tgl ini, minggu pembanding tetap penuh).")
         }
     ],
     formatter: function(value, row, column, data, default_formatter) {

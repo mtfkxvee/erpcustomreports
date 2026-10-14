@@ -10,6 +10,8 @@
 #   Growth       = (kontribusi minggu ini - minggu lalu) / minggu lalu (0 kalau
 #                  minggu lalu 0, spt IFERROR di file)
 # Minggu = blok 1-7 / 8-14 / 15-21 / 22-akhir; W1 dibandingkan W4 bulan lalu.
+# Filter opsional "Sampai Tanggal" memotong minggu ini (admin bikin laporan hari
+# Senin: file W1 VS W4 Okt 2026 = W1 tgl 1-4 vs W4 22-30 Sep penuh).
 # Data dibaca dari snapshot harian (sales_snapshot.load_category_sales) kalau
 # lengkap, kalau tidak live + label "(live)".
 
@@ -17,7 +19,7 @@ import frappe
 from frappe import _
 from frappe.utils import formatdate, getdate
 
-from custom_reports.sales_api import _category_sales_by_warehouse, _kontribusi_category
+from custom_reports.sales_api import _category_sales_by_warehouse, _kontribusi_category, _kontribusi_week_range
 from custom_reports.sales_snapshot import load_category_sales
 
 _BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli",
@@ -33,6 +35,12 @@ def execute(filters=None):
     if week_idx not in range(4):
         frappe.throw(_("Minggu harus W1 - W4"))
     dept = _DEPARTEMEN.get(filters.get("departemen") or "F&H.S", "FASHION")
+    until = getdate(filters["sampai_tanggal"]) if filters.get("sampai_tanggal") else None
+    if until:
+        ws, we = _kontribusi_week_range(year, month, week_idx)
+        if not ws <= until <= we:
+            frappe.throw(_("Sampai Tanggal harus di dalam minggu W{0} ({1} s/d {2})").format(
+                week_idx + 1, formatdate(ws, "dd-MM-yyyy"), formatdate(we, "dd-MM-yyyy")))
 
     live = []
 
@@ -43,7 +51,7 @@ def execute(filters=None):
             return _category_sales_by_warehouse(start, end, warehouse_group)
         return snap
 
-    res = _kontribusi_category(dept, year, month, week_idx, sales_fn=sales_fn)
+    res = _kontribusi_category(dept, year, month, week_idx, sales_fn=sales_fn, until=until)
     cur, prev = res["week_current"], res["week_previous"]
 
     data = []
