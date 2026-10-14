@@ -18,7 +18,9 @@ import frappe
 from frappe.utils import add_days, getdate, now_datetime, today
 
 from custom_reports.sales_api import (
+    _KATEGORI_DEPT_WAREHOUSE,
     _OUTLET_COST_CENTER,
+    _category_sales_by_warehouse,
     _gl_deductions_by_outlet,
     _hpp_by_outlet,
     _sales_by_outlet,
@@ -26,6 +28,10 @@ from custom_reports.sales_api import (
 
 _SNAPSHOT_DT = "Daily Sales Snapshot"
 _ROW_DT = "Daily Sales Snapshot Row"
+# Kontribusi Sales per Category: qty & sales per departemen (warehouse group) &
+# kategori Item. Kategori di master Item terbukti sering diganti (mis. FAST FOOD
+# -> RTD/RTM FAST FOOD), jadi kategori ikut dibekukan apa adanya saat snapshot.
+_CATEGORY_DT = "Daily Sales Snapshot Category"
 # Weekly Margin: akun GL (sama dgn sales_api._GL_MARGIN_ACCOUNTS) -> field snapshot.
 # HPP juga dibekukan - repost item valuation terbukti menggeser HPP minggu lalu
 # (mis. Supermart 5-11 Okt 2026: HPP ERP sekarang 264,5 jt vs file 266,6 jt).
@@ -49,6 +55,7 @@ def save_snapshot(date, overwrite=False, sumber="Job Otomatis"):
             return date
         doc = frappe.get_doc(_SNAPSHOT_DT, date)
         doc.set("rows", [])
+        doc.set("kategori", [])
     else:
         doc = frappe.new_doc(_SNAPSHOT_DT)
         doc.tanggal = date
@@ -64,6 +71,11 @@ def save_snapshot(date, overwrite=False, sumber="Job Otomatis"):
         for account, field in _GL_FIELDS.items():
             row[field] = round(gl.get(outlet, {}).get(account) or 0, 2)
         doc.append("rows", row)
+    for dept, warehouse in _KATEGORI_DEPT_WAREHOUSE.items():
+        for kategori, v in sorted(_category_sales_by_warehouse(date, date, warehouse).items()):
+            doc.append("kategori", {"departemen": dept, "kategori": kategori,
+                                    "qty": v["qty"] or 0, "sales": round(v["amount"] or 0, 2)})
+    doc.kategori_tersimpan = 1
     doc.flags.ignore_permissions = True
     doc.save()
     return doc.name
@@ -128,3 +140,30 @@ def load_sales(from_date, to_date):
         GROUP BY r.outlet
     """, (_SNAPSHOT_DT, from_date, to_date), as_dict=True)
     return {r.outlet: {"sales": r.sales or 0, "trx": r.trx or 0} for r in rows}
+
+
+def load_category_sales(from_date, to_date, warehouse_group):
+    """{kategori: {"qty", "amount"}} - jumlah snapshot harian from_date..to_date
+    utk departemen warehouse_group, format sama dgn
+    sales_api._category_sales_by_warehouse (bisa dipakai sbg sales_fn). None
+    kalau ADA tanggal yg blm py snapshot kategori (snapshot lama sebelum fitur
+    ini tdk py data kategori) -> laporan hitung live."""
+    from_date, to_date = getdate(from_date), getdate(to_date)
+    dept = next((d for d, w in _KATEGORI_DEPT_WAREHOUSE.items() if w == warehouse_group), None)
+    if not dept:
+        return None
+    n_days = (to_date - from_date).days + 1
+    n_snap = frappe.db.sql(f"""
+        SELECT COUNT(*) FROM `tab{_SNAPSHOT_DT}`
+        WHERE tanggal BETWEEN %s AND %s AND kategori_tersimpan = 1
+    """, (from_date, to_date))[0][0]
+    if n_snap < n_days:
+        return None
+    rows = frappe.db.sql(f"""
+        SELECT c.kategori, SUM(c.qty) AS qty, SUM(c.sales) AS amount
+        FROM `tab{_CATEGORY_DT}` c
+        JOIN `tab{_SNAPSHOT_DT}` p ON p.name = c.parent AND c.parenttype = %s
+        WHERE p.tanggal BETWEEN %s AND %s AND c.departemen = %s
+        GROUP BY c.kategori
+    """, (_SNAPSHOT_DT, from_date, to_date, dept), as_dict=True)
+    return {r.kategori: {"qty": r.qty or 0, "amount": r.amount or 0} for r in rows}

@@ -1046,46 +1046,83 @@ _KATEGORI_DEPT_OUTLETS = {
 }
 
 
-@frappe.whitelist()
-def get_kontribusi_sales_category(department="FASHION", as_of_date=None):
-    as_of = frappe.utils.getdate(as_of_date or frappe.utils.today())
-    year, month = as_of.year, as_of.month
-    bounds = _week_bounds(year, month)
+# --- Kontribusi Sales per Category MINGGUAN (versi 2, 2026-10-14) - disamakan
+# dgn cara admin bikin file "KONTRIBUSI SALES CATEGORY W4 VS W3.xlsx", yg
+# terbukti = pivot dari report ERP "Laporan Kontribusi Item Group" (total W4
+# 22-28 Agu 2026 cocok persis: F&H.S 971.974.770, FMCG 815.215.306,50, XSL
+# 16.111.000):
+#   - nilai = SUM(base_net_amount) (setelah diskon), qty = SUM(qty)
+#   - kategori = field "category" di master Item (Fashion 56/56 nama cocok),
+#     BUKAN parent item_group spt versi lama; TOPUP/SEM ikut dihitung (di file
+#     ada kategori "TOPUP TEMP" & "SEM"). Item yg category-nya "-"/kosong
+#     dilabeli item_group-nya - di file: SEM, GMS, MINSOC (cocok persis W4)
+#   - departemen = warehouse group (FASHION - X / FMCG - X / SOCCERLITE - X),
+#     BUKAN custom_outlet
+# Versi lama (_category_sales) TETAP dipakai Pareto & Kontribusi bulanan.
+_KATEGORI_DEPT_WAREHOUSE = {"FASHION": "FASHION - X", "FMCG": "FMCG - X", "XSL": "SOCCERLITE - X"}
 
-    cur_week_idx = 3
-    for i, (s, e) in enumerate(bounds):
-        if s <= as_of.day <= e:
-            cur_week_idx = i
-            break
 
-    def week_range(idx):
-        if idx < 0:
-            prev_month = month - 1 if month > 1 else 12
-            prev_year = year if month > 1 else year - 1
-            prev_bounds = _week_bounds(prev_year, prev_month)
-            s, e = prev_bounds[-1]
-            return (frappe.utils.getdate(f"{prev_year}-{prev_month:02d}-{s:02d}"),
-                    frappe.utils.getdate(f"{prev_year}-{prev_month:02d}-{e:02d}"))
-        s, e = bounds[idx]
-        return (frappe.utils.getdate(f"{year}-{month:02d}-{s:02d}"),
-                frappe.utils.getdate(f"{year}-{month:02d}-{e:02d}"))
+def _category_sales_by_warehouse(start_date, end_date, warehouse_group):
+    """{category: {"qty", "amount"}} - Sales Invoice Item di warehouse_group
+    (beserta semua child-nya), kategori dari Item.category (kalau "-"/kosong
+    pakai Item.item_group)."""
+    bounds = frappe.db.get_value("Warehouse", warehouse_group, ["lft", "rgt"], as_dict=True)
+    if not bounds:
+        return {}
+    label = "COALESCE(NULLIF(NULLIF(TRIM(i.category), ''), '-'), i.item_group, '-')"
+    rows = frappe.db.sql(f"""
+        SELECT {label} AS category,
+               SUM(sii.qty) AS qty, SUM(sii.base_net_amount) AS amount
+        FROM `tabSales Invoice Item` sii
+        JOIN `tabSales Invoice` si ON si.name = sii.parent
+        JOIN `tabItem` i ON i.name = sii.item_code
+        JOIN `tabWarehouse` w ON w.name = sii.warehouse
+        WHERE si.docstatus = 1 AND si.is_return = 0
+          AND si.posting_date BETWEEN %s AND %s
+          AND w.lft >= %s AND w.rgt <= %s
+        GROUP BY {label}
+    """, (start_date, end_date, bounds.lft, bounds.rgt), as_dict=True)
+    return {r["category"]: {"qty": r["qty"] or 0, "amount": r["amount"] or 0} for r in rows}
 
-    cur_start, cur_end = week_range(cur_week_idx)
-    prev_start, prev_end = week_range(cur_week_idx - 1)
 
-    outlets = _KATEGORI_DEPT_OUTLETS.get(department.upper(), [])
-    cur_data = _category_sales(cur_start, cur_end, outlets)
-    prev_data = _category_sales(prev_start, prev_end, outlets)
+def _kontribusi_week_range(year, month, idx):
+    """(start, end) minggu ke-idx (0-3, blok 1-7/8-14/15-21/22-akhir); idx -1 =
+    minggu ke-4 bulan sebelumnya."""
+    if idx < 0:
+        month, year = (month - 1, year) if month > 1 else (12, year - 1)
+        idx = 3
+    s, e = _week_bounds(year, month)[idx]
+    return frappe.utils.getdate(f"{year}-{month:02d}-{s:02d}"), frappe.utils.getdate(f"{year}-{month:02d}-{e:02d}")
 
+
+def _kontribusi_category(department, year, month, week_idx, sales_fn=None):
+    """Hitungan Kontribusi Sales per Category minggu week_idx vs minggu sebelumnya.
+    sales_fn(start, end, warehouse_group): pengganti _category_sales_by_warehouse
+    (dipakai report utk baca snapshot harian)."""
+    sales_fn = sales_fn or _category_sales_by_warehouse
+    dept = (department or "FASHION").upper()
+    wh = _KATEGORI_DEPT_WAREHOUSE.get(dept)
+    cur_start, cur_end = _kontribusi_week_range(year, month, week_idx)
+    prev_start, prev_end = _kontribusi_week_range(year, month, week_idx - 1)
+    cur_data = sales_fn(cur_start, cur_end, wh) if wh else {}
+    prev_data = sales_fn(prev_start, prev_end, wh) if wh else {}
+
+    # Ikut file (pivot minggu ini + lookup minggu lalu): baris = kategori yg ADA
+    # penjualan minggu ini saja; total & kontribusi minggu lalu dihitung dari
+    # baris2 itu (file: G_total = SUM(G3:G..)). Kategori yg cuma laku minggu lalu
+    # tdk tampil - divalidasi W3 Agu 2026: selisih total F&H.S 226.499,09 =
+    # persis DISPOSIBLE + RAINCOAT, FMCG 28.701,11 = persis BABY.
+    prev_data = {k: v for k, v in prev_data.items() if k in cur_data}
     cur_total = sum(v["amount"] for v in cur_data.values())
     prev_total = sum(v["amount"] for v in prev_data.values())
 
     rows = []
-    for cat in sorted(set(cur_data) | set(prev_data)):
+    for cat in sorted(cur_data):
         c = cur_data.get(cat, {"qty": 0, "amount": 0})
         p = prev_data.get(cat, {"qty": 0, "amount": 0})
         c_kontribusi = (c["amount"] / cur_total) if cur_total else 0
         p_kontribusi = (p["amount"] / prev_total) if prev_total else 0
+        # Growth = kontribusi minggu ini / minggu lalu - 1 (file: J = D/H - 1)
         growth = (c_kontribusi / p_kontribusi - 1) if p_kontribusi else 0
         rows.append({
             "category": cat,
@@ -1093,17 +1130,26 @@ def get_kontribusi_sales_category(department="FASHION", as_of_date=None):
             "week_previous": {"qty": p["qty"], "sales": p["amount"], "kontribusi_pct": round(p_kontribusi * 100, 6)},
             "growth_kontribusi_pct": round(growth * 100, 6),
         })
-    rows.sort(key=lambda r: r["category"])
 
     return {
-        "department": department.upper(),
-        "as_of_date": str(as_of),
-        "week_current": {"week_no": cur_week_idx + 1, "start": str(cur_start), "end": str(cur_end),
-                          "total_qty": sum(v["qty"] for v in cur_data.values()), "total_sales": cur_total},
-        "week_previous": {"week_no": cur_week_idx, "start": str(prev_start), "end": str(prev_end),
-                           "total_qty": sum(v["qty"] for v in prev_data.values()), "total_sales": prev_total},
+        "department": dept,
+        "week_current": {"week_no": week_idx + 1, "start": str(cur_start), "end": str(cur_end),
+                         "total_qty": sum(v["qty"] for v in cur_data.values()), "total_sales": cur_total},
+        "week_previous": {"week_no": week_idx if week_idx > 0 else 4, "start": str(prev_start), "end": str(prev_end),
+                          "total_qty": sum(v["qty"] for v in prev_data.values()), "total_sales": prev_total},
         "rows": rows,
     }
+
+
+@frappe.whitelist()
+def get_kontribusi_sales_category(department="FASHION", as_of_date=None):
+    """department: FASHION / FMCG / XSL. Minggu = blok yg memuat as_of_date,
+    dibandingkan minggu sebelumnya (W1 vs W4 bulan lalu)."""
+    as_of = frappe.utils.getdate(as_of_date or frappe.utils.today())
+    week_idx = next((i for i, (s, e) in enumerate(_week_bounds(as_of.year, as_of.month)) if s <= as_of.day <= e), 3)
+    result = _kontribusi_category(department, as_of.year, as_of.month, week_idx)
+    result["as_of_date"] = str(as_of)
+    return result
 
 
 # --- Ditambahkan: WEEKLY MARGIN (Target vs Achievement), per outlet & departemen.

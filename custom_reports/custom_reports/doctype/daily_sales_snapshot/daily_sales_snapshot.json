@@ -11,7 +11,10 @@
   "snapshot_at",
   "sumber",
   "section_rows",
-  "rows"
+  "rows",
+  "section_kategori",
+  "kategori_tersimpan",
+  "kategori"
  ],
  "fields": [
   {
@@ -53,12 +56,32 @@
    "label": "Data per Outlet",
    "options": "Daily Sales Snapshot Row",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_kategori",
+   "fieldtype": "Section Break",
+   "label": "Data per Kategori"
+  },
+  {
+   "default": "0",
+   "description": "Tercentang kalau data per kategori ikut disimpan (snapshot sebelum fitur ini dibuat tidak punya data kategori, laporan Kontribusi lalu hitung live)",
+   "fieldname": "kategori_tersimpan",
+   "fieldtype": "Check",
+   "label": "Kategori Tersimpan",
+   "read_only": 1
+  },
+  {
+   "fieldname": "kategori",
+   "fieldtype": "Table",
+   "label": "Data per Kategori",
+   "options": "Daily Sales Snapshot Category",
+   "read_only": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-13 14:00:00.000000",
+ "modified": "2026-10-14 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Custom Reports",
  "name": "Daily Sales Snapshot",
