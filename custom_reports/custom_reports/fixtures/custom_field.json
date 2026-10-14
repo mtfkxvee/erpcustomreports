@@ -67,6 +67,38 @@
   },
   {
     "doctype": "Custom Field",
+    "dt": "Driver Activity",
+    "fieldname": "alamat_lokasi",
+    "label": "Alamat Lokasi",
+    "fieldtype": "Small Text",
+    "insert_after": "jenis_kendala",
+    "read_only": 1,
+    "depends_on": "eval:doc.tipe==\"Pengecekan\""
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Driver Activity",
+    "fieldname": "latitude",
+    "label": "Latitude",
+    "fieldtype": "Float",
+    "precision": "6",
+    "insert_after": "alamat_lokasi",
+    "read_only": 1,
+    "depends_on": "eval:doc.tipe==\"Pengecekan\""
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Driver Activity",
+    "fieldname": "longitude",
+    "label": "Longitude",
+    "fieldtype": "Float",
+    "precision": "6",
+    "insert_after": "latitude",
+    "read_only": 1,
+    "depends_on": "eval:doc.tipe==\"Pengecekan\""
+  },
+  {
+    "doctype": "Custom Field",
     "dt": "Stock Entry Detail",
     "fieldname": "from_shelving",
     "label": "Dari Shelving",
