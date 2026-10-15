@@ -9,3 +9,4 @@ custom_reports.patches.add_driver_activity_custom_fields
 custom_reports.patches.add_driver_log_location_fields
 custom_reports.patches.add_driver_log_delivery_fields
 custom_reports.patches.add_driver_role_permissions
+custom_reports.patches.add_admin_driver_role
