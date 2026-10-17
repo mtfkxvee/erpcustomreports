@@ -25,6 +25,14 @@ frappe.query_reports["Weekly Visitor TC AC Achievement"] = {
             description: __("Kosongkan utk minggu penuh. Isi mis. tgl 4 kalau laporan dibuat Senin tgl 5 (bulan terpilih dihitung s/d tgl ini).")
         }
     ],
+    onload: function(report) {
+        // Excel dgn tampilan spt file asli admin (SALES REPORT HO sheet Data weekly)
+        report.page.add_inner_button(__("Download Report"), function() {
+            const filters = JSON.stringify(report.get_values() || {});
+            window.open(frappe.urllib.get_full_url(
+                "/api/method/custom_reports.report_export.download_weekly_visitor?filters=" + encodeURIComponent(filters)));
+        });
+    },
     formatter: function(value, row, column, data, default_formatter) {
         // angka 0 tampil "-" spt format akuntansi di laporan Excel asli
         if (["Int", "Float", "Currency", "Percent"].includes(column.fieldtype) && value === 0) {

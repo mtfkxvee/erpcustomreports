@@ -27,6 +27,14 @@ frappe.query_reports["Daily Inventory"] = {
         if (!frappe.user.has_role("System Manager")) {
             return;
         }
+        // Excel dgn tampilan spt file inventory harian (3 varian berdampingan)
+        report.page.add_inner_button(__("Download Report"), function() {
+            const from_date = report.get_filter_value("from_date");
+            const to_date = report.get_filter_value("to_date");
+            window.open(frappe.urllib.get_full_url(
+                "/api/method/custom_reports.report_export.download_daily_inventory?from_date="
+                + encodeURIComponent(from_date) + "&to_date=" + encodeURIComponent(to_date)));
+        });
         report.page.add_inner_button(__("Ambil Ulang Snapshot"), function() {
             frappe.prompt(
                 {

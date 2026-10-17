@@ -11,7 +11,8 @@
 #    kalau blm lengkap dihitung live & diberi label "(live)".
 #  - Balance To Achv 90%/100% bertanda spt file (akumulasi - target, negatif).
 #  - VS Standard Achv dihitung dari nilai blm dibulatkan (spt file).
-#  - Baris Online Cikiray/Ciawi/SP & baris bantu FMCG ("MBG Supermart",
+#  - F&H.S: outlet online cukup 1 baris "Total Outlet - Online" (spt file).
+#  - Baris bantu FMCG ("MBG Supermart",
 #    "Total Supermart", dst) ikut ditampilkan spt file, dgn angka yg benar.
 # Sel file yg rumus Excel-nya salah (balance Pasar & Panyingkiran, MTD bulan
 # lalu XSM Grow, % 2026 vs 2025 TOTAL Exclude UIN & HCW) TIDAK ditiru.
@@ -46,7 +47,6 @@ _FASHION_LABELS = {
     "XSC-OL": "Online Cikiray", "OCW": "Online Ciawi", "XSP-OL": "Online Sp Fashion",
 }
 _FASHION_ORDER = ["XSC", "PSR", "XPY", "XJB", "XCW", "XSP", "HCW"]
-_FASHION_ONLINE_ORDER = ["XSC-OL", "OCW", "XSP-OL"]
 # (kode, label, nama pendek utk baris bantu "MBG x"/"Total x" - None = tanpa baris bantu)
 _FMCG_LAYOUT = [
     ("XSM", "Supermart", "Supermart"),
@@ -166,11 +166,13 @@ def execute(filters=None):
                          + [_MINI_SOCCER_OUTLET], subtotal=True, balance=False, bold=1))
         data.append(calc("GRAND TOTAL", fashion_all + _FMCG_ALL + [_MINI_SOCCER_OUTLET], subtotal=True, bold=1))
     elif dept == "DEPT. F&H.S":
+        # Outlet online TIDAK dirinci per outlet, langsung 1 baris "Total Outlet -
+        # Online" - spt file SALES REPORT HO OCT 2026 & API (user 2026-10-16).
+        data.append({"outlet": "Outlet Offline", "bold": 1, "is_header": 1})
         for i, o in enumerate(_FASHION_ORDER, 1):
             data.append(calc(_FASHION_LABELS[o], [o], no=i))
         data.append(calc("Total Outlet - Offline", _FASHION_OFFLINE, subtotal=True, bold=1))
-        for o in _FASHION_ONLINE_ORDER:
-            data.append(calc(_FASHION_LABELS[o], [o]))
+        data.append({"outlet": "Outlet Online", "bold": 1, "is_header": 1})
         data.append(calc("Total Outlet - Online", _FASHION_ONLINE, subtotal=True, bold=1))
         data.append(calc("TOTAL DEPT. F&H.S EXC HCW", [o for o in fashion_all if o != "HCW"], subtotal=True, bold=1))
         data.append(calc("TOTAL DEPT. F&H.S ALL", fashion_all, subtotal=True, bold=1))

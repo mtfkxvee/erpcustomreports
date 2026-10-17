@@ -1,4 +1,4 @@
-frappe.query_reports["Weekly Margin"] = {
+frappe.query_reports["Weekly Margin Target vs Achievement"] = {
     filters: [
         {
             fieldname: "tanggal",
@@ -12,6 +12,12 @@ frappe.query_reports["Weekly Margin"] = {
         if (!frappe.user.has_role("System Manager")) {
             return;
         }
+        // Excel dgn tampilan spt file asli admin (header bertingkat, warna, format angka)
+        report.page.add_inner_button(__("Download Report"), function() {
+            const tanggal = report.get_filter_value("tanggal");
+            window.open(frappe.urllib.get_full_url(
+                "/api/method/custom_reports.report_export.download_weekly_margin?tanggal=" + encodeURIComponent(tanggal)));
+        });
         report.page.add_inner_button(__("Ambil Ulang Snapshot"), function() {
             frappe.prompt(
                 {

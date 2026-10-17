@@ -1,7 +1,7 @@
 # Copyright (c) 2026, X-SHA and contributors
 # For license information, please see license.txt
 #
-# Laporan "Kontribusi Sales per Category" - tampilan ERP dari file "KONTRIBUSI
+# Laporan "Weekly Kontribusi Sales per Category" (dulu "Kontribusi Sales per Category") - tampilan ERP dari file "KONTRIBUSI
 # SALES CATEGORY W4 VS W3" (sheet F&H.S / FMCG / XSL; sheet MBG tdk dibuat).
 # Rumus = API sales_api.get_kontribusi_sales_category (_kontribusi_category):
 #   Qty & Sales  = SUM(qty) & SUM(base_net_amount) Sales Invoice (non-retur) di

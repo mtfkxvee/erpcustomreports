@@ -10,3 +10,6 @@ custom_reports.patches.add_driver_log_location_fields
 custom_reports.patches.add_driver_log_delivery_fields
 custom_reports.patches.add_driver_role_permissions
 custom_reports.patches.add_admin_driver_role
+custom_reports.patches.remove_renamed_reports
+custom_reports.patches.add_driver_activity_location_all_types
+custom_reports.patches.import_sales_ytd_history

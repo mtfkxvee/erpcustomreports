@@ -60,6 +60,8 @@ scheduler_events = {
             "custom_reports.inventory_snapshot.daily_snapshot_job",
             "custom_reports.sales_snapshot.daily_snapshot_job",
         ],
+        # bekukan angka Sales YTD bulan yg baru berakhir (lihat sales_ytd.py)
+        "0 1 1 * *": ["custom_reports.sales_ytd.monthly_freeze_job"],
     }
 }
 # Each item in the list will be shown as an app in the apps page

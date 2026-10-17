@@ -1,0 +1,9438 @@
+{
+"order": [
+"TOTAL",
+"SLS & XMK",
+"XSL",
+"MBG",
+"XSC",
+"OSC",
+"PSR",
+"XPY",
+"XJB",
+"XCW",
+"OCW",
+"CIAWI ALL",
+"XSP",
+"OSP",
+"HCW",
+"DEPT.FHS",
+"XSM",
+"XMJ",
+"XWP",
+"XPH",
+"XTJ",
+"XCR",
+"TASMU",
+"MENARA",
+"GROW UIN",
+"GROW SP",
+"DEPT.FMCG",
+"DEPT.FMCG excl MBG",
+"TOTAL2",
+"HO (INCLUDE XOL)"
+],
+"titles": {
+"TOTAL": "HOLDING",
+"SLS & XMK": "MARKETING SALES (INCLD KEMITRAAM)",
+"XSL": "MINI SOCCER",
+"MBG": "MBG",
+"XSC": "X-SHA CIKIRAY :",
+"OSC": "ONLINE CIKIRAY :",
+"PSR": "X-SHA PASAR :",
+"XPY": "X-SHA PANYINGKIRAN :",
+"XJB": "X-SHA FURNITURE :",
+"XCW": "X-SHA CIAWI :",
+"OCW": "ONLINE CIAWI :",
+"CIAWI ALL": "X-SHA CIAWI ALL :",
+"XSP": "X-SHA SP FASHION:",
+"OSP": "ONLINE SP FASHION:",
+"HCW": "X-SHA RUMAH KEDUA:",
+"DEPT.FHS": "DEPT.FASHION & HOME SUPPLIES:",
+"XSM": "X-SHA SUPERMART :",
+"XMJ": "X-SHAMART MANGUNREJA :",
+"XWP": "X-SHAMART WARUNG PEUTEUY:",
+"XPH": "X-SHAMART PUSPAHIANG :",
+"XTJ": "X-SHAMART TANJUNGJAYA:",
+"XCR": "X-SHAMART CISARUNI:",
+"TASMU": "TASMU MART",
+"MENARA": "MENARA X-SHAMART",
+"GROW UIN": "X-SHA GROW",
+"GROW SP": "X-SHA GROW",
+"DEPT.FMCG": "DEPT. FMCG:",
+"DEPT.FMCG excl MBG": "DEPT. FMCG:",
+"TOTAL2": "HO (total outlet yang sama) :",
+"HO (INCLUDE XOL)": null
+},
+"cutover": [
+2026,
+9
+],
+"rows": [
+{
+"kode": "TOTAL",
+"tahun": 2019,
+"bulan": 1,
+"target": 2970000000,
+"sales": 2998089500
+},
+{
+"kode": "TOTAL",
+"tahun": 2019,
+"bulan": 2,
+"target": 2970000000,
+"sales": 2936743000
+},
+{
+"kode": "TOTAL",
+"tahun": 2019,
+"bulan": 3,
+"target": 3120000000,
+"sales": 3548981000
+},
+{
+"kode": "TOTAL",
+"tahun": 2019,
+"bulan": 4,
+"target": 3120000000,
+"sales": 4614666000
+},
+{
+"kode": "TOTAL",
+"tahun": 2019,
+"bulan": 5,
+"target": 6470000000,
+"sales": 9681220200
+},
+{
+"kode": "TOTAL",
+"tahun": 2019,
+"bulan": 6,
+"target": 3270000000,
+"sales": 4240023000
+},
+{
+"kode": "TOTAL",
+"tahun": 2019,
+"bulan": 7,
+"target": 3600000000,
+"sales": 3664367000
+},
+{
+"kode": "TOTAL",
+"tahun": 2019,
+"bulan": 8,
+"target": 3390000000,
+"sales": 3061632500
+},
+{
+"kode": "TOTAL",
+"tahun": 2019,
+"bulan": 9,
+"target": 3540000000,
+"sales": 2682952500
+},
+{
+"kode": "TOTAL",
+"tahun": 2019,
+"bulan": 10,
+"target": 3290000000,
+"sales": 2677795000
+},
+{
+"kode": "TOTAL",
+"tahun": 2019,
+"bulan": 11,
+"target": 3490000000,
+"sales": 2845302500
+},
+{
+"kode": "TOTAL",
+"tahun": 2019,
+"bulan": 12,
+"target": 3490000000,
+"sales": 3157191000
+},
+{
+"kode": "TOTAL",
+"tahun": 2020,
+"bulan": 1,
+"target": 3650000000,
+"sales": 3680210152
+},
+{
+"kode": "TOTAL",
+"tahun": 2020,
+"bulan": 2,
+"target": 3250000000,
+"sales": 3037586048
+},
+{
+"kode": "TOTAL",
+"tahun": 2020,
+"bulan": 3,
+"target": 4000000000,
+"sales": 3402998580
+},
+{
+"kode": "TOTAL",
+"tahun": 2020,
+"bulan": 4,
+"target": 3750000000,
+"sales": 4248037844
+},
+{
+"kode": "TOTAL",
+"tahun": 2020,
+"bulan": 5,
+"target": 12800000000,
+"sales": 6635020561
+},
+{
+"kode": "TOTAL",
+"tahun": 2020,
+"bulan": 6,
+"target": 4250000000,
+"sales": 2844896331
+},
+{
+"kode": "TOTAL",
+"tahun": 2020,
+"bulan": 7,
+"target": 3950000000,
+"sales": 3643270790
+},
+{
+"kode": "TOTAL",
+"tahun": 2020,
+"bulan": 8,
+"target": 3700000000,
+"sales": 3575375165
+},
+{
+"kode": "TOTAL",
+"tahun": 2020,
+"bulan": 9,
+"target": 3500000000,
+"sales": 3258150647
+},
+{
+"kode": "TOTAL",
+"tahun": 2020,
+"bulan": 10,
+"target": 3700000000,
+"sales": 3642367299
+},
+{
+"kode": "TOTAL",
+"tahun": 2020,
+"bulan": 11,
+"target": 3950000000,
+"sales": 3715033565
+},
+{
+"kode": "TOTAL",
+"tahun": 2020,
+"bulan": 12,
+"target": 4250000000,
+"sales": 4000870924
+},
+{
+"kode": "TOTAL",
+"tahun": 2021,
+"bulan": 1,
+"target": 4020000000,
+"sales": 3742400900
+},
+{
+"kode": "TOTAL",
+"tahun": 2021,
+"bulan": 2,
+"target": 3870000000,
+"sales": 3103602800
+},
+{
+"kode": "TOTAL",
+"tahun": 2021,
+"bulan": 3,
+"target": 5090000000,
+"sales": 4469712274
+},
+{
+"kode": "TOTAL",
+"tahun": 2021,
+"bulan": 4,
+"target": 7880000000,
+"sales": 8381271898
+},
+{
+"kode": "TOTAL",
+"tahun": 2021,
+"bulan": 5,
+"target": 6890000000,
+"sales": 8671295290
+},
+{
+"kode": "TOTAL",
+"tahun": 2021,
+"bulan": 6,
+"target": 4620000000,
+"sales": 3674672686
+},
+{
+"kode": "TOTAL",
+"tahun": 2021,
+"bulan": 7,
+"target": 5325000000,
+"sales": 4100032070
+},
+{
+"kode": "TOTAL",
+"tahun": 2021,
+"bulan": 8,
+"target": 5275000000,
+"sales": 4401295223
+},
+{
+"kode": "TOTAL",
+"tahun": 2021,
+"bulan": 9,
+"target": 4820000000,
+"sales": 3666042476
+},
+{
+"kode": "TOTAL",
+"tahun": 2021,
+"bulan": 10,
+"target": 5255000000,
+"sales": 4277743631
+},
+{
+"kode": "TOTAL",
+"tahun": 2021,
+"bulan": 11,
+"target": 5270000000,
+"sales": 4455133713
+},
+{
+"kode": "TOTAL",
+"tahun": 2021,
+"bulan": 12,
+"target": 5860000000,
+"sales": 4929701065
+},
+{
+"kode": "TOTAL",
+"tahun": 2022,
+"bulan": 1,
+"target": 5860000000,
+"sales": 4877262618
+},
+{
+"kode": "TOTAL",
+"tahun": 2022,
+"bulan": 2,
+"target": 5910000000,
+"sales": 4278528671
+},
+{
+"kode": "TOTAL",
+"tahun": 2022,
+"bulan": 3,
+"target": 8300000000,
+"sales": 6841150807
+},
+{
+"kode": "TOTAL",
+"tahun": 2022,
+"bulan": 4,
+"target": 19680000000,
+"sales": 14728968584
+},
+{
+"kode": "TOTAL",
+"tahun": 2022,
+"bulan": 5,
+"target": 8350000000,
+"sales": 4916726270
+},
+{
+"kode": "TOTAL",
+"tahun": 2022,
+"bulan": 6,
+"target": 6592000000,
+"sales": 4768197068
+},
+{
+"kode": "TOTAL",
+"tahun": 2022,
+"bulan": 7,
+"target": 6600000000,
+"sales": 5898205115
+},
+{
+"kode": "TOTAL",
+"tahun": 2022,
+"bulan": 8,
+"target": 7100000000,
+"sales": 4574860797
+},
+{
+"kode": "TOTAL",
+"tahun": 2022,
+"bulan": 9,
+"target": 6270000000,
+"sales": 4478398950
+},
+{
+"kode": "TOTAL",
+"tahun": 2022,
+"bulan": 10,
+"target": 7600000000,
+"sales": 4920964062
+},
+{
+"kode": "TOTAL",
+"tahun": 2022,
+"bulan": 11,
+"target": 7450000000,
+"sales": 5263218214
+},
+{
+"kode": "TOTAL",
+"tahun": 2022,
+"bulan": 12,
+"target": 9000000000,
+"sales": 7148142106
+},
+{
+"kode": "TOTAL",
+"tahun": 2023,
+"bulan": 1,
+"target": 7300000000,
+"sales": 6140915133
+},
+{
+"kode": "TOTAL",
+"tahun": 2023,
+"bulan": 2,
+"target": 6650000000,
+"sales": 5459934574
+},
+{
+"kode": "TOTAL",
+"tahun": 2023,
+"bulan": 3,
+"target": 11700000000,
+"sales": 9364047125
+},
+{
+"kode": "TOTAL",
+"tahun": 2023,
+"bulan": 4,
+"target": 15700000000,
+"sales": 17649011700
+},
+{
+"kode": "TOTAL",
+"tahun": 2023,
+"bulan": 5,
+"target": 7550000000,
+"sales": 5550105431
+},
+{
+"kode": "TOTAL",
+"tahun": 2023,
+"bulan": 6,
+"target": 7500000000,
+"sales": 6882517026
+},
+{
+"kode": "TOTAL",
+"tahun": 2023,
+"bulan": 7,
+"target": 8450000000,
+"sales": 7616192134
+},
+{
+"kode": "TOTAL",
+"tahun": 2023,
+"bulan": 8,
+"target": 7850000000,
+"sales": 5823548336
+},
+{
+"kode": "TOTAL",
+"tahun": 2023,
+"bulan": 9,
+"target": 7700000000,
+"sales": 5646445299
+},
+{
+"kode": "TOTAL",
+"tahun": 2023,
+"bulan": 10,
+"target": 8200000000,
+"sales": 5914820748
+},
+{
+"kode": "TOTAL",
+"tahun": 2023,
+"bulan": 11,
+"target": 7950000000,
+"sales": 6447901660
+},
+{
+"kode": "TOTAL",
+"tahun": 2023,
+"bulan": 12,
+"target": 9300000000,
+"sales": 8077677855
+},
+{
+"kode": "TOTAL",
+"tahun": 2024,
+"bulan": 1,
+"target": 9400000000,
+"sales": 7340140529
+},
+{
+"kode": "TOTAL",
+"tahun": 2024,
+"bulan": 2,
+"target": 9720000000,
+"sales": 8529401177
+},
+{
+"kode": "TOTAL",
+"tahun": 2024,
+"bulan": 3,
+"target": 20650000000,
+"sales": 17137582664
+},
+{
+"kode": "TOTAL",
+"tahun": 2024,
+"bulan": 4,
+"target": 19150000000,
+"sales": 15315763578
+},
+{
+"kode": "TOTAL",
+"tahun": 2024,
+"bulan": 5,
+"target": 10600000000,
+"sales": 7014395115
+},
+{
+"kode": "TOTAL",
+"tahun": 2024,
+"bulan": 6,
+"target": 11130000000,
+"sales": 9090640590
+},
+{
+"kode": "TOTAL",
+"tahun": 2024,
+"bulan": 7,
+"target": 12650000000,
+"sales": 8476965162
+},
+{
+"kode": "TOTAL",
+"tahun": 2024,
+"bulan": 8,
+"target": 11450000000,
+"sales": 7399372740
+},
+{
+"kode": "TOTAL",
+"tahun": 2024,
+"bulan": 9,
+"target": 11200000000,
+"sales": 6848296772
+},
+{
+"kode": "TOTAL",
+"tahun": 2024,
+"bulan": 10,
+"target": 11750000000,
+"sales": 6914066748
+},
+{
+"kode": "TOTAL",
+"tahun": 2024,
+"bulan": 11,
+"target": 11850000000,
+"sales": 6623428943
+},
+{
+"kode": "TOTAL",
+"tahun": 2024,
+"bulan": 12,
+"target": 13900000000,
+"sales": 8009841952
+},
+{
+"kode": "TOTAL",
+"tahun": 2025,
+"bulan": 1,
+"target": 10980000000,
+"sales": 7640152257
+},
+{
+"kode": "TOTAL",
+"tahun": 2025,
+"bulan": 2,
+"target": 12380000000,
+"sales": 9361608702
+},
+{
+"kode": "TOTAL",
+"tahun": 2025,
+"bulan": 3,
+"target": 28330000000,
+"sales": 25582962242
+},
+{
+"kode": "TOTAL",
+"tahun": 2025,
+"bulan": 4,
+"target": 10780000000,
+"sales": 6952376635
+},
+{
+"kode": "TOTAL",
+"tahun": 2025,
+"bulan": 5,
+"target": 11300000000,
+"sales": 6255199770
+},
+{
+"kode": "TOTAL",
+"tahun": 2025,
+"bulan": 6,
+"target": 12850000000,
+"sales": 8265292575
+},
+{
+"kode": "TOTAL",
+"tahun": 2025,
+"bulan": 7,
+"target": 12900000000,
+"sales": 8573506572
+},
+{
+"kode": "TOTAL",
+"tahun": 2025,
+"bulan": 8,
+"target": 11430000000,
+"sales": 6690459123
+},
+{
+"kode": "TOTAL",
+"tahun": 2025,
+"bulan": 9,
+"target": 10840000000,
+"sales": 7101178916
+},
+{
+"kode": "TOTAL",
+"tahun": 2025,
+"bulan": 10,
+"target": 10880000000,
+"sales": 7878544687
+},
+{
+"kode": "TOTAL",
+"tahun": 2025,
+"bulan": 11,
+"target": 11000000000,
+"sales": 9927484096
+},
+{
+"kode": "TOTAL",
+"tahun": 2025,
+"bulan": 12,
+"target": 12880000000,
+"sales": 10717629450
+},
+{
+"kode": "TOTAL",
+"tahun": 2026,
+"bulan": 1,
+"target": 10800000000,
+"sales": 10041920519.3
+},
+{
+"kode": "TOTAL",
+"tahun": 2026,
+"bulan": 2,
+"target": 15450000000,
+"sales": 15132434502.27
+},
+{
+"kode": "TOTAL",
+"tahun": 2026,
+"bulan": 3,
+"target": 25700000000,
+"sales": 28875525644
+},
+{
+"kode": "TOTAL",
+"tahun": 2026,
+"bulan": 4,
+"target": 10150000000,
+"sales": 7600429867
+},
+{
+"kode": "TOTAL",
+"tahun": 2026,
+"bulan": 5,
+"target": 10150000000,
+"sales": 8746596542
+},
+{
+"kode": "TOTAL",
+"tahun": 2026,
+"bulan": 6,
+"target": 11050000000,
+"sales": 10865171264.5603
+},
+{
+"kode": "TOTAL",
+"tahun": 2026,
+"bulan": 7,
+"target": 10950000000,
+"sales": 10671420686
+},
+{
+"kode": "TOTAL",
+"tahun": 2026,
+"bulan": 8,
+"target": 10250000000,
+"sales": 9447395693
+},
+{
+"kode": "TOTAL",
+"tahun": 2026,
+"bulan": 9,
+"target": 10375000000,
+"sales": 8159237514
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2024,
+"bulan": 7,
+"target": 200000000,
+"sales": null
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2024,
+"bulan": 8,
+"target": 200000000,
+"sales": null
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2024,
+"bulan": 9,
+"target": 200000000,
+"sales": null
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2024,
+"bulan": 10,
+"target": 200000000,
+"sales": 181692769
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2024,
+"bulan": 11,
+"target": 200000000,
+"sales": 175516957
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2024,
+"bulan": 12,
+"target": 250000000,
+"sales": 168162867
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2025,
+"bulan": 1,
+"target": 250000000,
+"sales": 156288182
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2025,
+"bulan": 2,
+"target": 250000000,
+"sales": 157819072
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2025,
+"bulan": 3,
+"target": 350000000,
+"sales": 185032193
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2025,
+"bulan": 4,
+"target": 400000000,
+"sales": 127220270
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2025,
+"bulan": 5,
+"target": 500000000,
+"sales": 134974085
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2025,
+"bulan": 6,
+"target": 600000000,
+"sales": 147808061
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2025,
+"bulan": 7,
+"target": 600000000,
+"sales": 177818931
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2025,
+"bulan": 8,
+"target": 500000000,
+"sales": 158441944
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2025,
+"bulan": 9,
+"target": 500000000,
+"sales": 158365232
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2025,
+"bulan": 10,
+"target": 500000000,
+"sales": 205394412
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2025,
+"bulan": 11,
+"target": 500000000,
+"sales": 182557629
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2025,
+"bulan": 12,
+"target": 600000000,
+"sales": 160171765
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2026,
+"bulan": 1,
+"target": 200000000,
+"sales": 148058654
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2026,
+"bulan": 2,
+"target": 200000000,
+"sales": 123486068.5
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2026,
+"bulan": 3,
+"target": 200000000,
+"sales": 210682596
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2026,
+"bulan": 4,
+"target": 200000000,
+"sales": 145375526
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2026,
+"bulan": 5,
+"target": 200000000,
+"sales": 120007917
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2026,
+"bulan": 6,
+"target": 200000000,
+"sales": 193667943
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2026,
+"bulan": 7,
+"target": 200000000,
+"sales": 126846971
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2026,
+"bulan": 8,
+"target": 200000000,
+"sales": 147414374
+},
+{
+"kode": "SLS & XMK",
+"tahun": 2026,
+"bulan": 9,
+"target": 200000000,
+"sales": 152021312
+},
+{
+"kode": "XSL",
+"tahun": 2025,
+"bulan": 2,
+"target": 50000000,
+"sales": 35708900
+},
+{
+"kode": "XSL",
+"tahun": 2025,
+"bulan": 3,
+"target": 50000000,
+"sales": 55074400
+},
+{
+"kode": "XSL",
+"tahun": 2025,
+"bulan": 4,
+"target": 0,
+"sales": 12813900
+},
+{
+"kode": "XSL",
+"tahun": 2025,
+"bulan": 5,
+"target": 100000000,
+"sales": 98355400
+},
+{
+"kode": "XSL",
+"tahun": 2025,
+"bulan": 6,
+"target": 150000000,
+"sales": 93925400
+},
+{
+"kode": "XSL",
+"tahun": 2025,
+"bulan": 7,
+"target": 150000000,
+"sales": 81660100
+},
+{
+"kode": "XSL",
+"tahun": 2025,
+"bulan": 8,
+"target": 200000000,
+"sales": 80802200
+},
+{
+"kode": "XSL",
+"tahun": 2025,
+"bulan": 9,
+"target": 100000000,
+"sales": 82390800
+},
+{
+"kode": "XSL",
+"tahun": 2025,
+"bulan": 10,
+"target": 100000000,
+"sales": 78355300
+},
+{
+"kode": "XSL",
+"tahun": 2025,
+"bulan": 11,
+"target": 100000000,
+"sales": 78599800
+},
+{
+"kode": "XSL",
+"tahun": 2025,
+"bulan": 12,
+"target": 150000000,
+"sales": 83378600
+},
+{
+"kode": "XSL",
+"tahun": 2026,
+"bulan": 1,
+"target": 100000000,
+"sales": 73371800
+},
+{
+"kode": "XSL",
+"tahun": 2026,
+"bulan": 2,
+"target": 100000000,
+"sales": 54449900
+},
+{
+"kode": "XSL",
+"tahun": 2026,
+"bulan": 3,
+"target": 100000000,
+"sales": 71864700
+},
+{
+"kode": "XSL",
+"tahun": 2026,
+"bulan": 4,
+"target": 100000000,
+"sales": 63593800
+},
+{
+"kode": "XSL",
+"tahun": 2026,
+"bulan": 5,
+"target": 100000000,
+"sales": 73056500
+},
+{
+"kode": "XSL",
+"tahun": 2026,
+"bulan": 6,
+"target": 100000000,
+"sales": 73157200
+},
+{
+"kode": "XSL",
+"tahun": 2026,
+"bulan": 7,
+"target": 100000000,
+"sales": 70641500
+},
+{
+"kode": "XSL",
+"tahun": 2026,
+"bulan": 8,
+"target": 100000000,
+"sales": 76680100
+},
+{
+"kode": "XSL",
+"tahun": 2026,
+"bulan": 9,
+"target": 100000000,
+"sales": 63177900
+},
+{
+"kode": "MBG",
+"tahun": 2026,
+"bulan": 1,
+"target": 1000000000,
+"sales": 501943492
+},
+{
+"kode": "MBG",
+"tahun": 2026,
+"bulan": 2,
+"target": 1000000000,
+"sales": 643370815
+},
+{
+"kode": "MBG",
+"tahun": 2026,
+"bulan": 3,
+"target": 1000000000,
+"sales": 642595703
+},
+{
+"kode": "MBG",
+"tahun": 2026,
+"bulan": 4,
+"target": 1000000000,
+"sales": 399211794
+},
+{
+"kode": "MBG",
+"tahun": 2026,
+"bulan": 5,
+"target": 1000000000,
+"sales": 234220880
+},
+{
+"kode": "MBG",
+"tahun": 2026,
+"bulan": 6,
+"target": 500000000,
+"sales": 172339080
+},
+{
+"kode": "MBG",
+"tahun": 2026,
+"bulan": 7,
+"target": 300000000,
+"sales": 144221580
+},
+{
+"kode": "MBG",
+"tahun": 2026,
+"bulan": 8,
+"target": 300000000,
+"sales": 266679196
+},
+{
+"kode": "MBG",
+"tahun": 2026,
+"bulan": 9,
+"target": 300000000,
+"sales": 260317405
+},
+{
+"kode": "XSC",
+"tahun": 2019,
+"bulan": 1,
+"target": 1500000000,
+"sales": 1636288500
+},
+{
+"kode": "XSC",
+"tahun": 2019,
+"bulan": 2,
+"target": 1500000000,
+"sales": 1600154500
+},
+{
+"kode": "XSC",
+"tahun": 2019,
+"bulan": 3,
+"target": 1650000000,
+"sales": 2007505000
+},
+{
+"kode": "XSC",
+"tahun": 2019,
+"bulan": 4,
+"target": 1650000000,
+"sales": 2842673500
+},
+{
+"kode": "XSC",
+"tahun": 2019,
+"bulan": 5,
+"target": 5000000000,
+"sales": 6733771200
+},
+{
+"kode": "XSC",
+"tahun": 2019,
+"bulan": 6,
+"target": 1800000000,
+"sales": 2400844000
+},
+{
+"kode": "XSC",
+"tahun": 2019,
+"bulan": 7,
+"target": 2010000000,
+"sales": 1919023500
+},
+{
+"kode": "XSC",
+"tahun": 2019,
+"bulan": 8,
+"target": 1800000000,
+"sales": 1639066000
+},
+{
+"kode": "XSC",
+"tahun": 2019,
+"bulan": 9,
+"target": 1800000000,
+"sales": 1366500000
+},
+{
+"kode": "XSC",
+"tahun": 2019,
+"bulan": 10,
+"target": 1600000000,
+"sales": 1427009000
+},
+{
+"kode": "XSC",
+"tahun": 2019,
+"bulan": 11,
+"target": 1800000000,
+"sales": 1568179000
+},
+{
+"kode": "XSC",
+"tahun": 2019,
+"bulan": 12,
+"target": 1800000000,
+"sales": 1892050500
+},
+{
+"kode": "XSC",
+"tahun": 2020,
+"bulan": 1,
+"target": 2000000000,
+"sales": 1891283400
+},
+{
+"kode": "XSC",
+"tahun": 2020,
+"bulan": 2,
+"target": 1750000000,
+"sales": 1630888000
+},
+{
+"kode": "XSC",
+"tahun": 2020,
+"bulan": 3,
+"target": 2100000000,
+"sales": 1951286500
+},
+{
+"kode": "XSC",
+"tahun": 2020,
+"bulan": 4,
+"target": 2100000000,
+"sales": 2741069963
+},
+{
+"kode": "XSC",
+"tahun": 2020,
+"bulan": 5,
+"target": 9400000000,
+"sales": 4556194000
+},
+{
+"kode": "XSC",
+"tahun": 2020,
+"bulan": 6,
+"target": 2150000000,
+"sales": 1581476707
+},
+{
+"kode": "XSC",
+"tahun": 2020,
+"bulan": 7,
+"target": 2000000000,
+"sales": 2078448500
+},
+{
+"kode": "XSC",
+"tahun": 2020,
+"bulan": 8,
+"target": 2000000000,
+"sales": 1886670500
+},
+{
+"kode": "XSC",
+"tahun": 2020,
+"bulan": 9,
+"target": 1800000000,
+"sales": 1668837000
+},
+{
+"kode": "XSC",
+"tahun": 2020,
+"bulan": 10,
+"target": 2000000000,
+"sales": 1885972800
+},
+{
+"kode": "XSC",
+"tahun": 2020,
+"bulan": 11,
+"target": 2200000000,
+"sales": 2005017700
+},
+{
+"kode": "XSC",
+"tahun": 2020,
+"bulan": 12,
+"target": 2500000000,
+"sales": 2460133800
+},
+{
+"kode": "XSC",
+"tahun": 2021,
+"bulan": 1,
+"target": 2000000000,
+"sales": 2001028500
+},
+{
+"kode": "XSC",
+"tahun": 2021,
+"bulan": 2,
+"target": 1750000000,
+"sales": 1677505800
+},
+{
+"kode": "XSC",
+"tahun": 2021,
+"bulan": 3,
+"target": 2200000000,
+"sales": 2178282500
+},
+{
+"kode": "XSC",
+"tahun": 2021,
+"bulan": 4,
+"target": 4750000000,
+"sales": 4622111201
+},
+{
+"kode": "XSC",
+"tahun": 2021,
+"bulan": 5,
+"target": 4150000000,
+"sales": 4177367800
+},
+{
+"kode": "XSC",
+"tahun": 2021,
+"bulan": 6,
+"target": 1800000000,
+"sales": 1627114800
+},
+{
+"kode": "XSC",
+"tahun": 2021,
+"bulan": 7,
+"target": 2100000000,
+"sales": 1778848300
+},
+{
+"kode": "XSC",
+"tahun": 2021,
+"bulan": 8,
+"target": 2000000000,
+"sales": 1977776800
+},
+{
+"kode": "XSC",
+"tahun": 2021,
+"bulan": 9,
+"target": 1750000000,
+"sales": 1527597100
+},
+{
+"kode": "XSC",
+"tahun": 2021,
+"bulan": 10,
+"target": 2050000000,
+"sales": 1792200700
+},
+{
+"kode": "XSC",
+"tahun": 2021,
+"bulan": 11,
+"target": 2100000000,
+"sales": 1818023400
+},
+{
+"kode": "XSC",
+"tahun": 2021,
+"bulan": 12,
+"target": 2350000000,
+"sales": 2054571500
+},
+{
+"kode": "XSC",
+"tahun": 2022,
+"bulan": 1,
+"target": 2100000000,
+"sales": 2100591200
+},
+{
+"kode": "XSC",
+"tahun": 2022,
+"bulan": 2,
+"target": 1800000000,
+"sales": 1776233100
+},
+{
+"kode": "XSC",
+"tahun": 2022,
+"bulan": 3,
+"target": 2750000000,
+"sales": 2757995900
+},
+{
+"kode": "XSC",
+"tahun": 2022,
+"bulan": 4,
+"target": 7800000000,
+"sales": 6332887300
+},
+{
+"kode": "XSC",
+"tahun": 2022,
+"bulan": 5,
+"target": 2100000000,
+"sales": 1591933800
+},
+{
+"kode": "XSC",
+"tahun": 2022,
+"bulan": 6,
+"target": 2000000000,
+"sales": 1900861800
+},
+{
+"kode": "XSC",
+"tahun": 2022,
+"bulan": 7,
+"target": 2100000000,
+"sales": 2316398100
+},
+{
+"kode": "XSC",
+"tahun": 2022,
+"bulan": 8,
+"target": 2300000000,
+"sales": 1650764100
+},
+{
+"kode": "XSC",
+"tahun": 2022,
+"bulan": 9,
+"target": 1800000000,
+"sales": 1626719500
+},
+{
+"kode": "XSC",
+"tahun": 2022,
+"bulan": 10,
+"target": 2200000000,
+"sales": 1802907740
+},
+{
+"kode": "XSC",
+"tahun": 2022,
+"bulan": 11,
+"target": 1900000000,
+"sales": 1740743397
+},
+{
+"kode": "XSC",
+"tahun": 2022,
+"bulan": 12,
+"target": 2600000000,
+"sales": 2341766250
+},
+{
+"kode": "XSC",
+"tahun": 2023,
+"bulan": 1,
+"target": 2300000000,
+"sales": 2074587600
+},
+{
+"kode": "XSC",
+"tahun": 2023,
+"bulan": 2,
+"target": 2000000000,
+"sales": 1846633700
+},
+{
+"kode": "XSC",
+"tahun": 2023,
+"bulan": 3,
+"target": 4200000000,
+"sales": 3641894500
+},
+{
+"kode": "XSC",
+"tahun": 2023,
+"bulan": 4,
+"target": 5100000000,
+"sales": 6820018600
+},
+{
+"kode": "XSC",
+"tahun": 2023,
+"bulan": 5,
+"target": 2100000000,
+"sales": 1583454600
+},
+{
+"kode": "XSC",
+"tahun": 2023,
+"bulan": 6,
+"target": 2100000000,
+"sales": 2324007400
+},
+{
+"kode": "XSC",
+"tahun": 2023,
+"bulan": 7,
+"target": 2600000000,
+"sales": 2645525050
+},
+{
+"kode": "XSC",
+"tahun": 2023,
+"bulan": 8,
+"target": 2300000000,
+"sales": 1797258150
+},
+{
+"kode": "XSC",
+"tahun": 2023,
+"bulan": 9,
+"target": 2200000000,
+"sales": 1666749850
+},
+{
+"kode": "XSC",
+"tahun": 2023,
+"bulan": 10,
+"target": 2300000000,
+"sales": 1854550000
+},
+{
+"kode": "XSC",
+"tahun": 2023,
+"bulan": 11,
+"target": 2200000000,
+"sales": 1938168950
+},
+{
+"kode": "XSC",
+"tahun": 2023,
+"bulan": 12,
+"target": 2600000000,
+"sales": 2364488150
+},
+{
+"kode": "XSC",
+"tahun": 2024,
+"bulan": 1,
+"target": 2500000000,
+"sales": 2304221600
+},
+{
+"kode": "XSC",
+"tahun": 2024,
+"bulan": 2,
+"target": 2700000000,
+"sales": 2672006760
+},
+{
+"kode": "XSC",
+"tahun": 2024,
+"bulan": 3,
+"target": 6700000000,
+"sales": 6551949601
+},
+{
+"kode": "XSC",
+"tahun": 2024,
+"bulan": 4,
+"target": 5700000000,
+"sales": 5187928008
+},
+{
+"kode": "XSC",
+"tahun": 2024,
+"bulan": 5,
+"target": 2700000000,
+"sales": 1872417100
+},
+{
+"kode": "XSC",
+"tahun": 2024,
+"bulan": 6,
+"target": 2900000000,
+"sales": 2778712475
+},
+{
+"kode": "XSC",
+"tahun": 2024,
+"bulan": 7,
+"target": 3500000000,
+"sales": 2521440615
+},
+{
+"kode": "XSC",
+"tahun": 2024,
+"bulan": 8,
+"target": 2950000000,
+"sales": 1807450150
+},
+{
+"kode": "XSC",
+"tahun": 2024,
+"bulan": 9,
+"target": 2750000000,
+"sales": 1683519429
+},
+{
+"kode": "XSC",
+"tahun": 2024,
+"bulan": 10,
+"target": 2950000000,
+"sales": 1716512950
+},
+{
+"kode": "XSC",
+"tahun": 2024,
+"bulan": 11,
+"target": 2950000000,
+"sales": 1739023900
+},
+{
+"kode": "XSC",
+"tahun": 2024,
+"bulan": 12,
+"target": 3500000000,
+"sales": 2268663700
+},
+{
+"kode": "XSC",
+"tahun": 2025,
+"bulan": 1,
+"target": 3200000000,
+"sales": 2271723600
+},
+{
+"kode": "XSC",
+"tahun": 2025,
+"bulan": 2,
+"target": 3500000000,
+"sales": 3150379400
+},
+{
+"kode": "XSC",
+"tahun": 2025,
+"bulan": 3,
+"target": 11000000000,
+"sales": 9458318300
+},
+{
+"kode": "XSC",
+"tahun": 2025,
+"bulan": 4,
+"target": 2900000000,
+"sales": 1644259000
+},
+{
+"kode": "XSC",
+"tahun": 2025,
+"bulan": 5,
+"target": 2700000000,
+"sales": 1541163900
+},
+{
+"kode": "XSC",
+"tahun": 2025,
+"bulan": 6,
+"target": 3200000000,
+"sales": 2627741700
+},
+{
+"kode": "XSC",
+"tahun": 2025,
+"bulan": 7,
+"target": 3100000000,
+"sales": 2742219900
+},
+{
+"kode": "XSC",
+"tahun": 2025,
+"bulan": 8,
+"target": 2700000000,
+"sales": 1606801800
+},
+{
+"kode": "XSC",
+"tahun": 2025,
+"bulan": 9,
+"target": 2600000000,
+"sales": 1612706200
+},
+{
+"kode": "XSC",
+"tahun": 2025,
+"bulan": 10,
+"target": 2650000000,
+"sales": 1691070000
+},
+{
+"kode": "XSC",
+"tahun": 2025,
+"bulan": 11,
+"target": 2650000000,
+"sales": 2067717900
+},
+{
+"kode": "XSC",
+"tahun": 2025,
+"bulan": 12,
+"target": 3200000000,
+"sales": 2354655040
+},
+{
+"kode": "XSC",
+"tahun": 2026,
+"bulan": 1,
+"target": 2700000000,
+"sales": 2859438546.04
+},
+{
+"kode": "XSC",
+"tahun": 2026,
+"bulan": 2,
+"target": 4500000000,
+"sales": 4595241569.94
+},
+{
+"kode": "XSC",
+"tahun": 2026,
+"bulan": 3,
+"target": 9000000000,
+"sales": 9166623671.980001
+},
+{
+"kode": "XSC",
+"tahun": 2026,
+"bulan": 4,
+"target": 2550000000,
+"sales": 1555120761.7299998
+},
+{
+"kode": "XSC",
+"tahun": 2026,
+"bulan": 5,
+"target": 2550000000,
+"sales": 1972698519
+},
+{
+"kode": "XSC",
+"tahun": 2026,
+"bulan": 6,
+"target": 2900000000,
+"sales": 3204024240.16
+},
+{
+"kode": "XSC",
+"tahun": 2026,
+"bulan": 7,
+"target": 2800000000,
+"sales": 2933358405
+},
+{
+"kode": "XSC",
+"tahun": 2026,
+"bulan": 8,
+"target": 2500000000,
+"sales": 2295162930.71
+},
+{
+"kode": "XSC",
+"tahun": 2026,
+"bulan": 9,
+"target": 2400000000,
+"sales": 1649159102
+},
+{
+"kode": "OSC",
+"tahun": 2026,
+"bulan": 8,
+"target": 25000000,
+"sales": 2846899
+},
+{
+"kode": "OSC",
+"tahun": 2026,
+"bulan": 9,
+"target": 25000000,
+"sales": 1404523
+},
+{
+"kode": "PSR",
+"tahun": 2019,
+"bulan": 1,
+"target": 990000000,
+"sales": 891990000
+},
+{
+"kode": "PSR",
+"tahun": 2019,
+"bulan": 2,
+"target": 990000000,
+"sales": 890672500
+},
+{
+"kode": "PSR",
+"tahun": 2019,
+"bulan": 3,
+"target": 990000000,
+"sales": 1042010000
+},
+{
+"kode": "PSR",
+"tahun": 2019,
+"bulan": 4,
+"target": 990000000,
+"sales": 1253383000
+},
+{
+"kode": "PSR",
+"tahun": 2019,
+"bulan": 5,
+"target": 990000000,
+"sales": 2251880500
+},
+{
+"kode": "PSR",
+"tahun": 2019,
+"bulan": 6,
+"target": 990000000,
+"sales": 1137544500
+},
+{
+"kode": "PSR",
+"tahun": 2019,
+"bulan": 7,
+"target": 990000000,
+"sales": 1063384000
+},
+{
+"kode": "PSR",
+"tahun": 2019,
+"bulan": 8,
+"target": 990000000,
+"sales": 874172000
+},
+{
+"kode": "PSR",
+"tahun": 2019,
+"bulan": 9,
+"target": 990000000,
+"sales": 741513500
+},
+{
+"kode": "PSR",
+"tahun": 2019,
+"bulan": 10,
+"target": 990000000,
+"sales": 806798000
+},
+{
+"kode": "PSR",
+"tahun": 2019,
+"bulan": 11,
+"target": 990000000,
+"sales": 823093000
+},
+{
+"kode": "PSR",
+"tahun": 2019,
+"bulan": 12,
+"target": 990000000,
+"sales": 908638500
+},
+{
+"kode": "PSR",
+"tahun": 2020,
+"bulan": 1,
+"target": 1000000000,
+"sales": 898719000
+},
+{
+"kode": "PSR",
+"tahun": 2020,
+"bulan": 2,
+"target": 900000000,
+"sales": 760955000
+},
+{
+"kode": "PSR",
+"tahun": 2020,
+"bulan": 3,
+"target": 1200000000,
+"sales": 889606994
+},
+{
+"kode": "PSR",
+"tahun": 2020,
+"bulan": 4,
+"target": 1000000000,
+"sales": 1058200200
+},
+{
+"kode": "PSR",
+"tahun": 2020,
+"bulan": 5,
+"target": 2200000000,
+"sales": 1664895500
+},
+{
+"kode": "PSR",
+"tahun": 2020,
+"bulan": 6,
+"target": 1200000000,
+"sales": 740016500
+},
+{
+"kode": "PSR",
+"tahun": 2020,
+"bulan": 7,
+"target": 1100000000,
+"sales": 911002500
+},
+{
+"kode": "PSR",
+"tahun": 2020,
+"bulan": 8,
+"target": 1000000000,
+"sales": 906022500
+},
+{
+"kode": "PSR",
+"tahun": 2020,
+"bulan": 9,
+"target": 1000000000,
+"sales": 834363500
+},
+{
+"kode": "PSR",
+"tahun": 2020,
+"bulan": 10,
+"target": 1000000000,
+"sales": 742187500
+},
+{
+"kode": "PSR",
+"tahun": 2020,
+"bulan": 11,
+"target": 1050000000,
+"sales": 881580000
+},
+{
+"kode": "PSR",
+"tahun": 2020,
+"bulan": 12,
+"target": 1050000000,
+"sales": 1064768500
+},
+{
+"kode": "PSR",
+"tahun": 2021,
+"bulan": 1,
+"target": 1000000000,
+"sales": 857650000
+},
+{
+"kode": "PSR",
+"tahun": 2021,
+"bulan": 2,
+"target": 900000000,
+"sales": 686986000
+},
+{
+"kode": "PSR",
+"tahun": 2021,
+"bulan": 3,
+"target": 1100000000,
+"sales": 830801000
+},
+{
+"kode": "PSR",
+"tahun": 2021,
+"bulan": 4,
+"target": 1350000000,
+"sales": 1547103000
+},
+{
+"kode": "PSR",
+"tahun": 2021,
+"bulan": 5,
+"target": 1350000000,
+"sales": 1480198000
+},
+{
+"kode": "PSR",
+"tahun": 2021,
+"bulan": 6,
+"target": 900000000,
+"sales": 643584000
+},
+{
+"kode": "PSR",
+"tahun": 2021,
+"bulan": 7,
+"target": 1100000000,
+"sales": 643512000
+},
+{
+"kode": "PSR",
+"tahun": 2021,
+"bulan": 8,
+"target": 1050000000,
+"sales": 733594000
+},
+{
+"kode": "PSR",
+"tahun": 2021,
+"bulan": 9,
+"target": 900000000,
+"sales": 619440000
+},
+{
+"kode": "PSR",
+"tahun": 2021,
+"bulan": 10,
+"target": 1050000000,
+"sales": 684842000
+},
+{
+"kode": "PSR",
+"tahun": 2021,
+"bulan": 11,
+"target": 1000000000,
+"sales": 718493000
+},
+{
+"kode": "PSR",
+"tahun": 2021,
+"bulan": 12,
+"target": 1100000000,
+"sales": 726832000
+},
+{
+"kode": "PSR",
+"tahun": 2022,
+"bulan": 1,
+"target": 900000000,
+"sales": 678904500
+},
+{
+"kode": "PSR",
+"tahun": 2022,
+"bulan": 2,
+"target": 750000000,
+"sales": 562574500
+},
+{
+"kode": "PSR",
+"tahun": 2022,
+"bulan": 3,
+"target": 950000000,
+"sales": 817328500
+},
+{
+"kode": "PSR",
+"tahun": 2022,
+"bulan": 4,
+"target": 1500000000,
+"sales": 1650105500
+},
+{
+"kode": "PSR",
+"tahun": 2022,
+"bulan": 5,
+"target": 850000000,
+"sales": 591293000
+},
+{
+"kode": "PSR",
+"tahun": 2022,
+"bulan": 6,
+"target": 750000000,
+"sales": 576427500
+},
+{
+"kode": "PSR",
+"tahun": 2022,
+"bulan": 7,
+"target": 700000000,
+"sales": 646449000
+},
+{
+"kode": "PSR",
+"tahun": 2022,
+"bulan": 8,
+"target": 800000000,
+"sales": 520475500
+},
+{
+"kode": "PSR",
+"tahun": 2022,
+"bulan": 9,
+"target": 800000000,
+"sales": 444263000
+},
+{
+"kode": "PSR",
+"tahun": 2022,
+"bulan": 10,
+"target": 850000000,
+"sales": 493432500
+},
+{
+"kode": "PSR",
+"tahun": 2022,
+"bulan": 11,
+"target": 850000000,
+"sales": 530643500
+},
+{
+"kode": "PSR",
+"tahun": 2022,
+"bulan": 12,
+"target": 900000000,
+"sales": 618127000
+},
+{
+"kode": "PSR",
+"tahun": 2023,
+"bulan": 1,
+"target": 700000000,
+"sales": 584596500
+},
+{
+"kode": "PSR",
+"tahun": 2023,
+"bulan": 2,
+"target": 650000000,
+"sales": 480750000
+},
+{
+"kode": "PSR",
+"tahun": 2023,
+"bulan": 3,
+"target": 900000000,
+"sales": 885323000
+},
+{
+"kode": "PSR",
+"tahun": 2023,
+"bulan": 4,
+"target": 1250000000,
+"sales": 1507714500
+},
+{
+"kode": "PSR",
+"tahun": 2023,
+"bulan": 5,
+"target": 700000000,
+"sales": 482316500
+},
+{
+"kode": "PSR",
+"tahun": 2023,
+"bulan": 6,
+"target": 650000000,
+"sales": 586218000
+},
+{
+"kode": "PSR",
+"tahun": 2023,
+"bulan": 7,
+"target": 700000000,
+"sales": 590413000
+},
+{
+"kode": "PSR",
+"tahun": 2023,
+"bulan": 8,
+"target": 700000000,
+"sales": 485598500
+},
+{
+"kode": "PSR",
+"tahun": 2023,
+"bulan": 9,
+"target": 650000000,
+"sales": 388598500
+},
+{
+"kode": "PSR",
+"tahun": 2023,
+"bulan": 10,
+"target": 700000000,
+"sales": 376952000
+},
+{
+"kode": "PSR",
+"tahun": 2023,
+"bulan": 11,
+"target": 700000000,
+"sales": 469572000
+},
+{
+"kode": "PSR",
+"tahun": 2023,
+"bulan": 12,
+"target": 700000000,
+"sales": 530023000
+},
+{
+"kode": "PSR",
+"tahun": 2024,
+"bulan": 1,
+"target": 750000000,
+"sales": 489957000
+},
+{
+"kode": "PSR",
+"tahun": 2024,
+"bulan": 2,
+"target": 700000000,
+"sales": 563910000
+},
+{
+"kode": "PSR",
+"tahun": 2024,
+"bulan": 3,
+"target": 1550000000,
+"sales": 1251233600
+},
+{
+"kode": "PSR",
+"tahun": 2024,
+"bulan": 4,
+"target": 1200000000,
+"sales": 1082195000
+},
+{
+"kode": "PSR",
+"tahun": 2024,
+"bulan": 5,
+"target": 700000000,
+"sales": 402883400
+},
+{
+"kode": "PSR",
+"tahun": 2024,
+"bulan": 6,
+"target": 700000000,
+"sales": 556086135
+},
+{
+"kode": "PSR",
+"tahun": 2024,
+"bulan": 7,
+"target": 800000000,
+"sales": 483693300
+},
+{
+"kode": "PSR",
+"tahun": 2024,
+"bulan": 8,
+"target": 700000000,
+"sales": 370872285
+},
+{
+"kode": "PSR",
+"tahun": 2024,
+"bulan": 9,
+"target": 650000000,
+"sales": 322047870
+},
+{
+"kode": "PSR",
+"tahun": 2024,
+"bulan": 10,
+"target": 700000000,
+"sales": 363994775
+},
+{
+"kode": "PSR",
+"tahun": 2024,
+"bulan": 11,
+"target": 750000000,
+"sales": 326884840
+},
+{
+"kode": "PSR",
+"tahun": 2024,
+"bulan": 12,
+"target": 800000000,
+"sales": 472907650
+},
+{
+"kode": "PSR",
+"tahun": 2025,
+"bulan": 1,
+"target": 600000000,
+"sales": 419948700
+},
+{
+"kode": "PSR",
+"tahun": 2025,
+"bulan": 2,
+"target": 750000000,
+"sales": 561571100
+},
+{
+"kode": "PSR",
+"tahun": 2025,
+"bulan": 3,
+"target": 1800000000,
+"sales": 1452888100
+},
+{
+"kode": "PSR",
+"tahun": 2025,
+"bulan": 4,
+"target": 550000000,
+"sales": 347323015
+},
+{
+"kode": "PSR",
+"tahun": 2025,
+"bulan": 5,
+"target": 600000000,
+"sales": 292881846
+},
+{
+"kode": "PSR",
+"tahun": 2025,
+"bulan": 6,
+"target": 700000000,
+"sales": 487381050
+},
+{
+"kode": "PSR",
+"tahun": 2025,
+"bulan": 7,
+"target": 650000000,
+"sales": 439603754
+},
+{
+"kode": "PSR",
+"tahun": 2025,
+"bulan": 8,
+"target": 650000000,
+"sales": 301775334
+},
+{
+"kode": "PSR",
+"tahun": 2025,
+"bulan": 9,
+"target": 550000000,
+"sales": 327120257
+},
+{
+"kode": "PSR",
+"tahun": 2025,
+"bulan": 10,
+"target": 600000000,
+"sales": 292221390
+},
+{
+"kode": "PSR",
+"tahun": 2025,
+"bulan": 11,
+"target": 650000000,
+"sales": 415718122
+},
+{
+"kode": "PSR",
+"tahun": 2025,
+"bulan": 12,
+"target": 650000000,
+"sales": 395468752
+},
+{
+"kode": "PSR",
+"tahun": 2026,
+"bulan": 1,
+"target": 450000000,
+"sales": 445424126.5
+},
+{
+"kode": "PSR",
+"tahun": 2026,
+"bulan": 2,
+"target": 650000000,
+"sales": 717855384.6
+},
+{
+"kode": "PSR",
+"tahun": 2026,
+"bulan": 3,
+"target": 1300000000,
+"sales": 1334408595
+},
+{
+"kode": "PSR",
+"tahun": 2026,
+"bulan": 4,
+"target": 450000000,
+"sales": 280601314
+},
+{
+"kode": "PSR",
+"tahun": 2026,
+"bulan": 5,
+"target": 450000000,
+"sales": 336333582
+},
+{
+"kode": "PSR",
+"tahun": 2026,
+"bulan": 6,
+"target": 500000000,
+"sales": 491659110.53
+},
+{
+"kode": "PSR",
+"tahun": 2026,
+"bulan": 7,
+"target": 450000000,
+"sales": 447980518
+},
+{
+"kode": "PSR",
+"tahun": 2026,
+"bulan": 8,
+"target": 450000000,
+"sales": 298420084
+},
+{
+"kode": "PSR",
+"tahun": 2026,
+"bulan": 9,
+"target": 400000000,
+"sales": 231326950
+},
+{
+"kode": "XPY",
+"tahun": 2019,
+"bulan": 1,
+"target": 480000000,
+"sales": 470025000
+},
+{
+"kode": "XPY",
+"tahun": 2019,
+"bulan": 2,
+"target": 480000000,
+"sales": 447139000
+},
+{
+"kode": "XPY",
+"tahun": 2019,
+"bulan": 3,
+"target": 480000000,
+"sales": 499432000
+},
+{
+"kode": "XPY",
+"tahun": 2019,
+"bulan": 4,
+"target": 480000000,
+"sales": 511428000
+},
+{
+"kode": "XPY",
+"tahun": 2019,
+"bulan": 5,
+"target": 480000000,
+"sales": 698068000
+},
+{
+"kode": "XPY",
+"tahun": 2019,
+"bulan": 6,
+"target": 480000000,
+"sales": 698304000
+},
+{
+"kode": "XPY",
+"tahun": 2019,
+"bulan": 7,
+"target": 600000000,
+"sales": 681298000
+},
+{
+"kode": "XPY",
+"tahun": 2019,
+"bulan": 8,
+"target": 600000000,
+"sales": 539058000
+},
+{
+"kode": "XPY",
+"tahun": 2019,
+"bulan": 9,
+"target": 600000000,
+"sales": 463762000
+},
+{
+"kode": "XPY",
+"tahun": 2019,
+"bulan": 10,
+"target": 600000000,
+"sales": 443985000
+},
+{
+"kode": "XPY",
+"tahun": 2019,
+"bulan": 11,
+"target": 600000000,
+"sales": 454030500
+},
+{
+"kode": "XPY",
+"tahun": 2019,
+"bulan": 12,
+"target": 600000000,
+"sales": 482099000
+},
+{
+"kode": "XPY",
+"tahun": 2020,
+"bulan": 1,
+"target": 550000000,
+"sales": 533664000
+},
+{
+"kode": "XPY",
+"tahun": 2020,
+"bulan": 2,
+"target": 500000000,
+"sales": 430317000
+},
+{
+"kode": "XPY",
+"tahun": 2020,
+"bulan": 3,
+"target": 600000000,
+"sales": 448243500
+},
+{
+"kode": "XPY",
+"tahun": 2020,
+"bulan": 4,
+"target": 650000000,
+"sales": 482491000
+},
+{
+"kode": "XPY",
+"tahun": 2020,
+"bulan": 5,
+"target": 1200000000,
+"sales": 527093000
+},
+{
+"kode": "XPY",
+"tahun": 2020,
+"bulan": 6,
+"target": 800000000,
+"sales": 552420000
+},
+{
+"kode": "XPY",
+"tahun": 2020,
+"bulan": 7,
+"target": 750000000,
+"sales": 597757000
+},
+{
+"kode": "XPY",
+"tahun": 2020,
+"bulan": 8,
+"target": 600000000,
+"sales": 562164000
+},
+{
+"kode": "XPY",
+"tahun": 2020,
+"bulan": 9,
+"target": 600000000,
+"sales": 535105000
+},
+{
+"kode": "XPY",
+"tahun": 2020,
+"bulan": 10,
+"target": 600000000,
+"sales": 578003000
+},
+{
+"kode": "XPY",
+"tahun": 2020,
+"bulan": 11,
+"target": 600000000,
+"sales": 529218500
+},
+{
+"kode": "XPY",
+"tahun": 2020,
+"bulan": 12,
+"target": 600000000,
+"sales": 582509000
+},
+{
+"kode": "XPY",
+"tahun": 2021,
+"bulan": 1,
+"target": 600000000,
+"sales": 475832500
+},
+{
+"kode": "XPY",
+"tahun": 2021,
+"bulan": 2,
+"target": 500000000,
+"sales": 371823000
+},
+{
+"kode": "XPY",
+"tahun": 2021,
+"bulan": 3,
+"target": 600000000,
+"sales": 383876500
+},
+{
+"kode": "XPY",
+"tahun": 2021,
+"bulan": 4,
+"target": 550000000,
+"sales": 446853000
+},
+{
+"kode": "XPY",
+"tahun": 2021,
+"bulan": 5,
+"target": 660000000,
+"sales": 623326500
+},
+{
+"kode": "XPY",
+"tahun": 2021,
+"bulan": 6,
+"target": 510000000,
+"sales": 472063000
+},
+{
+"kode": "XPY",
+"tahun": 2021,
+"bulan": 7,
+"target": 550000000,
+"sales": 493689000
+},
+{
+"kode": "XPY",
+"tahun": 2021,
+"bulan": 8,
+"target": 600000000,
+"sales": 508560000
+},
+{
+"kode": "XPY",
+"tahun": 2021,
+"bulan": 9,
+"target": 510000000,
+"sales": 372944000
+},
+{
+"kode": "XPY",
+"tahun": 2021,
+"bulan": 10,
+"target": 610000000,
+"sales": 443053000
+},
+{
+"kode": "XPY",
+"tahun": 2021,
+"bulan": 11,
+"target": 550000000,
+"sales": 466858000
+},
+{
+"kode": "XPY",
+"tahun": 2021,
+"bulan": 12,
+"target": 650000000,
+"sales": 502032000
+},
+{
+"kode": "XPY",
+"tahun": 2022,
+"bulan": 1,
+"target": 550000000,
+"sales": 426022000
+},
+{
+"kode": "XPY",
+"tahun": 2022,
+"bulan": 2,
+"target": 500000000,
+"sales": 357439000
+},
+{
+"kode": "XPY",
+"tahun": 2022,
+"bulan": 3,
+"target": 500000000,
+"sales": 421180000
+},
+{
+"kode": "XPY",
+"tahun": 2022,
+"bulan": 4,
+"target": 550000000,
+"sales": 596331000
+},
+{
+"kode": "XPY",
+"tahun": 2022,
+"bulan": 5,
+"target": 700000000,
+"sales": 514404500
+},
+{
+"kode": "XPY",
+"tahun": 2022,
+"bulan": 6,
+"target": 550000000,
+"sales": 400550500
+},
+{
+"kode": "XPY",
+"tahun": 2022,
+"bulan": 7,
+"target": 600000000,
+"sales": 505127000
+},
+{
+"kode": "XPY",
+"tahun": 2022,
+"bulan": 8,
+"target": 550000000,
+"sales": 350063500
+},
+{
+"kode": "XPY",
+"tahun": 2022,
+"bulan": 9,
+"target": 520000000,
+"sales": 395627000
+},
+{
+"kode": "XPY",
+"tahun": 2022,
+"bulan": 10,
+"target": 550000000,
+"sales": 412067500
+},
+{
+"kode": "XPY",
+"tahun": 2022,
+"bulan": 11,
+"target": 600000000,
+"sales": 421894500
+},
+{
+"kode": "XPY",
+"tahun": 2022,
+"bulan": 12,
+"target": 600000000,
+"sales": 518414500
+},
+{
+"kode": "XPY",
+"tahun": 2023,
+"bulan": 1,
+"target": 550000000,
+"sales": 393693500
+},
+{
+"kode": "XPY",
+"tahun": 2023,
+"bulan": 2,
+"target": 500000000,
+"sales": 300479500
+},
+{
+"kode": "XPY",
+"tahun": 2023,
+"bulan": 3,
+"target": 600000000,
+"sales": 455872500
+},
+{
+"kode": "XPY",
+"tahun": 2023,
+"bulan": 4,
+"target": 650000000,
+"sales": 634810000
+},
+{
+"kode": "XPY",
+"tahun": 2023,
+"bulan": 5,
+"target": 600000000,
+"sales": 436769500
+},
+{
+"kode": "XPY",
+"tahun": 2023,
+"bulan": 6,
+"target": 550000000,
+"sales": 470272000
+},
+{
+"kode": "XPY",
+"tahun": 2023,
+"bulan": 7,
+"target": 550000000,
+"sales": 559027500
+},
+{
+"kode": "XPY",
+"tahun": 2023,
+"bulan": 8,
+"target": 500000000,
+"sales": 333232400
+},
+{
+"kode": "XPY",
+"tahun": 2023,
+"bulan": 9,
+"target": 500000000,
+"sales": 291446000
+},
+{
+"kode": "XPY",
+"tahun": 2023,
+"bulan": 10,
+"target": 500000000,
+"sales": 317991500
+},
+{
+"kode": "XPY",
+"tahun": 2023,
+"bulan": 11,
+"target": 500000000,
+"sales": 409287000
+},
+{
+"kode": "XPY",
+"tahun": 2023,
+"bulan": 12,
+"target": 600000000,
+"sales": 426804500
+},
+{
+"kode": "XPY",
+"tahun": 2024,
+"bulan": 1,
+"target": 550000000,
+"sales": 404710500
+},
+{
+"kode": "XPY",
+"tahun": 2024,
+"bulan": 2,
+"target": 500000000,
+"sales": 459037000
+},
+{
+"kode": "XPY",
+"tahun": 2024,
+"bulan": 3,
+"target": 650000000,
+"sales": 568793500
+},
+{
+"kode": "XPY",
+"tahun": 2024,
+"bulan": 4,
+"target": 700000000,
+"sales": 689126000
+},
+{
+"kode": "XPY",
+"tahun": 2024,
+"bulan": 5,
+"target": 550000000,
+"sales": 434925500
+},
+{
+"kode": "XPY",
+"tahun": 2024,
+"bulan": 6,
+"target": 550000000,
+"sales": 574730800
+},
+{
+"kode": "XPY",
+"tahun": 2024,
+"bulan": 7,
+"target": 650000000,
+"sales": 470766490
+},
+{
+"kode": "XPY",
+"tahun": 2024,
+"bulan": 8,
+"target": 550000000,
+"sales": 353045416
+},
+{
+"kode": "XPY",
+"tahun": 2024,
+"bulan": 9,
+"target": 550000000,
+"sales": 372154800
+},
+{
+"kode": "XPY",
+"tahun": 2024,
+"bulan": 10,
+"target": 550000000,
+"sales": 350252500
+},
+{
+"kode": "XPY",
+"tahun": 2024,
+"bulan": 11,
+"target": 600000000,
+"sales": 307371800
+},
+{
+"kode": "XPY",
+"tahun": 2024,
+"bulan": 12,
+"target": 650000000,
+"sales": 389800400
+},
+{
+"kode": "XPY",
+"tahun": 2025,
+"bulan": 1,
+"target": 600000000,
+"sales": 370730500
+},
+{
+"kode": "XPY",
+"tahun": 2025,
+"bulan": 2,
+"target": 550000000,
+"sales": 353532000
+},
+{
+"kode": "XPY",
+"tahun": 2025,
+"bulan": 3,
+"target": 700000000,
+"sales": 608690500
+},
+{
+"kode": "XPY",
+"tahun": 2025,
+"bulan": 4,
+"target": 650000000,
+"sales": 495793500
+},
+{
+"kode": "XPY",
+"tahun": 2025,
+"bulan": 5,
+"target": 600000000,
+"sales": 346681300
+},
+{
+"kode": "XPY",
+"tahun": 2025,
+"bulan": 6,
+"target": 650000000,
+"sales": 426240500
+},
+{
+"kode": "XPY",
+"tahun": 2025,
+"bulan": 7,
+"target": 600000000,
+"sales": 502122500
+},
+{
+"kode": "XPY",
+"tahun": 2025,
+"bulan": 8,
+"target": 550000000,
+"sales": 342223500
+},
+{
+"kode": "XPY",
+"tahun": 2025,
+"bulan": 9,
+"target": 650000000,
+"sales": 351463300
+},
+{
+"kode": "XPY",
+"tahun": 2025,
+"bulan": 10,
+"target": 600000000,
+"sales": 267416600
+},
+{
+"kode": "XPY",
+"tahun": 2025,
+"bulan": 11,
+"target": 600000000,
+"sales": 431461400
+},
+{
+"kode": "XPY",
+"tahun": 2025,
+"bulan": 12,
+"target": 650000000,
+"sales": 401861100
+},
+{
+"kode": "XPY",
+"tahun": 2026,
+"bulan": 1,
+"target": 500000000,
+"sales": 410112569.5
+},
+{
+"kode": "XPY",
+"tahun": 2026,
+"bulan": 2,
+"target": 550000000,
+"sales": 547411297.5
+},
+{
+"kode": "XPY",
+"tahun": 2026,
+"bulan": 3,
+"target": 650000000,
+"sales": 682832181.1
+},
+{
+"kode": "XPY",
+"tahun": 2026,
+"bulan": 4,
+"target": 450000000,
+"sales": 435543927.99
+},
+{
+"kode": "XPY",
+"tahun": 2026,
+"bulan": 5,
+"target": 450000000,
+"sales": 495664315
+},
+{
+"kode": "XPY",
+"tahun": 2026,
+"bulan": 6,
+"target": 500000000,
+"sales": 449157405.76
+},
+{
+"kode": "XPY",
+"tahun": 2026,
+"bulan": 7,
+"target": 500000000,
+"sales": 357654876
+},
+{
+"kode": "XPY",
+"tahun": 2026,
+"bulan": 8,
+"target": 500000000,
+"sales": 325075409.7
+},
+{
+"kode": "XPY",
+"tahun": 2026,
+"bulan": 9,
+"target": 450000000,
+"sales": 299935486
+},
+{
+"kode": "XJB",
+"tahun": 2020,
+"bulan": 10,
+"target": null,
+"sales": 56206000
+},
+{
+"kode": "XJB",
+"tahun": 2020,
+"bulan": 11,
+"target": null,
+"sales": 67688500
+},
+{
+"kode": "XJB",
+"tahun": 2020,
+"bulan": 12,
+"target": null,
+"sales": 98894500
+},
+{
+"kode": "XJB",
+"tahun": 2021,
+"bulan": 1,
+"target": 100000000,
+"sales": 113479500
+},
+{
+"kode": "XJB",
+"tahun": 2021,
+"bulan": 2,
+"target": 100000000,
+"sales": 108999000
+},
+{
+"kode": "XJB",
+"tahun": 2021,
+"bulan": 3,
+"target": 120000000,
+"sales": 126726500
+},
+{
+"kode": "XJB",
+"tahun": 2021,
+"bulan": 4,
+"target": 100000000,
+"sales": 125855500
+},
+{
+"kode": "XJB",
+"tahun": 2021,
+"bulan": 5,
+"target": 100000000,
+"sales": 143196500
+},
+{
+"kode": "XJB",
+"tahun": 2021,
+"bulan": 6,
+"target": 80000000,
+"sales": 100729500
+},
+{
+"kode": "XJB",
+"tahun": 2021,
+"bulan": 7,
+"target": 100000000,
+"sales": 153106000
+},
+{
+"kode": "XJB",
+"tahun": 2021,
+"bulan": 8,
+"target": 100000000,
+"sales": 117591500
+},
+{
+"kode": "XJB",
+"tahun": 2021,
+"bulan": 9,
+"target": 100000000,
+"sales": 127338500
+},
+{
+"kode": "XJB",
+"tahun": 2021,
+"bulan": 10,
+"target": 150000000,
+"sales": 150357520
+},
+{
+"kode": "XJB",
+"tahun": 2021,
+"bulan": 11,
+"target": 100000000,
+"sales": 179251500
+},
+{
+"kode": "XJB",
+"tahun": 2021,
+"bulan": 12,
+"target": 150000000,
+"sales": 195302000
+},
+{
+"kode": "XJB",
+"tahun": 2022,
+"bulan": 1,
+"target": 260000000,
+"sales": 198600500
+},
+{
+"kode": "XJB",
+"tahun": 2022,
+"bulan": 2,
+"target": 260000000,
+"sales": 115896010
+},
+{
+"kode": "XJB",
+"tahun": 2022,
+"bulan": 3,
+"target": 300000000,
+"sales": 156303500
+},
+{
+"kode": "XJB",
+"tahun": 2022,
+"bulan": 4,
+"target": 330000000,
+"sales": 196713000
+},
+{
+"kode": "XJB",
+"tahun": 2022,
+"bulan": 5,
+"target": 400000000,
+"sales": 186778970
+},
+{
+"kode": "XJB",
+"tahun": 2022,
+"bulan": 6,
+"target": 400000000,
+"sales": 141269500
+},
+{
+"kode": "XJB",
+"tahun": 2022,
+"bulan": 7,
+"target": 300000000,
+"sales": 132541000
+},
+{
+"kode": "XJB",
+"tahun": 2022,
+"bulan": 8,
+"target": 350000000,
+"sales": 156901000
+},
+{
+"kode": "XJB",
+"tahun": 2022,
+"bulan": 9,
+"target": 350000000,
+"sales": 141661000
+},
+{
+"kode": "XJB",
+"tahun": 2022,
+"bulan": 10,
+"target": 350000000,
+"sales": 168001845
+},
+{
+"kode": "XJB",
+"tahun": 2022,
+"bulan": 11,
+"target": 350000000,
+"sales": 182814000
+},
+{
+"kode": "XJB",
+"tahun": 2022,
+"bulan": 12,
+"target": 350000000,
+"sales": 164699000
+},
+{
+"kode": "XJB",
+"tahun": 2023,
+"bulan": 1,
+"target": 200000000,
+"sales": 148628500
+},
+{
+"kode": "XJB",
+"tahun": 2023,
+"bulan": 2,
+"target": 200000000,
+"sales": 142545500
+},
+{
+"kode": "XJB",
+"tahun": 2023,
+"bulan": 3,
+"target": 250000000,
+"sales": 170829000
+},
+{
+"kode": "XJB",
+"tahun": 2023,
+"bulan": 4,
+"target": 300000000,
+"sales": 302264500
+},
+{
+"kode": "XJB",
+"tahun": 2023,
+"bulan": 5,
+"target": 250000000,
+"sales": 212472500
+},
+{
+"kode": "XJB",
+"tahun": 2023,
+"bulan": 6,
+"target": 200000000,
+"sales": 190131000
+},
+{
+"kode": "XJB",
+"tahun": 2023,
+"bulan": 7,
+"target": 200000000,
+"sales": 191848100
+},
+{
+"kode": "XJB",
+"tahun": 2023,
+"bulan": 8,
+"target": 200000000,
+"sales": 181194000
+},
+{
+"kode": "XJB",
+"tahun": 2023,
+"bulan": 9,
+"target": 200000000,
+"sales": 190259000
+},
+{
+"kode": "XJB",
+"tahun": 2023,
+"bulan": 10,
+"target": 200000000,
+"sales": 163769000
+},
+{
+"kode": "XJB",
+"tahun": 2023,
+"bulan": 11,
+"target": 200000000,
+"sales": 217017000
+},
+{
+"kode": "XJB",
+"tahun": 2023,
+"bulan": 12,
+"target": 200000000,
+"sales": 286994750
+},
+{
+"kode": "XJB",
+"tahun": 2024,
+"bulan": 1,
+"target": 300000000,
+"sales": 219191100
+},
+{
+"kode": "XJB",
+"tahun": 2024,
+"bulan": 2,
+"target": 300000000,
+"sales": 270512000
+},
+{
+"kode": "XJB",
+"tahun": 2024,
+"bulan": 3,
+"target": 350000000,
+"sales": 316934500
+},
+{
+"kode": "XJB",
+"tahun": 2024,
+"bulan": 4,
+"target": 400000000,
+"sales": 298666500
+},
+{
+"kode": "XJB",
+"tahun": 2024,
+"bulan": 5,
+"target": 300000000,
+"sales": 270804000
+},
+{
+"kode": "XJB",
+"tahun": 2024,
+"bulan": 6,
+"target": 300000000,
+"sales": 300035000
+},
+{
+"kode": "XJB",
+"tahun": 2024,
+"bulan": 7,
+"target": 400000000,
+"sales": 294274640
+},
+{
+"kode": "XJB",
+"tahun": 2024,
+"bulan": 8,
+"target": 350000000,
+"sales": 224314900
+},
+{
+"kode": "XJB",
+"tahun": 2024,
+"bulan": 9,
+"target": 350000000,
+"sales": 227823000
+},
+{
+"kode": "XJB",
+"tahun": 2024,
+"bulan": 10,
+"target": 350000000,
+"sales": 221294000
+},
+{
+"kode": "XJB",
+"tahun": 2024,
+"bulan": 11,
+"target": 350000000,
+"sales": 214123400
+},
+{
+"kode": "XJB",
+"tahun": 2024,
+"bulan": 12,
+"target": 450000000,
+"sales": 227252000
+},
+{
+"kode": "XJB",
+"tahun": 2025,
+"bulan": 1,
+"target": 350000000,
+"sales": 277020750
+},
+{
+"kode": "XJB",
+"tahun": 2025,
+"bulan": 2,
+"target": 350000000,
+"sales": 226997500
+},
+{
+"kode": "XJB",
+"tahun": 2025,
+"bulan": 3,
+"target": 450000000,
+"sales": 408507000
+},
+{
+"kode": "XJB",
+"tahun": 2025,
+"bulan": 4,
+"target": 400000000,
+"sales": 360581850
+},
+{
+"kode": "XJB",
+"tahun": 2025,
+"bulan": 5,
+"target": 400000000,
+"sales": 212208500
+},
+{
+"kode": "XJB",
+"tahun": 2025,
+"bulan": 6,
+"target": 400000000,
+"sales": 281757500
+},
+{
+"kode": "XJB",
+"tahun": 2025,
+"bulan": 7,
+"target": 400000000,
+"sales": 255529750
+},
+{
+"kode": "XJB",
+"tahun": 2025,
+"bulan": 8,
+"target": 380000000,
+"sales": 212565500
+},
+{
+"kode": "XJB",
+"tahun": 2025,
+"bulan": 9,
+"target": 390000000,
+"sales": 253855700
+},
+{
+"kode": "XJB",
+"tahun": 2025,
+"bulan": 10,
+"target": 380000000,
+"sales": 219400500
+},
+{
+"kode": "XJB",
+"tahun": 2025,
+"bulan": 11,
+"target": 400000000,
+"sales": 259719000
+},
+{
+"kode": "XJB",
+"tahun": 2025,
+"bulan": 12,
+"target": 400000000,
+"sales": 360061500
+},
+{
+"kode": "XJB",
+"tahun": 2026,
+"bulan": 1,
+"target": 300000000,
+"sales": 311605141
+},
+{
+"kode": "XJB",
+"tahun": 2026,
+"bulan": 2,
+"target": 350000000,
+"sales": 328964894.6
+},
+{
+"kode": "XJB",
+"tahun": 2026,
+"bulan": 3,
+"target": 450000000,
+"sales": 481020366.5
+},
+{
+"kode": "XJB",
+"tahun": 2026,
+"bulan": 4,
+"target": 300000000,
+"sales": 381329130
+},
+{
+"kode": "XJB",
+"tahun": 2026,
+"bulan": 5,
+"target": 300000000,
+"sales": 316562500
+},
+{
+"kode": "XJB",
+"tahun": 2026,
+"bulan": 6,
+"target": 350000000,
+"sales": 352099444.1
+},
+{
+"kode": "XJB",
+"tahun": 2026,
+"bulan": 7,
+"target": 400000000,
+"sales": 287101921
+},
+{
+"kode": "XJB",
+"tahun": 2026,
+"bulan": 8,
+"target": 300000000,
+"sales": 293303626.96
+},
+{
+"kode": "XJB",
+"tahun": 2026,
+"bulan": 9,
+"target": 300000000,
+"sales": 293845550
+},
+{
+"kode": "XCW",
+"tahun": 2022,
+"bulan": 2,
+"target": 700000000,
+"sales": 276128900
+},
+{
+"kode": "XCW",
+"tahun": 2022,
+"bulan": 3,
+"target": 1550000000,
+"sales": 857288300
+},
+{
+"kode": "XCW",
+"tahun": 2022,
+"bulan": 4,
+"target": 3500000000,
+"sales": 2417011000
+},
+{
+"kode": "XCW",
+"tahun": 2022,
+"bulan": 5,
+"target": 1750000000,
+"sales": 544494000
+},
+{
+"kode": "XCW",
+"tahun": 2022,
+"bulan": 6,
+"target": 942000000,
+"sales": 431037500
+},
+{
+"kode": "XCW",
+"tahun": 2022,
+"bulan": 7,
+"target": 1100000000,
+"sales": 568546500
+},
+{
+"kode": "XCW",
+"tahun": 2022,
+"bulan": 8,
+"target": 1100000000,
+"sales": 374910655
+},
+{
+"kode": "XCW",
+"tahun": 2022,
+"bulan": 9,
+"target": 950000000,
+"sales": 365199346
+},
+{
+"kode": "XCW",
+"tahun": 2022,
+"bulan": 10,
+"target": 1250000000,
+"sales": 489410226
+},
+{
+"kode": "XCW",
+"tahun": 2022,
+"bulan": 11,
+"target": 1100000000,
+"sales": 544990113
+},
+{
+"kode": "XCW",
+"tahun": 2022,
+"bulan": 12,
+"target": 1650000000,
+"sales": 1096544285
+},
+{
+"kode": "XCW",
+"tahun": 2023,
+"bulan": 1,
+"target": 800000000,
+"sales": 555778500
+},
+{
+"kode": "XCW",
+"tahun": 2023,
+"bulan": 2,
+"target": 750000000,
+"sales": 712613900
+},
+{
+"kode": "XCW",
+"tahun": 2023,
+"bulan": 3,
+"target": 1500000000,
+"sales": 1129454900
+},
+{
+"kode": "XCW",
+"tahun": 2023,
+"bulan": 4,
+"target": 2700000000,
+"sales": 3036835900
+},
+{
+"kode": "XCW",
+"tahun": 2023,
+"bulan": 5,
+"target": 800000000,
+"sales": 576716000
+},
+{
+"kode": "XCW",
+"tahun": 2023,
+"bulan": 6,
+"target": 800000000,
+"sales": 859783200
+},
+{
+"kode": "XCW",
+"tahun": 2023,
+"bulan": 7,
+"target": 900000000,
+"sales": 886886000
+},
+{
+"kode": "XCW",
+"tahun": 2023,
+"bulan": 8,
+"target": 800000000,
+"sales": 569009000
+},
+{
+"kode": "XCW",
+"tahun": 2023,
+"bulan": 9,
+"target": 850000000,
+"sales": 522503400
+},
+{
+"kode": "XCW",
+"tahun": 2023,
+"bulan": 10,
+"target": 900000000,
+"sales": 557061500
+},
+{
+"kode": "XCW",
+"tahun": 2023,
+"bulan": 11,
+"target": 900000000,
+"sales": 595202500
+},
+{
+"kode": "XCW",
+"tahun": 2023,
+"bulan": 12,
+"target": 1000000000,
+"sales": 770443800
+},
+{
+"kode": "XCW",
+"tahun": 2024,
+"bulan": 1,
+"target": 1100000000,
+"sales": 692358500
+},
+{
+"kode": "XCW",
+"tahun": 2024,
+"bulan": 2,
+"target": 1300000000,
+"sales": 1064378720
+},
+{
+"kode": "XCW",
+"tahun": 2024,
+"bulan": 3,
+"target": 3500000000,
+"sales": 2466816350
+},
+{
+"kode": "XCW",
+"tahun": 2024,
+"bulan": 4,
+"target": 3100000000,
+"sales": 2396583500
+},
+{
+"kode": "XCW",
+"tahun": 2024,
+"bulan": 5,
+"target": 1200000000,
+"sales": 650544500
+},
+{
+"kode": "XCW",
+"tahun": 2024,
+"bulan": 6,
+"target": 1300000000,
+"sales": 1091191900
+},
+{
+"kode": "XCW",
+"tahun": 2024,
+"bulan": 7,
+"target": 1500000000,
+"sales": 933763350
+},
+{
+"kode": "XCW",
+"tahun": 2024,
+"bulan": 8,
+"target": 1200000000,
+"sales": 693029819
+},
+{
+"kode": "XCW",
+"tahun": 2024,
+"bulan": 9,
+"target": 1200000000,
+"sales": 601788953
+},
+{
+"kode": "XCW",
+"tahun": 2024,
+"bulan": 10,
+"target": 1200000000,
+"sales": 677740884
+},
+{
+"kode": "XCW",
+"tahun": 2024,
+"bulan": 11,
+"target": 1200000000,
+"sales": 654548430
+},
+{
+"kode": "XCW",
+"tahun": 2024,
+"bulan": 12,
+"target": 1500000000,
+"sales": 880938962
+},
+{
+"kode": "XCW",
+"tahun": 2025,
+"bulan": 1,
+"target": 1100000000,
+"sales": 802441374
+},
+{
+"kode": "XCW",
+"tahun": 2025,
+"bulan": 2,
+"target": 1300000000,
+"sales": 1341107645
+},
+{
+"kode": "XCW",
+"tahun": 2025,
+"bulan": 3,
+"target": 4500000000,
+"sales": 5097342496
+},
+{
+"kode": "XCW",
+"tahun": 2025,
+"bulan": 4,
+"target": 1100000000,
+"sales": 660525721
+},
+{
+"kode": "XCW",
+"tahun": 2025,
+"bulan": 5,
+"target": 1500000000,
+"sales": 594553681
+},
+{
+"kode": "XCW",
+"tahun": 2025,
+"bulan": 6,
+"target": 1800000000,
+"sales": 1085098196
+},
+{
+"kode": "XCW",
+"tahun": 2025,
+"bulan": 7,
+"target": 1700000000,
+"sales": 1004455650
+},
+{
+"kode": "XCW",
+"tahun": 2025,
+"bulan": 8,
+"target": 1400000000,
+"sales": 675147256
+},
+{
+"kode": "XCW",
+"tahun": 2025,
+"bulan": 9,
+"target": 1200000000,
+"sales": 716714545
+},
+{
+"kode": "XCW",
+"tahun": 2025,
+"bulan": 10,
+"target": 1200000000,
+"sales": 706015348
+},
+{
+"kode": "XCW",
+"tahun": 2025,
+"bulan": 11,
+"target": 1200000000,
+"sales": 806509435
+},
+{
+"kode": "XCW",
+"tahun": 2025,
+"bulan": 12,
+"target": 1500000000,
+"sales": 934643188
+},
+{
+"kode": "XCW",
+"tahun": 2026,
+"bulan": 1,
+"target": 1100000000,
+"sales": 1118651130
+},
+{
+"kode": "XCW",
+"tahun": 2026,
+"bulan": 2,
+"target": 2500000000,
+"sales": 2316046615.8
+},
+{
+"kode": "XCW",
+"tahun": 2026,
+"bulan": 3,
+"target": 4500000000,
+"sales": 4725662615.34
+},
+{
+"kode": "XCW",
+"tahun": 2026,
+"bulan": 4,
+"target": 800000000,
+"sales": 616809402.52
+},
+{
+"kode": "XCW",
+"tahun": 2026,
+"bulan": 5,
+"target": 800000000,
+"sales": 754765248
+},
+{
+"kode": "XCW",
+"tahun": 2026,
+"bulan": 6,
+"target": 1200000000,
+"sales": 1138528604.55
+},
+{
+"kode": "XCW",
+"tahun": 2026,
+"bulan": 7,
+"target": 1200000000,
+"sales": 1098671243
+},
+{
+"kode": "XCW",
+"tahun": 2026,
+"bulan": 8,
+"target": 900000000,
+"sales": 841127584.97
+},
+{
+"kode": "XCW",
+"tahun": 2026,
+"bulan": 9,
+"target": 800000000,
+"sales": 674803530
+},
+{
+"kode": "OCW",
+"tahun": 2023,
+"bulan": 1,
+"target": 350000000,
+"sales": 207113919
+},
+{
+"kode": "OCW",
+"tahun": 2023,
+"bulan": 2,
+"target": 300000000,
+"sales": 68225445
+},
+{
+"kode": "OCW",
+"tahun": 2023,
+"bulan": 3,
+"target": 400000000,
+"sales": 158930166
+},
+{
+"kode": "OCW",
+"tahun": 2023,
+"bulan": 4,
+"target": 600000000,
+"sales": 137547896
+},
+{
+"kode": "OCW",
+"tahun": 2023,
+"bulan": 5,
+"target": 400000000,
+"sales": 205822251
+},
+{
+"kode": "OCW",
+"tahun": 2023,
+"bulan": 6,
+"target": 400000000,
+"sales": 268627781
+},
+{
+"kode": "OCW",
+"tahun": 2023,
+"bulan": 7,
+"target": 400000000,
+"sales": 200578478
+},
+{
+"kode": "OCW",
+"tahun": 2023,
+"bulan": 8,
+"target": 300000000,
+"sales": 80283553
+},
+{
+"kode": "OCW",
+"tahun": 2023,
+"bulan": 9,
+"target": 350000000,
+"sales": 43460266
+},
+{
+"kode": "OCW",
+"tahun": 2023,
+"bulan": 10,
+"target": 300000000,
+"sales": 25819976
+},
+{
+"kode": "OCW",
+"tahun": 2023,
+"bulan": 11,
+"target": 200000000,
+"sales": 38302340
+},
+{
+"kode": "OCW",
+"tahun": 2023,
+"bulan": 12,
+"target": 150000000,
+"sales": 80967981
+},
+{
+"kode": "OCW",
+"tahun": 2024,
+"bulan": 1,
+"target": 150000000,
+"sales": 79217335
+},
+{
+"kode": "OCW",
+"tahun": 2024,
+"bulan": 2,
+"target": 150000000,
+"sales": 76195531
+},
+{
+"kode": "OCW",
+"tahun": 2024,
+"bulan": 3,
+"target": 200000000,
+"sales": 122295201
+},
+{
+"kode": "OCW",
+"tahun": 2024,
+"bulan": 4,
+"target": 250000000,
+"sales": 50943707
+},
+{
+"kode": "OCW",
+"tahun": 2024,
+"bulan": 5,
+"target": 150000000,
+"sales": 100058711
+},
+{
+"kode": "OCW",
+"tahun": 2024,
+"bulan": 6,
+"target": 150000000,
+"sales": 104016188
+},
+{
+"kode": "OCW",
+"tahun": 2024,
+"bulan": 7,
+"target": 150000000,
+"sales": 163262495
+},
+{
+"kode": "OCW",
+"tahun": 2024,
+"bulan": 8,
+"target": 150000000,
+"sales": 347513845
+},
+{
+"kode": "OCW",
+"tahun": 2024,
+"bulan": 9,
+"target": 150000000,
+"sales": 361700566
+},
+{
+"kode": "OCW",
+"tahun": 2024,
+"bulan": 10,
+"target": 150000000,
+"sales": 150656553
+},
+{
+"kode": "OCW",
+"tahun": 2024,
+"bulan": 11,
+"target": 150000000,
+"sales": 46038335
+},
+{
+"kode": "OCW",
+"tahun": 2024,
+"bulan": 12,
+"target": 200000000,
+"sales": 43557608
+},
+{
+"kode": "OCW",
+"tahun": 2025,
+"bulan": 1,
+"target": 130000000,
+"sales": 64464589
+},
+{
+"kode": "OCW",
+"tahun": 2025,
+"bulan": 2,
+"target": 130000000,
+"sales": 102390551
+},
+{
+"kode": "OCW",
+"tahun": 2025,
+"bulan": 3,
+"target": 180000000,
+"sales": 123973711
+},
+{
+"kode": "OCW",
+"tahun": 2025,
+"bulan": 4,
+"target": 130000000,
+"sales": 91064530
+},
+{
+"kode": "OCW",
+"tahun": 2025,
+"bulan": 5,
+"target": 150000000,
+"sales": 103270032
+},
+{
+"kode": "OCW",
+"tahun": 2025,
+"bulan": 6,
+"target": 150000000,
+"sales": 119411118
+},
+{
+"kode": "OCW",
+"tahun": 2025,
+"bulan": 7,
+"target": 150000000,
+"sales": 170426564
+},
+{
+"kode": "OCW",
+"tahun": 2025,
+"bulan": 8,
+"target": 150000000,
+"sales": 236651436
+},
+{
+"kode": "OCW",
+"tahun": 2025,
+"bulan": 9,
+"target": 150000000,
+"sales": 226571916
+},
+{
+"kode": "OCW",
+"tahun": 2025,
+"bulan": 10,
+"target": 150000000,
+"sales": 230257610
+},
+{
+"kode": "OCW",
+"tahun": 2025,
+"bulan": 11,
+"target": 150000000,
+"sales": 197538109
+},
+{
+"kode": "OCW",
+"tahun": 2025,
+"bulan": 12,
+"target": 180000000,
+"sales": 170985473
+},
+{
+"kode": "OCW",
+"tahun": 2026,
+"bulan": 1,
+"target": 250000000,
+"sales": 272036580
+},
+{
+"kode": "OCW",
+"tahun": 2026,
+"bulan": 2,
+"target": 250000000,
+"sales": 412851102
+},
+{
+"kode": "OCW",
+"tahun": 2026,
+"bulan": 3,
+"target": 250000000,
+"sales": 391137159
+},
+{
+"kode": "OCW",
+"tahun": 2026,
+"bulan": 4,
+"target": 200000000,
+"sales": 208753611
+},
+{
+"kode": "OCW",
+"tahun": 2026,
+"bulan": 5,
+"target": 200000000,
+"sales": 347120100
+},
+{
+"kode": "OCW",
+"tahun": 2026,
+"bulan": 6,
+"target": 200000000,
+"sales": 315476303
+},
+{
+"kode": "OCW",
+"tahun": 2026,
+"bulan": 7,
+"target": 250000000,
+"sales": 570552482
+},
+{
+"kode": "OCW",
+"tahun": 2026,
+"bulan": 8,
+"target": 250000000,
+"sales": 251947672.5
+},
+{
+"kode": "OCW",
+"tahun": 2026,
+"bulan": 9,
+"target": 250000000,
+"sales": 168485975
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2023,
+"bulan": 1,
+"target": 1150000000,
+"sales": 762892419
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2023,
+"bulan": 2,
+"target": 1050000000,
+"sales": 780839345
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2023,
+"bulan": 3,
+"target": 1900000000,
+"sales": 1288385066
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2023,
+"bulan": 4,
+"target": 3300000000,
+"sales": 3174383796
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2023,
+"bulan": 5,
+"target": 1200000000,
+"sales": 782538251
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2023,
+"bulan": 6,
+"target": 1200000000,
+"sales": 1128410981
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2023,
+"bulan": 7,
+"target": 1300000000,
+"sales": 1087464478
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2023,
+"bulan": 8,
+"target": 1200000000,
+"sales": 649292553
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2023,
+"bulan": 9,
+"target": 1200000000,
+"sales": 565963666
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2023,
+"bulan": 10,
+"target": 1200000000,
+"sales": 582881476
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2023,
+"bulan": 11,
+"target": 1100000000,
+"sales": 633504840
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2023,
+"bulan": 12,
+"target": 1150000000,
+"sales": 851411781
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2024,
+"bulan": 1,
+"target": 1250000000,
+"sales": 771575835
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2024,
+"bulan": 2,
+"target": 1450000000,
+"sales": 1140574251
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2024,
+"bulan": 3,
+"target": 3700000000,
+"sales": 2589111551
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2024,
+"bulan": 4,
+"target": 3350000000,
+"sales": 2447527207
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2024,
+"bulan": 5,
+"target": 1350000000,
+"sales": 750603211
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2024,
+"bulan": 6,
+"target": 1450000000,
+"sales": 1195208088
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2024,
+"bulan": 7,
+"target": 1650000000,
+"sales": 1097025845
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2024,
+"bulan": 8,
+"target": 1350000000,
+"sales": 1040543664
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2024,
+"bulan": 9,
+"target": 1350000000,
+"sales": 963489519
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2024,
+"bulan": 10,
+"target": 1350000000,
+"sales": 828397437
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2024,
+"bulan": 11,
+"target": 1350000000,
+"sales": 700586765
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2024,
+"bulan": 12,
+"target": 1700000000,
+"sales": 924496570
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2025,
+"bulan": 1,
+"target": 1230000000,
+"sales": 866905963
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2025,
+"bulan": 2,
+"target": 1430000000,
+"sales": 1443498196
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2025,
+"bulan": 3,
+"target": 4680000000,
+"sales": 5221316207
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2025,
+"bulan": 4,
+"target": 1230000000,
+"sales": 751590251
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2025,
+"bulan": 5,
+"target": 1650000000,
+"sales": 697823713
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2025,
+"bulan": 6,
+"target": 1950000000,
+"sales": 1204509314
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2025,
+"bulan": 7,
+"target": 1850000000,
+"sales": 1174882214
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2025,
+"bulan": 8,
+"target": 1550000000,
+"sales": 911798692
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2025,
+"bulan": 9,
+"target": 1350000000,
+"sales": 943286461
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2025,
+"bulan": 10,
+"target": 1350000000,
+"sales": 936272958
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2025,
+"bulan": 11,
+"target": 1350000000,
+"sales": 1004047544
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2025,
+"bulan": 12,
+"target": 1680000000,
+"sales": 1105628661
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2026,
+"bulan": 1,
+"target": 1350000000,
+"sales": 1390687710
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2026,
+"bulan": 2,
+"target": 2750000000,
+"sales": 2728897717.8
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2026,
+"bulan": 3,
+"target": 4750000000,
+"sales": 5116799774.34
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2026,
+"bulan": 4,
+"target": 1000000000,
+"sales": 825563013.52
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2026,
+"bulan": 5,
+"target": 1000000000,
+"sales": 1101885348
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2026,
+"bulan": 6,
+"target": 1400000000,
+"sales": 1454004907.55
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2026,
+"bulan": 7,
+"target": 1450000000,
+"sales": 1669223725
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2026,
+"bulan": 8,
+"target": 1150000000,
+"sales": 1093075257.47
+},
+{
+"kode": "CIAWI ALL",
+"tahun": 2026,
+"bulan": 9,
+"target": 1050000000,
+"sales": 843289505
+},
+{
+"kode": "XSP",
+"tahun": 2019,
+"bulan": 9,
+"target": 150000000,
+"sales": 111176000
+},
+{
+"kode": "XSP",
+"tahun": 2019,
+"bulan": 10,
+"target": 100000000,
+"sales": 83506500
+},
+{
+"kode": "XSP",
+"tahun": 2019,
+"bulan": 11,
+"target": 100000000,
+"sales": 68484000
+},
+{
+"kode": "XSP",
+"tahun": 2019,
+"bulan": 12,
+"target": 100000000,
+"sales": 94053000
+},
+{
+"kode": "XSP",
+"tahun": 2020,
+"bulan": 7,
+"target": 300000000,
+"sales": 101395000
+},
+{
+"kode": "XSP",
+"tahun": 2020,
+"bulan": 8,
+"target": 300000000,
+"sales": 183128500
+},
+{
+"kode": "XSP",
+"tahun": 2020,
+"bulan": 9,
+"target": 300000000,
+"sales": 180585000
+},
+{
+"kode": "XSP",
+"tahun": 2020,
+"bulan": 10,
+"target": 300000000,
+"sales": 115912500
+},
+{
+"kode": "XSP",
+"tahun": 2020,
+"bulan": 11,
+"target": 300000000,
+"sales": 207200000
+},
+{
+"kode": "XSP",
+"tahun": 2020,
+"bulan": 12,
+"target": 400000000,
+"sales": 251360900
+},
+{
+"kode": "XSP",
+"tahun": 2021,
+"bulan": 1,
+"target": null,
+"sales": 236801000
+},
+{
+"kode": "XSP",
+"tahun": 2021,
+"bulan": 2,
+"target": 300000000,
+"sales": 209868500
+},
+{
+"kode": "XSP",
+"tahun": 2021,
+"bulan": 3,
+"target": 350000000,
+"sales": 341281500
+},
+{
+"kode": "XSP",
+"tahun": 2021,
+"bulan": 4,
+"target": 390000000,
+"sales": 706067000
+},
+{
+"kode": "XSP",
+"tahun": 2021,
+"bulan": 5,
+"target": 600000000,
+"sales": 1141207000
+},
+{
+"kode": "XSP",
+"tahun": 2021,
+"bulan": 6,
+"target": 500000000,
+"sales": 192154000
+},
+{
+"kode": "XSP",
+"tahun": 2021,
+"bulan": 7,
+"target": 505000000,
+"sales": 201664000
+},
+{
+"kode": "XSP",
+"tahun": 2021,
+"bulan": 8,
+"target": 250000000,
+"sales": 226631000
+},
+{
+"kode": "XSP",
+"tahun": 2021,
+"bulan": 9,
+"target": 250000000,
+"sales": 183695000
+},
+{
+"kode": "XSP",
+"tahun": 2021,
+"bulan": 10,
+"target": 250000000,
+"sales": 250317000
+},
+{
+"kode": "XSP",
+"tahun": 2021,
+"bulan": 11,
+"target": 250000000,
+"sales": 234556500
+},
+{
+"kode": "XSP",
+"tahun": 2021,
+"bulan": 12,
+"target": 400000000,
+"sales": 305813000
+},
+{
+"kode": "XSP",
+"tahun": 2022,
+"bulan": 1,
+"target": 500000000,
+"sales": 298075900
+},
+{
+"kode": "XSP",
+"tahun": 2022,
+"bulan": 2,
+"target": 425000000,
+"sales": 219258000
+},
+{
+"kode": "XSP",
+"tahun": 2022,
+"bulan": 3,
+"target": 650000000,
+"sales": 402454500
+},
+{
+"kode": "XSP",
+"tahun": 2022,
+"bulan": 4,
+"target": 3000000000,
+"sales": 1269803000
+},
+{
+"kode": "XSP",
+"tahun": 2022,
+"bulan": 5,
+"target": 750000000,
+"sales": 294684000
+},
+{
+"kode": "XSP",
+"tahun": 2022,
+"bulan": 6,
+"target": 550000000,
+"sales": 273403000
+},
+{
+"kode": "XSP",
+"tahun": 2022,
+"bulan": 7,
+"target": 500000000,
+"sales": 363486500
+},
+{
+"kode": "XSP",
+"tahun": 2022,
+"bulan": 8,
+"target": 500000000,
+"sales": 256491800
+},
+{
+"kode": "XSP",
+"tahun": 2022,
+"bulan": 9,
+"target": 450000000,
+"sales": 245462000
+},
+{
+"kode": "XSP",
+"tahun": 2022,
+"bulan": 10,
+"target": 400000000,
+"sales": 277312500
+},
+{
+"kode": "XSP",
+"tahun": 2022,
+"bulan": 11,
+"target": 350000000,
+"sales": 254498500
+},
+{
+"kode": "XSP",
+"tahun": 2022,
+"bulan": 12,
+"target": 400000000,
+"sales": 356319500
+},
+{
+"kode": "XSP",
+"tahun": 2023,
+"bulan": 1,
+"target": 350000000,
+"sales": 314514000
+},
+{
+"kode": "XSP",
+"tahun": 2023,
+"bulan": 2,
+"target": 300000000,
+"sales": 269205500
+},
+{
+"kode": "XSP",
+"tahun": 2023,
+"bulan": 3,
+"target": 800000000,
+"sales": 438510500
+},
+{
+"kode": "XSP",
+"tahun": 2023,
+"bulan": 4,
+"target": 1500000000,
+"sales": 1800941500
+},
+{
+"kode": "XSP",
+"tahun": 2023,
+"bulan": 5,
+"target": 350000000,
+"sales": 230310000
+},
+{
+"kode": "XSP",
+"tahun": 2023,
+"bulan": 6,
+"target": 400000000,
+"sales": 304056000
+},
+{
+"kode": "XSP",
+"tahun": 2023,
+"bulan": 7,
+"target": 460000000,
+"sales": 344682000
+},
+{
+"kode": "XSP",
+"tahun": 2023,
+"bulan": 8,
+"target": 425000000,
+"sales": 230856000
+},
+{
+"kode": "XSP",
+"tahun": 2023,
+"bulan": 9,
+"target": 390000000,
+"sales": 227418000
+},
+{
+"kode": "XSP",
+"tahun": 2023,
+"bulan": 10,
+"target": 450000000,
+"sales": 244856000
+},
+{
+"kode": "XSP",
+"tahun": 2023,
+"bulan": 11,
+"target": 435000000,
+"sales": 282266000
+},
+{
+"kode": "XSP",
+"tahun": 2023,
+"bulan": 12,
+"target": 650000000,
+"sales": 380936500
+},
+{
+"kode": "XSP",
+"tahun": 2024,
+"bulan": 1,
+"target": 450000000,
+"sales": 348121000
+},
+{
+"kode": "XSP",
+"tahun": 2024,
+"bulan": 2,
+"target": 700000000,
+"sales": 353697000
+},
+{
+"kode": "XSP",
+"tahun": 2024,
+"bulan": 3,
+"target": 1800000000,
+"sales": 1353117900
+},
+{
+"kode": "XSP",
+"tahun": 2024,
+"bulan": 4,
+"target": 1700000000,
+"sales": 1415513000
+},
+{
+"kode": "XSP",
+"tahun": 2024,
+"bulan": 5,
+"target": 700000000,
+"sales": 305495650
+},
+{
+"kode": "XSP",
+"tahun": 2024,
+"bulan": 6,
+"target": 750000000,
+"sales": 430039400
+},
+{
+"kode": "XSP",
+"tahun": 2024,
+"bulan": 7,
+"target": 600000000,
+"sales": 461237770
+},
+{
+"kode": "XSP",
+"tahun": 2024,
+"bulan": 8,
+"target": 500000000,
+"sales": 344747473
+},
+{
+"kode": "XSP",
+"tahun": 2024,
+"bulan": 9,
+"target": 550000000,
+"sales": 299443310
+},
+{
+"kode": "XSP",
+"tahun": 2024,
+"bulan": 10,
+"target": 600000000,
+"sales": 286501059
+},
+{
+"kode": "XSP",
+"tahun": 2024,
+"bulan": 11,
+"target": 600000000,
+"sales": 293717170
+},
+{
+"kode": "XSP",
+"tahun": 2024,
+"bulan": 12,
+"target": 750000000,
+"sales": 358705210
+},
+{
+"kode": "XSP",
+"tahun": 2025,
+"bulan": 1,
+"target": 450000000,
+"sales": 356396920
+},
+{
+"kode": "XSP",
+"tahun": 2025,
+"bulan": 2,
+"target": 550000000,
+"sales": 461780580
+},
+{
+"kode": "XSP",
+"tahun": 2025,
+"bulan": 3,
+"target": 3000000000,
+"sales": 2895520210
+},
+{
+"kode": "XSP",
+"tahun": 2025,
+"bulan": 4,
+"target": 400000000,
+"sales": 400123900
+},
+{
+"kode": "XSP",
+"tahun": 2025,
+"bulan": 5,
+"target": 500000000,
+"sales": 302364300
+},
+{
+"kode": "XSP",
+"tahun": 2025,
+"bulan": 6,
+"target": 650000000,
+"sales": 471290900
+},
+{
+"kode": "XSP",
+"tahun": 2025,
+"bulan": 7,
+"target": 600000000,
+"sales": 571999996
+},
+{
+"kode": "XSP",
+"tahun": 2025,
+"bulan": 8,
+"target": 450000000,
+"sales": 388314020
+},
+{
+"kode": "XSP",
+"tahun": 2025,
+"bulan": 9,
+"target": 450000000,
+"sales": 377107355
+},
+{
+"kode": "XSP",
+"tahun": 2025,
+"bulan": 10,
+"target": 450000000,
+"sales": 433357600
+},
+{
+"kode": "XSP",
+"tahun": 2025,
+"bulan": 11,
+"target": 450000000,
+"sales": 448048600
+},
+{
+"kode": "XSP",
+"tahun": 2025,
+"bulan": 12,
+"target": 550000000,
+"sales": 453643200
+},
+{
+"kode": "XSP",
+"tahun": 2026,
+"bulan": 1,
+"target": 500000000,
+"sales": 499868841.17
+},
+{
+"kode": "XSP",
+"tahun": 2026,
+"bulan": 2,
+"target": 950000000,
+"sales": 1142093989.1
+},
+{
+"kode": "XSP",
+"tahun": 2026,
+"bulan": 3,
+"target": 2700000000,
+"sales": 4918975614.73
+},
+{
+"kode": "XSP",
+"tahun": 2026,
+"bulan": 4,
+"target": 400000000,
+"sales": 467295875
+},
+{
+"kode": "XSP",
+"tahun": 2026,
+"bulan": 5,
+"target": 450000000,
+"sales": 440375771
+},
+{
+"kode": "XSP",
+"tahun": 2026,
+"bulan": 6,
+"target": 550000000,
+"sales": 760020637.65
+},
+{
+"kode": "XSP",
+"tahun": 2026,
+"bulan": 7,
+"target": 650000000,
+"sales": 740899136
+},
+{
+"kode": "XSP",
+"tahun": 2026,
+"bulan": 8,
+"target": 550000000,
+"sales": 563428705.8
+},
+{
+"kode": "XSP",
+"tahun": 2026,
+"bulan": 9,
+"target": 550000000,
+"sales": 416423077
+},
+{
+"kode": "OSP",
+"tahun": 2026,
+"bulan": 8,
+"target": 25000000,
+"sales": 2383382
+},
+{
+"kode": "OSP",
+"tahun": 2026,
+"bulan": 9,
+"target": 25000000,
+"sales": 1051693
+},
+{
+"kode": "HCW",
+"tahun": 2026,
+"bulan": 6,
+"target": 300000000,
+"sales": 260194147.92
+},
+{
+"kode": "HCW",
+"tahun": 2026,
+"bulan": 7,
+"target": 350000000,
+"sales": 235332371
+},
+{
+"kode": "HCW",
+"tahun": 2026,
+"bulan": 8,
+"target": 400000000,
+"sales": 182797639.9
+},
+{
+"kode": "HCW",
+"tahun": 2026,
+"bulan": 9,
+"target": 400000000,
+"sales": 228039805
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2022,
+"bulan": 1,
+"target": 4660000000,
+"sales": 3909308019
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2022,
+"bulan": 2,
+"target": 4735000000,
+"sales": 3375754955
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2022,
+"bulan": 3,
+"target": 7100000000,
+"sales": 5571480866
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2022,
+"bulan": 4,
+"target": 17280000000,
+"sales": 12600398696
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2022,
+"bulan": 5,
+"target": 6950000000,
+"sales": 3929410521
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2022,
+"bulan": 6,
+"target": 5592000000,
+"sales": 3992177581
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2022,
+"bulan": 7,
+"target": 5700000000,
+"sales": 4733126578
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2022,
+"bulan": 8,
+"target": 5900000000,
+"sales": 3389890108
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2022,
+"bulan": 9,
+"target": 5220000000,
+"sales": 3262392112
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2022,
+"bulan": 10,
+"target": 5900000000,
+"sales": 3668952287
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2022,
+"bulan": 11,
+"target": 5350000000,
+"sales": 3713886350
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2022,
+"bulan": 12,
+"target": 6650000000,
+"sales": 5176838516
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2023,
+"bulan": 1,
+"target": 5250000000,
+"sales": 4278912519
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2023,
+"bulan": 2,
+"target": 4700000000,
+"sales": 3820453545
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2023,
+"bulan": 3,
+"target": 8650000000,
+"sales": 6880814566
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2023,
+"bulan": 4,
+"target": 12100000000,
+"sales": 14240132896
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2023,
+"bulan": 5,
+"target": 5200000000,
+"sales": 3727861351
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2023,
+"bulan": 6,
+"target": 5100000000,
+"sales": 5003095381
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2023,
+"bulan": 7,
+"target": 5810000000,
+"sales": 5418960128
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2023,
+"bulan": 8,
+"target": 5225000000,
+"sales": 3677431603
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2023,
+"bulan": 9,
+"target": 5140000000,
+"sales": 3330435016
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2023,
+"bulan": 10,
+"target": 5350000000,
+"sales": 3540999976
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2023,
+"bulan": 11,
+"target": 5135000000,
+"sales": 3949815790
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2023,
+"bulan": 12,
+"target": 5900000000,
+"sales": 4840658681
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2024,
+"bulan": 1,
+"target": 5800000000,
+"sales": 4537777035
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2024,
+"bulan": 2,
+"target": 6350000000,
+"sales": 5459737011
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2024,
+"bulan": 3,
+"target": 14750000000,
+"sales": 12631140652
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2024,
+"bulan": 4,
+"target": 13050000000,
+"sales": 11120955715
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2024,
+"bulan": 5,
+"target": 6300000000,
+"sales": 4037128861
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2024,
+"bulan": 6,
+"target": 6650000000,
+"sales": 5834811898
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2024,
+"bulan": 7,
+"target": 7600000000,
+"sales": 5328438660
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2024,
+"bulan": 8,
+"target": 6400000000,
+"sales": 4140973888
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2024,
+"bulan": 9,
+"target": 6200000000,
+"sales": 3868477928
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2024,
+"bulan": 10,
+"target": 6500000000,
+"sales": 3766952721
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2024,
+"bulan": 11,
+"target": 6600000000,
+"sales": 3581707875
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2024,
+"bulan": 12,
+"target": 7850000000,
+"sales": 4641825530
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2025,
+"bulan": 1,
+"target": 6430000000,
+"sales": 4562726433
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2025,
+"bulan": 2,
+"target": 7130000000,
+"sales": 6197758776
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2025,
+"bulan": 3,
+"target": 21630000000,
+"sales": 20045240317
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2025,
+"bulan": 4,
+"target": 6130000000,
+"sales": 3999671516
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2025,
+"bulan": 5,
+"target": 6450000000,
+"sales": 3393123559
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2025,
+"bulan": 6,
+"target": 7550000000,
+"sales": 5498920964
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2025,
+"bulan": 7,
+"target": 7200000000,
+"sales": 5686358114
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2025,
+"bulan": 8,
+"target": 6280000000,
+"sales": 3763478846
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2025,
+"bulan": 9,
+"target": 5990000000,
+"sales": 3865539273
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2025,
+"bulan": 10,
+"target": 6030000000,
+"sales": 3839739048
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2025,
+"bulan": 11,
+"target": 6100000000,
+"sales": 4626712566
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2025,
+"bulan": 12,
+"target": 7130000000,
+"sales": 5071318253
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2026,
+"bulan": 1,
+"target": 5800000000,
+"sales": 5917136934.21
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2026,
+"bulan": 2,
+"target": 9750000000,
+"sales": 10060464853.54
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2026,
+"bulan": 3,
+"target": 18850000000,
+"sales": 21700660203.65
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2026,
+"bulan": 4,
+"target": 5150000000,
+"sales": 3945454022.24
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2026,
+"bulan": 5,
+"target": 5200000000,
+"sales": 4663520035
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2026,
+"bulan": 6,
+"target": 6500000000,
+"sales": 6971159893.67
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2026,
+"bulan": 7,
+"target": 6600000000,
+"sales": 6671550952
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2026,
+"bulan": 8,
+"target": 5900000000,
+"sales": 5056493935.54
+},
+{
+"kode": "DEPT.FHS",
+"tahun": 2026,
+"bulan": 9,
+"target": 5600000000,
+"sales": 3964475691
+},
+{
+"kode": "XSM",
+"tahun": 2019,
+"bulan": 2,
+"target": null,
+"sales": 96720238
+},
+{
+"kode": "XSM",
+"tahun": 2019,
+"bulan": 3,
+"target": null,
+"sales": 430434512
+},
+{
+"kode": "XSM",
+"tahun": 2019,
+"bulan": 4,
+"target": null,
+"sales": 419015386
+},
+{
+"kode": "XSM",
+"tahun": 2019,
+"bulan": 5,
+"target": null,
+"sales": 564244501
+},
+{
+"kode": "XSM",
+"tahun": 2019,
+"bulan": 6,
+"target": null,
+"sales": 468115195
+},
+{
+"kode": "XSM",
+"tahun": 2019,
+"bulan": 7,
+"target": null,
+"sales": 307777702
+},
+{
+"kode": "XSM",
+"tahun": 2019,
+"bulan": 8,
+"target": null,
+"sales": 297430363
+},
+{
+"kode": "XSM",
+"tahun": 2019,
+"bulan": 9,
+"target": null,
+"sales": 285330934
+},
+{
+"kode": "XSM",
+"tahun": 2019,
+"bulan": 10,
+"target": null,
+"sales": 253995415
+},
+{
+"kode": "XSM",
+"tahun": 2019,
+"bulan": 11,
+"target": null,
+"sales": 226634180
+},
+{
+"kode": "XSM",
+"tahun": 2019,
+"bulan": 12,
+"target": null,
+"sales": 226067251
+},
+{
+"kode": "XSM",
+"tahun": 2020,
+"bulan": 1,
+"target": null,
+"sales": 187438267
+},
+{
+"kode": "XSM",
+"tahun": 2020,
+"bulan": 2,
+"target": null,
+"sales": 174974469
+},
+{
+"kode": "XSM",
+"tahun": 2020,
+"bulan": 3,
+"target": null,
+"sales": 187947706
+},
+{
+"kode": "XSM",
+"tahun": 2020,
+"bulan": 4,
+"target": null,
+"sales": 280859346
+},
+{
+"kode": "XSM",
+"tahun": 2020,
+"bulan": 5,
+"target": null,
+"sales": 535039909
+},
+{
+"kode": "XSM",
+"tahun": 2020,
+"bulan": 6,
+"target": null,
+"sales": 265034567
+},
+{
+"kode": "XSM",
+"tahun": 2020,
+"bulan": 7,
+"target": null,
+"sales": 257459946
+},
+{
+"kode": "XSM",
+"tahun": 2020,
+"bulan": 8,
+"target": null,
+"sales": 266645915
+},
+{
+"kode": "XSM",
+"tahun": 2020,
+"bulan": 9,
+"target": null,
+"sales": 301230730
+},
+{
+"kode": "XSM",
+"tahun": 2020,
+"bulan": 10,
+"target": null,
+"sales": 337518206
+},
+{
+"kode": "XSM",
+"tahun": 2020,
+"bulan": 11,
+"target": null,
+"sales": 351146877
+},
+{
+"kode": "XSM",
+"tahun": 2020,
+"bulan": 12,
+"target": null,
+"sales": 392434579
+},
+{
+"kode": "XSM",
+"tahun": 2021,
+"bulan": 1,
+"target": null,
+"sales": 236801000
+},
+{
+"kode": "XSM",
+"tahun": 2021,
+"bulan": 2,
+"target": 300000000,
+"sales": 386124218
+},
+{
+"kode": "XSM",
+"tahun": 2021,
+"bulan": 3,
+"target": 700000000,
+"sales": 573851124
+},
+{
+"kode": "XSM",
+"tahun": 2021,
+"bulan": 4,
+"target": 800000000,
+"sales": 824274596
+},
+{
+"kode": "XSM",
+"tahun": 2021,
+"bulan": 5,
+"target": 800000000,
+"sales": 1083794900
+},
+{
+"kode": "XSM",
+"tahun": 2021,
+"bulan": 6,
+"target": 600000000,
+"sales": 620490387
+},
+{
+"kode": "XSM",
+"tahun": 2021,
+"bulan": 7,
+"target": 705000000,
+"sales": 816111270
+},
+{
+"kode": "XSM",
+"tahun": 2021,
+"bulan": 8,
+"target": 950000000,
+"sales": 815349523
+},
+{
+"kode": "XSM",
+"tahun": 2021,
+"bulan": 9,
+"target": 900000000,
+"sales": 738536996
+},
+{
+"kode": "XSM",
+"tahun": 2021,
+"bulan": 10,
+"target": 950000000,
+"sales": 891315810
+},
+{
+"kode": "XSM",
+"tahun": 2021,
+"bulan": 11,
+"target": 900000000,
+"sales": 946786303
+},
+{
+"kode": "XSM",
+"tahun": 2021,
+"bulan": 12,
+"target": 1000000000,
+"sales": 1078354166
+},
+{
+"kode": "XSM",
+"tahun": 2022,
+"bulan": 1,
+"target": 1550000000,
+"sales": 1130601648
+},
+{
+"kode": "XSM",
+"tahun": 2022,
+"bulan": 2,
+"target": 1475000000,
+"sales": 961166281
+},
+{
+"kode": "XSM",
+"tahun": 2022,
+"bulan": 3,
+"target": 1600000000,
+"sales": 1216661247
+},
+{
+"kode": "XSM",
+"tahun": 2022,
+"bulan": 4,
+"target": 3000000000,
+"sales": 2156121282
+},
+{
+"kode": "XSM",
+"tahun": 2022,
+"bulan": 5,
+"target": 1800000000,
+"sales": 1164081000
+},
+{
+"kode": "XSM",
+"tahun": 2022,
+"bulan": 6,
+"target": 1400000000,
+"sales": 1018135948
+},
+{
+"kode": "XSM",
+"tahun": 2022,
+"bulan": 7,
+"target": 1300000000,
+"sales": 1301189065
+},
+{
+"kode": "XSM",
+"tahun": 2022,
+"bulan": 8,
+"target": 1500000000,
+"sales": 1213691162
+},
+{
+"kode": "XSM",
+"tahun": 2022,
+"bulan": 9,
+"target": 1400000000,
+"sales": 1225498084
+},
+{
+"kode": "XSM",
+"tahun": 2022,
+"bulan": 10,
+"target": 2000000000,
+"sales": 1274531751
+},
+{
+"kode": "XSM",
+"tahun": 2022,
+"bulan": 11,
+"target": 2000000000,
+"sales": 1226687413
+},
+{
+"kode": "XSM",
+"tahun": 2022,
+"bulan": 12,
+"target": 2500000000,
+"sales": 1635890232
+},
+{
+"kode": "XSM",
+"tahun": 2023,
+"bulan": 1,
+"target": 1650000000,
+"sales": 1493211353
+},
+{
+"kode": "XSM",
+"tahun": 2023,
+"bulan": 2,
+"target": 1600000000,
+"sales": 1292703231
+},
+{
+"kode": "XSM",
+"tahun": 2023,
+"bulan": 3,
+"target": 2200000000,
+"sales": 1824134908
+},
+{
+"kode": "XSM",
+"tahun": 2023,
+"bulan": 4,
+"target": 2200000000,
+"sales": 2534778097
+},
+{
+"kode": "XSM",
+"tahun": 2023,
+"bulan": 5,
+"target": 1550000000,
+"sales": 1259820462
+},
+{
+"kode": "XSM",
+"tahun": 2023,
+"bulan": 6,
+"target": 1600000000,
+"sales": 1255486864
+},
+{
+"kode": "XSM",
+"tahun": 2023,
+"bulan": 7,
+"target": 1740000000,
+"sales": 1542000479
+},
+{
+"kode": "XSM",
+"tahun": 2023,
+"bulan": 8,
+"target": 1575000000,
+"sales": 1340312897
+},
+{
+"kode": "XSM",
+"tahun": 2023,
+"bulan": 9,
+"target": 1510000000,
+"sales": 1399045216
+},
+{
+"kode": "XSM",
+"tahun": 2023,
+"bulan": 10,
+"target": 1750000000,
+"sales": 1393639541
+},
+{
+"kode": "XSM",
+"tahun": 2023,
+"bulan": 11,
+"target": 1565000000,
+"sales": 1365694581
+},
+{
+"kode": "XSM",
+"tahun": 2023,
+"bulan": 12,
+"target": 1850000000,
+"sales": 1924580743
+},
+{
+"kode": "XSM",
+"tahun": 2024,
+"bulan": 1,
+"target": 2000000000,
+"sales": 1466367274
+},
+{
+"kode": "XSM",
+"tahun": 2024,
+"bulan": 2,
+"target": 1800000000,
+"sales": 1632332606
+},
+{
+"kode": "XSM",
+"tahun": 2024,
+"bulan": 3,
+"target": 2800000000,
+"sales": 2225678068
+},
+{
+"kode": "XSM",
+"tahun": 2024,
+"bulan": 4,
+"target": 3000000000,
+"sales": 2015758764
+},
+{
+"kode": "XSM",
+"tahun": 2024,
+"bulan": 5,
+"target": 1900000000,
+"sales": 1364656295
+},
+{
+"kode": "XSM",
+"tahun": 2024,
+"bulan": 6,
+"target": 2000000000,
+"sales": 1546215093
+},
+{
+"kode": "XSM",
+"tahun": 2024,
+"bulan": 7,
+"target": 2200000000,
+"sales": 1508106772
+},
+{
+"kode": "XSM",
+"tahun": 2024,
+"bulan": 8,
+"target": 2000000000,
+"sales": 1559874262
+},
+{
+"kode": "XSM",
+"tahun": 2024,
+"bulan": 9,
+"target": 2000000000,
+"sales": 1345908582
+},
+{
+"kode": "XSM",
+"tahun": 2024,
+"bulan": 10,
+"target": 2200000000,
+"sales": 1266255955
+},
+{
+"kode": "XSM",
+"tahun": 2024,
+"bulan": 11,
+"target": 2200000000,
+"sales": 1278361511
+},
+{
+"kode": "XSM",
+"tahun": 2024,
+"bulan": 12,
+"target": 2300000000,
+"sales": 1359097714
+},
+{
+"kode": "XSM",
+"tahun": 2025,
+"bulan": 1,
+"target": 1900000000,
+"sales": 1146139342
+},
+{
+"kode": "XSM",
+"tahun": 2025,
+"bulan": 2,
+"target": 2250000000,
+"sales": 1162358754
+},
+{
+"kode": "XSM",
+"tahun": 2025,
+"bulan": 3,
+"target": 3000000000,
+"sales": 2572993932
+},
+{
+"kode": "XSM",
+"tahun": 2025,
+"bulan": 4,
+"target": 1900000000,
+"sales": 1093826749
+},
+{
+"kode": "XSM",
+"tahun": 2025,
+"bulan": 5,
+"target": 1900000000,
+"sales": 1033430566
+},
+{
+"kode": "XSM",
+"tahun": 2025,
+"bulan": 6,
+"target": 2000000000,
+"sales": 999207450
+},
+{
+"kode": "XSM",
+"tahun": 2025,
+"bulan": 7,
+"target": 2200000000,
+"sales": 1142296967
+},
+{
+"kode": "XSM",
+"tahun": 2025,
+"bulan": 8,
+"target": 1900000000,
+"sales": 1157592373
+},
+{
+"kode": "XSM",
+"tahun": 2025,
+"bulan": 9,
+"target": 1900000000,
+"sales": 1448087836
+},
+{
+"kode": "XSM",
+"tahun": 2025,
+"bulan": 10,
+"target": 1900000000,
+"sales": 2044128557
+},
+{
+"kode": "XSM",
+"tahun": 2025,
+"bulan": 11,
+"target": 1900000000,
+"sales": 3061549731
+},
+{
+"kode": "XSM",
+"tahun": 2025,
+"bulan": 12,
+"target": 2250000000,
+"sales": 3233466689
+},
+{
+"kode": "XSM",
+"tahun": 2026,
+"bulan": 1,
+"target": 1500000000,
+"sales": 1490425837.92
+},
+{
+"kode": "XSM",
+"tahun": 2026,
+"bulan": 2,
+"target": 1800000000,
+"sales": 1862882911.18
+},
+{
+"kode": "XSM",
+"tahun": 2026,
+"bulan": 3,
+"target": 2500000000,
+"sales": 3189941520.34
+},
+{
+"kode": "XSM",
+"tahun": 2026,
+"bulan": 4,
+"target": 1500000000,
+"sales": 1251427383.67
+},
+{
+"kode": "XSM",
+"tahun": 2026,
+"bulan": 5,
+"target": 1500000000,
+"sales": 1521064147
+},
+{
+"kode": "XSM",
+"tahun": 2026,
+"bulan": 6,
+"target": 1500000000,
+"sales": 1324836762.04
+},
+{
+"kode": "XSM",
+"tahun": 2026,
+"bulan": 7,
+"target": 1600000000,
+"sales": 1480660218
+},
+{
+"kode": "XSM",
+"tahun": 2026,
+"bulan": 8,
+"target": 1500000000,
+"sales": 1486141754
+},
+{
+"kode": "XSM",
+"tahun": 2026,
+"bulan": 9,
+"target": 1600000000,
+"sales": 1389183960
+},
+{
+"kode": "XMJ",
+"tahun": 2022,
+"bulan": 11,
+"target": 300000000,
+"sales": 346405541
+},
+{
+"kode": "XMJ",
+"tahun": 2022,
+"bulan": 12,
+"target": 400000000,
+"sales": 405155739
+},
+{
+"kode": "XMJ",
+"tahun": 2023,
+"bulan": 1,
+"target": 400000000,
+"sales": 368791261
+},
+{
+"kode": "XMJ",
+"tahun": 2023,
+"bulan": 2,
+"target": 350000000,
+"sales": 346777798
+},
+{
+"kode": "XMJ",
+"tahun": 2023,
+"bulan": 3,
+"target": 550000000,
+"sales": 432517054
+},
+{
+"kode": "XMJ",
+"tahun": 2023,
+"bulan": 4,
+"target": 700000000,
+"sales": 494913219
+},
+{
+"kode": "XMJ",
+"tahun": 2023,
+"bulan": 5,
+"target": 400000000,
+"sales": 336173250
+},
+{
+"kode": "XMJ",
+"tahun": 2023,
+"bulan": 6,
+"target": 400000000,
+"sales": 354742464
+},
+{
+"kode": "XMJ",
+"tahun": 2023,
+"bulan": 7,
+"target": 450000000,
+"sales": 363609387
+},
+{
+"kode": "XMJ",
+"tahun": 2023,
+"bulan": 8,
+"target": 400000000,
+"sales": 373221481
+},
+{
+"kode": "XMJ",
+"tahun": 2023,
+"bulan": 9,
+"target": 400000000,
+"sales": 357102353
+},
+{
+"kode": "XMJ",
+"tahun": 2023,
+"bulan": 10,
+"target": 400000000,
+"sales": 403272126
+},
+{
+"kode": "XMJ",
+"tahun": 2023,
+"bulan": 11,
+"target": 400000000,
+"sales": 393939871
+},
+{
+"kode": "XMJ",
+"tahun": 2023,
+"bulan": 12,
+"target": 450000000,
+"sales": 437773659
+},
+{
+"kode": "XMJ",
+"tahun": 2024,
+"bulan": 1,
+"target": 500000000,
+"sales": 431760742
+},
+{
+"kode": "XMJ",
+"tahun": 2024,
+"bulan": 2,
+"target": 450000000,
+"sales": 435896819
+},
+{
+"kode": "XMJ",
+"tahun": 2024,
+"bulan": 3,
+"target": 650000000,
+"sales": 506210144
+},
+{
+"kode": "XMJ",
+"tahun": 2024,
+"bulan": 4,
+"target": 600000000,
+"sales": 517597300
+},
+{
+"kode": "XMJ",
+"tahun": 2024,
+"bulan": 5,
+"target": 500000000,
+"sales": 399151400
+},
+{
+"kode": "XMJ",
+"tahun": 2024,
+"bulan": 6,
+"target": 500000000,
+"sales": 410805100
+},
+{
+"kode": "XMJ",
+"tahun": 2024,
+"bulan": 7,
+"target": 600000000,
+"sales": 403822680
+},
+{
+"kode": "XMJ",
+"tahun": 2024,
+"bulan": 8,
+"target": 550000000,
+"sales": 422210400
+},
+{
+"kode": "XMJ",
+"tahun": 2024,
+"bulan": 9,
+"target": 550000000,
+"sales": 410167200
+},
+{
+"kode": "XMJ",
+"tahun": 2024,
+"bulan": 10,
+"target": 550000000,
+"sales": 399365500
+},
+{
+"kode": "XMJ",
+"tahun": 2024,
+"bulan": 11,
+"target": 550000000,
+"sales": 386365800
+},
+{
+"kode": "XMJ",
+"tahun": 2024,
+"bulan": 12,
+"target": 650000000,
+"sales": 382594900
+},
+{
+"kode": "XMJ",
+"tahun": 2025,
+"bulan": 1,
+"target": 450000000,
+"sales": 381213100
+},
+{
+"kode": "XMJ",
+"tahun": 2025,
+"bulan": 2,
+"target": 500000000,
+"sales": 379577600
+},
+{
+"kode": "XMJ",
+"tahun": 2025,
+"bulan": 3,
+"target": 600000000,
+"sales": 534925400
+},
+{
+"kode": "XMJ",
+"tahun": 2025,
+"bulan": 4,
+"target": 450000000,
+"sales": 380393400
+},
+{
+"kode": "XMJ",
+"tahun": 2025,
+"bulan": 5,
+"target": 450000000,
+"sales": 369201960
+},
+{
+"kode": "XMJ",
+"tahun": 2025,
+"bulan": 6,
+"target": 500000000,
+"sales": 343823500
+},
+{
+"kode": "XMJ",
+"tahun": 2025,
+"bulan": 7,
+"target": 550000000,
+"sales": 348333900
+},
+{
+"kode": "XMJ",
+"tahun": 2025,
+"bulan": 8,
+"target": 450000000,
+"sales": 362181900
+},
+{
+"kode": "XMJ",
+"tahun": 2025,
+"bulan": 9,
+"target": 450000000,
+"sales": 379158200
+},
+{
+"kode": "XMJ",
+"tahun": 2025,
+"bulan": 10,
+"target": 450000000,
+"sales": 372968600
+},
+{
+"kode": "XMJ",
+"tahun": 2025,
+"bulan": 11,
+"target": 450000000,
+"sales": 406554000
+},
+{
+"kode": "XMJ",
+"tahun": 2025,
+"bulan": 12,
+"target": 500000000,
+"sales": 585022400
+},
+{
+"kode": "XMJ",
+"tahun": 2026,
+"bulan": 1,
+"target": 400000000,
+"sales": 484055604.92
+},
+{
+"kode": "XMJ",
+"tahun": 2026,
+"bulan": 2,
+"target": 550000000,
+"sales": 521811343.32
+},
+{
+"kode": "XMJ",
+"tahun": 2026,
+"bulan": 3,
+"target": 650000000,
+"sales": 659738578.84
+},
+{
+"kode": "XMJ",
+"tahun": 2026,
+"bulan": 4,
+"target": 500000000,
+"sales": 389596426.26
+},
+{
+"kode": "XMJ",
+"tahun": 2026,
+"bulan": 5,
+"target": 500000000,
+"sales": 468770152
+},
+{
+"kode": "XMJ",
+"tahun": 2026,
+"bulan": 6,
+"target": 450000000,
+"sales": 444537672.9068
+},
+{
+"kode": "XMJ",
+"tahun": 2026,
+"bulan": 7,
+"target": 400000000,
+"sales": 467821672
+},
+{
+"kode": "XMJ",
+"tahun": 2026,
+"bulan": 8,
+"target": 400000000,
+"sales": 465921880.69
+},
+{
+"kode": "XMJ",
+"tahun": 2026,
+"bulan": 9,
+"target": 450000000,
+"sales": 430701425
+},
+{
+"kode": "XWP",
+"tahun": 2023,
+"bulan": 3,
+"target": 300000000,
+"sales": 226580597
+},
+{
+"kode": "XWP",
+"tahun": 2023,
+"bulan": 4,
+"target": 700000000,
+"sales": 379187488
+},
+{
+"kode": "XWP",
+"tahun": 2023,
+"bulan": 5,
+"target": 400000000,
+"sales": 226250368
+},
+{
+"kode": "XWP",
+"tahun": 2023,
+"bulan": 6,
+"target": 400000000,
+"sales": 269192317
+},
+{
+"kode": "XWP",
+"tahun": 2023,
+"bulan": 7,
+"target": 450000000,
+"sales": 291622140
+},
+{
+"kode": "XWP",
+"tahun": 2023,
+"bulan": 8,
+"target": 400000000,
+"sales": 269075469
+},
+{
+"kode": "XWP",
+"tahun": 2023,
+"bulan": 9,
+"target": 400000000,
+"sales": 303614822
+},
+{
+"kode": "XWP",
+"tahun": 2023,
+"bulan": 10,
+"target": 400000000,
+"sales": 360231106
+},
+{
+"kode": "XWP",
+"tahun": 2023,
+"bulan": 11,
+"target": 400000000,
+"sales": 333228723
+},
+{
+"kode": "XWP",
+"tahun": 2023,
+"bulan": 12,
+"target": 400000000,
+"sales": 354547226
+},
+{
+"kode": "XWP",
+"tahun": 2024,
+"bulan": 1,
+"target": 400000000,
+"sales": 361169112
+},
+{
+"kode": "XWP",
+"tahun": 2024,
+"bulan": 2,
+"target": 400000000,
+"sales": 355498341
+},
+{
+"kode": "XWP",
+"tahun": 2024,
+"bulan": 3,
+"target": 550000000,
+"sales": 438544100
+},
+{
+"kode": "XWP",
+"tahun": 2024,
+"bulan": 4,
+"target": 500000000,
+"sales": 454911400
+},
+{
+"kode": "XWP",
+"tahun": 2024,
+"bulan": 5,
+"target": 400000000,
+"sales": 336383260
+},
+{
+"kode": "XWP",
+"tahun": 2024,
+"bulan": 6,
+"target": 400000000,
+"sales": 346317000
+},
+{
+"kode": "XWP",
+"tahun": 2024,
+"bulan": 7,
+"target": 500000000,
+"sales": 320141400
+},
+{
+"kode": "XWP",
+"tahun": 2024,
+"bulan": 8,
+"target": 450000000,
+"sales": 346047000
+},
+{
+"kode": "XWP",
+"tahun": 2024,
+"bulan": 9,
+"target": 450000000,
+"sales": 318661700
+},
+{
+"kode": "XWP",
+"tahun": 2024,
+"bulan": 10,
+"target": 450000000,
+"sales": 337767258
+},
+{
+"kode": "XWP",
+"tahun": 2024,
+"bulan": 11,
+"target": 450000000,
+"sales": 309647900
+},
+{
+"kode": "XWP",
+"tahun": 2024,
+"bulan": 12,
+"target": 550000000,
+"sales": 335281400
+},
+{
+"kode": "XWP",
+"tahun": 2025,
+"bulan": 1,
+"target": 400000000,
+"sales": 322032000
+},
+{
+"kode": "XWP",
+"tahun": 2025,
+"bulan": 2,
+"target": 450000000,
+"sales": 307346100
+},
+{
+"kode": "XWP",
+"tahun": 2025,
+"bulan": 3,
+"target": 550000000,
+"sales": 495082200
+},
+{
+"kode": "XWP",
+"tahun": 2025,
+"bulan": 4,
+"target": 400000000,
+"sales": 300562400
+},
+{
+"kode": "XWP",
+"tahun": 2025,
+"bulan": 5,
+"target": 400000000,
+"sales": 278057200
+},
+{
+"kode": "XWP",
+"tahun": 2025,
+"bulan": 6,
+"target": 450000000,
+"sales": 271906400
+},
+{
+"kode": "XWP",
+"tahun": 2025,
+"bulan": 7,
+"target": 450000000,
+"sales": 258140000
+},
+{
+"kode": "XWP",
+"tahun": 2025,
+"bulan": 8,
+"target": 400000000,
+"sales": 253573100
+},
+{
+"kode": "XWP",
+"tahun": 2025,
+"bulan": 9,
+"target": 400000000,
+"sales": 258468075
+},
+{
+"kode": "XWP",
+"tahun": 2025,
+"bulan": 10,
+"target": 400000000,
+"sales": 282755470
+},
+{
+"kode": "XWP",
+"tahun": 2025,
+"bulan": 11,
+"target": 400000000,
+"sales": 334300720
+},
+{
+"kode": "XWP",
+"tahun": 2025,
+"bulan": 12,
+"target": 450000000,
+"sales": 339406520
+},
+{
+"kode": "XWP",
+"tahun": 2026,
+"bulan": 1,
+"target": 350000000,
+"sales": 292093679.62
+},
+{
+"kode": "XWP",
+"tahun": 2026,
+"bulan": 2,
+"target": 400000000,
+"sales": 389169361.87
+},
+{
+"kode": "XWP",
+"tahun": 2026,
+"bulan": 3,
+"target": 500000000,
+"sales": 493702768.74
+},
+{
+"kode": "XWP",
+"tahun": 2026,
+"bulan": 4,
+"target": 350000000,
+"sales": 278031428.74
+},
+{
+"kode": "XWP",
+"tahun": 2026,
+"bulan": 5,
+"target": 300000000,
+"sales": 355309187
+},
+{
+"kode": "XWP",
+"tahun": 2026,
+"bulan": 6,
+"target": 350000000,
+"sales": 317659196.73
+},
+{
+"kode": "XWP",
+"tahun": 2026,
+"bulan": 7,
+"target": 350000000,
+"sales": 326337765
+},
+{
+"kode": "XWP",
+"tahun": 2026,
+"bulan": 8,
+"target": 300000000,
+"sales": 352695504.61
+},
+{
+"kode": "XWP",
+"tahun": 2026,
+"bulan": 9,
+"target": 350000000,
+"sales": 321743028
+},
+{
+"kode": "XPH",
+"tahun": 2023,
+"bulan": 8,
+"target": 150000000,
+"sales": 163506886
+},
+{
+"kode": "XPH",
+"tahun": 2023,
+"bulan": 9,
+"target": 250000000,
+"sales": 256247892
+},
+{
+"kode": "XPH",
+"tahun": 2023,
+"bulan": 10,
+"target": 300000000,
+"sales": 216677999
+},
+{
+"kode": "XPH",
+"tahun": 2023,
+"bulan": 11,
+"target": 250000000,
+"sales": 216311765
+},
+{
+"kode": "XPH",
+"tahun": 2023,
+"bulan": 12,
+"target": 350000000,
+"sales": 235548301
+},
+{
+"kode": "XPH",
+"tahun": 2024,
+"bulan": 1,
+"target": 350000000,
+"sales": 225534618
+},
+{
+"kode": "XPH",
+"tahun": 2024,
+"bulan": 2,
+"target": 300000000,
+"sales": 292861700
+},
+{
+"kode": "XPH",
+"tahun": 2024,
+"bulan": 3,
+"target": 450000000,
+"sales": 413943400
+},
+{
+"kode": "XPH",
+"tahun": 2024,
+"bulan": 4,
+"target": 500000000,
+"sales": 360713900
+},
+{
+"kode": "XPH",
+"tahun": 2024,
+"bulan": 5,
+"target": 300000000,
+"sales": 259568500
+},
+{
+"kode": "XPH",
+"tahun": 2024,
+"bulan": 6,
+"target": 300000000,
+"sales": 275214000
+},
+{
+"kode": "XPH",
+"tahun": 2024,
+"bulan": 7,
+"target": 350000000,
+"sales": 246725400
+},
+{
+"kode": "XPH",
+"tahun": 2024,
+"bulan": 8,
+"target": 350000000,
+"sales": 236839590
+},
+{
+"kode": "XPH",
+"tahun": 2024,
+"bulan": 9,
+"target": 300000000,
+"sales": 239721362
+},
+{
+"kode": "XPH",
+"tahun": 2024,
+"bulan": 10,
+"target": 350000000,
+"sales": 262326800
+},
+{
+"kode": "XPH",
+"tahun": 2024,
+"bulan": 11,
+"target": 350000000,
+"sales": 224382100
+},
+{
+"kode": "XPH",
+"tahun": 2024,
+"bulan": 12,
+"target": 450000000,
+"sales": 237763449
+},
+{
+"kode": "XPH",
+"tahun": 2025,
+"bulan": 1,
+"target": 300000000,
+"sales": 231036100
+},
+{
+"kode": "XPH",
+"tahun": 2025,
+"bulan": 2,
+"target": 350000000,
+"sales": 251057200
+},
+{
+"kode": "XPH",
+"tahun": 2025,
+"bulan": 3,
+"target": 450000000,
+"sales": 375466200
+},
+{
+"kode": "XPH",
+"tahun": 2025,
+"bulan": 4,
+"target": 300000000,
+"sales": 243828800
+},
+{
+"kode": "XPH",
+"tahun": 2025,
+"bulan": 5,
+"target": 300000000,
+"sales": 205430300
+},
+{
+"kode": "XPH",
+"tahun": 2025,
+"bulan": 6,
+"target": 350000000,
+"sales": 200975500
+},
+{
+"kode": "XPH",
+"tahun": 2025,
+"bulan": 7,
+"target": 350000000,
+"sales": 183339300
+},
+{
+"kode": "XPH",
+"tahun": 2025,
+"bulan": 8,
+"target": 350000000,
+"sales": 197110000
+},
+{
+"kode": "XPH",
+"tahun": 2025,
+"bulan": 9,
+"target": 300000000,
+"sales": 190965000
+},
+{
+"kode": "XPH",
+"tahun": 2025,
+"bulan": 10,
+"target": 300000000,
+"sales": 198757800
+},
+{
+"kode": "XPH",
+"tahun": 2025,
+"bulan": 11,
+"target": 300000000,
+"sales": 211912600
+},
+{
+"kode": "XPH",
+"tahun": 2025,
+"bulan": 12,
+"target": 350000000,
+"sales": 225589000
+},
+{
+"kode": "XPH",
+"tahun": 2026,
+"bulan": 1,
+"target": 250000000,
+"sales": 232117602.68
+},
+{
+"kode": "XPH",
+"tahun": 2026,
+"bulan": 2,
+"target": 300000000,
+"sales": 299086573.85
+},
+{
+"kode": "XPH",
+"tahun": 2026,
+"bulan": 3,
+"target": 350000000,
+"sales": 390199912.02
+},
+{
+"kode": "XPH",
+"tahun": 2026,
+"bulan": 4,
+"target": 250000000,
+"sales": 240830469.84
+},
+{
+"kode": "XPH",
+"tahun": 2026,
+"bulan": 5,
+"target": 250000000,
+"sales": 287775754
+},
+{
+"kode": "XPH",
+"tahun": 2026,
+"bulan": 6,
+"target": 250000000,
+"sales": 267085828.95
+},
+{
+"kode": "XPH",
+"tahun": 2026,
+"bulan": 7,
+"target": 250000000,
+"sales": 271586796
+},
+{
+"kode": "XPH",
+"tahun": 2026,
+"bulan": 8,
+"target": 250000000,
+"sales": 295758486.62
+},
+{
+"kode": "XPH",
+"tahun": 2026,
+"bulan": 9,
+"target": 275000000,
+"sales": 298827830
+},
+{
+"kode": "XTJ",
+"tahun": 2023,
+"bulan": 11,
+"target": 200000000,
+"sales": 188910930
+},
+{
+"kode": "XTJ",
+"tahun": 2023,
+"bulan": 12,
+"target": 350000000,
+"sales": 284569245
+},
+{
+"kode": "XTJ",
+"tahun": 2024,
+"bulan": 1,
+"target": 350000000,
+"sales": 317530844
+},
+{
+"kode": "XTJ",
+"tahun": 2024,
+"bulan": 2,
+"target": 300000000,
+"sales": 250548100
+},
+{
+"kode": "XTJ",
+"tahun": 2024,
+"bulan": 3,
+"target": 450000000,
+"sales": 298052600
+},
+{
+"kode": "XTJ",
+"tahun": 2024,
+"bulan": 4,
+"target": 500000000,
+"sales": 315799400
+},
+{
+"kode": "XTJ",
+"tahun": 2024,
+"bulan": 5,
+"target": 300000000,
+"sales": 229691400
+},
+{
+"kode": "XTJ",
+"tahun": 2024,
+"bulan": 6,
+"target": 300000000,
+"sales": 229854800
+},
+{
+"kode": "XTJ",
+"tahun": 2024,
+"bulan": 7,
+"target": 400000000,
+"sales": 236814800
+},
+{
+"kode": "XTJ",
+"tahun": 2024,
+"bulan": 8,
+"target": 350000000,
+"sales": 251647600
+},
+{
+"kode": "XTJ",
+"tahun": 2024,
+"bulan": 9,
+"target": 350000000,
+"sales": 249362500
+},
+{
+"kode": "XTJ",
+"tahun": 2024,
+"bulan": 10,
+"target": 350000000,
+"sales": 256742200
+},
+{
+"kode": "XTJ",
+"tahun": 2024,
+"bulan": 11,
+"target": 350000000,
+"sales": 248966200
+},
+{
+"kode": "XTJ",
+"tahun": 2024,
+"bulan": 12,
+"target": 400000000,
+"sales": 273887300
+},
+{
+"kode": "XTJ",
+"tahun": 2025,
+"bulan": 1,
+"target": 300000000,
+"sales": 261158500
+},
+{
+"kode": "XTJ",
+"tahun": 2025,
+"bulan": 2,
+"target": 350000000,
+"sales": 268355700
+},
+{
+"kode": "XTJ",
+"tahun": 2025,
+"bulan": 3,
+"target": 450000000,
+"sales": 371341800
+},
+{
+"kode": "XTJ",
+"tahun": 2025,
+"bulan": 4,
+"target": 300000000,
+"sales": 245186900
+},
+{
+"kode": "XTJ",
+"tahun": 2025,
+"bulan": 5,
+"target": 300000000,
+"sales": 222507600
+},
+{
+"kode": "XTJ",
+"tahun": 2025,
+"bulan": 6,
+"target": 350000000,
+"sales": 220265900
+},
+{
+"kode": "XTJ",
+"tahun": 2025,
+"bulan": 7,
+"target": 350000000,
+"sales": 200262600
+},
+{
+"kode": "XTJ",
+"tahun": 2025,
+"bulan": 8,
+"target": 350000000,
+"sales": 208227200
+},
+{
+"kode": "XTJ",
+"tahun": 2025,
+"bulan": 9,
+"target": 300000000,
+"sales": 209046400
+},
+{
+"kode": "XTJ",
+"tahun": 2025,
+"bulan": 10,
+"target": 300000000,
+"sales": 326694500
+},
+{
+"kode": "XTJ",
+"tahun": 2025,
+"bulan": 11,
+"target": 300000000,
+"sales": 434638650
+},
+{
+"kode": "XTJ",
+"tahun": 2025,
+"bulan": 12,
+"target": 350000000,
+"sales": 402989923
+},
+{
+"kode": "XTJ",
+"tahun": 2026,
+"bulan": 1,
+"target": 450000000,
+"sales": 258627352.97
+},
+{
+"kode": "XTJ",
+"tahun": 2026,
+"bulan": 2,
+"target": 400000000,
+"sales": 284603341.5
+},
+{
+"kode": "XTJ",
+"tahun": 2026,
+"bulan": 3,
+"target": 450000000,
+"sales": 417666972.74
+},
+{
+"kode": "XTJ",
+"tahun": 2026,
+"bulan": 4,
+"target": 350000000,
+"sales": 233685472.13
+},
+{
+"kode": "XTJ",
+"tahun": 2026,
+"bulan": 5,
+"target": 350000000,
+"sales": 274555063
+},
+{
+"kode": "XTJ",
+"tahun": 2026,
+"bulan": 6,
+"target": 300000000,
+"sales": 249253155.49
+},
+{
+"kode": "XTJ",
+"tahun": 2026,
+"bulan": 7,
+"target": 250000000,
+"sales": 253395501
+},
+{
+"kode": "XTJ",
+"tahun": 2026,
+"bulan": 8,
+"target": 250000000,
+"sales": 282116509
+},
+{
+"kode": "XTJ",
+"tahun": 2026,
+"bulan": 9,
+"target": 275000000,
+"sales": 260543385
+},
+{
+"kode": "XCR",
+"tahun": 2024,
+"bulan": 2,
+"target": 120000000,
+"sales": 102526600
+},
+{
+"kode": "XCR",
+"tahun": 2024,
+"bulan": 3,
+"target": 500000000,
+"sales": 313915100
+},
+{
+"kode": "XCR",
+"tahun": 2024,
+"bulan": 4,
+"target": 500000000,
+"sales": 268073400
+},
+{
+"kode": "XCR",
+"tahun": 2024,
+"bulan": 5,
+"target": 400000000,
+"sales": 187652300
+},
+{
+"kode": "XCR",
+"tahun": 2024,
+"bulan": 6,
+"target": 430000000,
+"sales": 231957500
+},
+{
+"kode": "XCR",
+"tahun": 2024,
+"bulan": 7,
+"target": 400000000,
+"sales": 191657700
+},
+{
+"kode": "XCR",
+"tahun": 2024,
+"bulan": 8,
+"target": 350000000,
+"sales": 193075700
+},
+{
+"kode": "XCR",
+"tahun": 2024,
+"bulan": 9,
+"target": 350000000,
+"sales": 186782500
+},
+{
+"kode": "XCR",
+"tahun": 2024,
+"bulan": 10,
+"target": 350000000,
+"sales": 185373777
+},
+{
+"kode": "XCR",
+"tahun": 2024,
+"bulan": 11,
+"target": 350000000,
+"sales": 187728700
+},
+{
+"kode": "XCR",
+"tahun": 2024,
+"bulan": 12,
+"target": 400000000,
+"sales": 195646500
+},
+{
+"kode": "XCR",
+"tahun": 2025,
+"bulan": 1,
+"target": 300000000,
+"sales": 177524600
+},
+{
+"kode": "XCR",
+"tahun": 2025,
+"bulan": 2,
+"target": 350000000,
+"sales": 176032900
+},
+{
+"kode": "XCR",
+"tahun": 2025,
+"bulan": 3,
+"target": 400000000,
+"sales": 290430500
+},
+{
+"kode": "XCR",
+"tahun": 2025,
+"bulan": 4,
+"target": 300000000,
+"sales": 196824800
+},
+{
+"kode": "XCR",
+"tahun": 2025,
+"bulan": 5,
+"target": 300000000,
+"sales": 172136700
+},
+{
+"kode": "XCR",
+"tahun": 2025,
+"bulan": 6,
+"target": 300000000,
+"sales": 169216900
+},
+{
+"kode": "XCR",
+"tahun": 2025,
+"bulan": 7,
+"target": 350000000,
+"sales": 178551100
+},
+{
+"kode": "XCR",
+"tahun": 2025,
+"bulan": 8,
+"target": 300000000,
+"sales": 174666900
+},
+{
+"kode": "XCR",
+"tahun": 2025,
+"bulan": 9,
+"target": 300000000,
+"sales": 173511700
+},
+{
+"kode": "XCR",
+"tahun": 2025,
+"bulan": 10,
+"target": 300000000,
+"sales": 182562000
+},
+{
+"kode": "XCR",
+"tahun": 2025,
+"bulan": 11,
+"target": 300000000,
+"sales": 192594200
+},
+{
+"kode": "XCR",
+"tahun": 2025,
+"bulan": 12,
+"target": 350000000,
+"sales": 192790800
+},
+{
+"kode": "XCR",
+"tahun": 2026,
+"bulan": 1,
+"target": 250000000,
+"sales": 247813828.82
+},
+{
+"kode": "XCR",
+"tahun": 2026,
+"bulan": 2,
+"target": 300000000,
+"sales": 282809481.88
+},
+{
+"kode": "XCR",
+"tahun": 2026,
+"bulan": 3,
+"target": 350000000,
+"sales": 356908885.57
+},
+{
+"kode": "XCR",
+"tahun": 2026,
+"bulan": 4,
+"target": 250000000,
+"sales": 231939750.84
+},
+{
+"kode": "XCR",
+"tahun": 2026,
+"bulan": 5,
+"target": 250000000,
+"sales": 246277964
+},
+{
+"kode": "XCR",
+"tahun": 2026,
+"bulan": 6,
+"target": 250000000,
+"sales": 242099851.79
+},
+{
+"kode": "XCR",
+"tahun": 2026,
+"bulan": 7,
+"target": 250000000,
+"sales": 237816849
+},
+{
+"kode": "XCR",
+"tahun": 2026,
+"bulan": 8,
+"target": 250000000,
+"sales": 244018908
+},
+{
+"kode": "XCR",
+"tahun": 2026,
+"bulan": 9,
+"target": 275000000,
+"sales": 227127903
+},
+{
+"kode": "TASMU",
+"tahun": 2024,
+"bulan": 3,
+"target": 500000000,
+"sales": 310098600
+},
+{
+"kode": "TASMU",
+"tahun": 2024,
+"bulan": 4,
+"target": 500000000,
+"sales": 261953699
+},
+{
+"kode": "TASMU",
+"tahun": 2024,
+"bulan": 5,
+"target": 500000000,
+"sales": 200163099
+},
+{
+"kode": "TASMU",
+"tahun": 2024,
+"bulan": 6,
+"target": 550000000,
+"sales": 215465199
+},
+{
+"kode": "TASMU",
+"tahun": 2024,
+"bulan": 7,
+"target": 400000000,
+"sales": 241257750
+},
+{
+"kode": "TASMU",
+"tahun": 2024,
+"bulan": 8,
+"target": 400000000,
+"sales": 248704300
+},
+{
+"kode": "TASMU",
+"tahun": 2024,
+"bulan": 9,
+"target": 400000000,
+"sales": 229215000
+},
+{
+"kode": "TASMU",
+"tahun": 2024,
+"bulan": 10,
+"target": 400000000,
+"sales": 257589768
+},
+{
+"kode": "TASMU",
+"tahun": 2024,
+"bulan": 11,
+"target": 400000000,
+"sales": 230751900
+},
+{
+"kode": "TASMU",
+"tahun": 2024,
+"bulan": 12,
+"target": 500000000,
+"sales": 240061500
+},
+{
+"kode": "TASMU",
+"tahun": 2025,
+"bulan": 1,
+"target": 350000000,
+"sales": 247639900
+},
+{
+"kode": "TASMU",
+"tahun": 2025,
+"bulan": 2,
+"target": 350000000,
+"sales": 267093500
+},
+{
+"kode": "TASMU",
+"tahun": 2025,
+"bulan": 3,
+"target": 450000000,
+"sales": 451988900
+},
+{
+"kode": "TASMU",
+"tahun": 2025,
+"bulan": 4,
+"target": 300000000,
+"sales": 214217800
+},
+{
+"kode": "TASMU",
+"tahun": 2025,
+"bulan": 5,
+"target": 300000000,
+"sales": 214340100
+},
+{
+"kode": "TASMU",
+"tahun": 2025,
+"bulan": 6,
+"target": 300000000,
+"sales": 201003600
+},
+{
+"kode": "TASMU",
+"tahun": 2025,
+"bulan": 7,
+"target": 350000000,
+"sales": 210703360
+},
+{
+"kode": "TASMU",
+"tahun": 2025,
+"bulan": 8,
+"target": 350000000,
+"sales": 224367060
+},
+{
+"kode": "TASMU",
+"tahun": 2025,
+"bulan": 9,
+"target": 300000000,
+"sales": 214944900
+},
+{
+"kode": "TASMU",
+"tahun": 2025,
+"bulan": 10,
+"target": 300000000,
+"sales": 220795500
+},
+{
+"kode": "TASMU",
+"tahun": 2025,
+"bulan": 11,
+"target": 350000000,
+"sales": 241927800
+},
+{
+"kode": "TASMU",
+"tahun": 2025,
+"bulan": 12,
+"target": 400000000,
+"sales": 279462600
+},
+{
+"kode": "TASMU",
+"tahun": 2026,
+"bulan": 1,
+"target": 300000000,
+"sales": 255114541.99
+},
+{
+"kode": "TASMU",
+"tahun": 2026,
+"bulan": 2,
+"target": 400000000,
+"sales": 415852137.23
+},
+{
+"kode": "TASMU",
+"tahun": 2026,
+"bulan": 3,
+"target": 450000000,
+"sales": 491892334.23
+},
+{
+"kode": "TASMU",
+"tahun": 2026,
+"bulan": 4,
+"target": 300000000,
+"sales": 259363542.32
+},
+{
+"kode": "TASMU",
+"tahun": 2026,
+"bulan": 5,
+"target": 300000000,
+"sales": 307548799
+},
+{
+"kode": "TASMU",
+"tahun": 2026,
+"bulan": 6,
+"target": 300000000,
+"sales": 328216060.7565
+},
+{
+"kode": "TASMU",
+"tahun": 2026,
+"bulan": 7,
+"target": 300000000,
+"sales": 322660604
+},
+{
+"kode": "TASMU",
+"tahun": 2026,
+"bulan": 8,
+"target": 300000000,
+"sales": 323112786.83
+},
+{
+"kode": "TASMU",
+"tahun": 2026,
+"bulan": 9,
+"target": 325000000,
+"sales": 308246925
+},
+{
+"kode": "MENARA",
+"tahun": 2024,
+"bulan": 8,
+"target": 400000000,
+"sales": null
+},
+{
+"kode": "MENARA",
+"tahun": 2024,
+"bulan": 9,
+"target": 400000000,
+"sales": null
+},
+{
+"kode": "MENARA",
+"tahun": 2024,
+"bulan": 10,
+"target": 400000000,
+"sales": null
+},
+{
+"kode": "MENARA",
+"tahun": 2024,
+"bulan": 11,
+"target": 400000000,
+"sales": null
+},
+{
+"kode": "MENARA",
+"tahun": 2024,
+"bulan": 12,
+"target": 550000000,
+"sales": 175520792
+},
+{
+"kode": "MENARA",
+"tahun": 2025,
+"bulan": 1,
+"target": 300000000,
+"sales": 154394100
+},
+{
+"kode": "MENARA",
+"tahun": 2025,
+"bulan": 2,
+"target": 350000000,
+"sales": 158500200
+},
+{
+"kode": "MENARA",
+"tahun": 2025,
+"bulan": 3,
+"target": 400000000,
+"sales": 205386400
+},
+{
+"kode": "MENARA",
+"tahun": 2025,
+"bulan": 4,
+"target": 300000000,
+"sales": 137830100
+},
+{
+"kode": "MENARA",
+"tahun": 2025,
+"bulan": 5,
+"target": 300000000,
+"sales": 133642300
+},
+{
+"kode": "MENARA",
+"tahun": 2025,
+"bulan": 6,
+"target": 300000000,
+"sales": 118238900
+},
+{
+"kode": "MENARA",
+"tahun": 2025,
+"bulan": 7,
+"target": 350000000,
+"sales": 106042200
+},
+{
+"kode": "MENARA",
+"tahun": 2025,
+"bulan": 8,
+"target": 350000000,
+"sales": 110017600
+},
+{
+"kode": "MENARA",
+"tahun": 2025,
+"bulan": 9,
+"target": 300000000,
+"sales": 120701500
+},
+{
+"kode": "MENARA",
+"tahun": 2025,
+"bulan": 10,
+"target": 300000000,
+"sales": 126393500
+},
+{
+"kode": "MENARA",
+"tahun": 2025,
+"bulan": 11,
+"target": 300000000,
+"sales": 156136400
+},
+{
+"kode": "MENARA",
+"tahun": 2025,
+"bulan": 12,
+"target": 350000000,
+"sales": 144032900
+},
+{
+"kode": "MENARA",
+"tahun": 2026,
+"bulan": 1,
+"target": 200000000,
+"sales": 141161190.17
+},
+{
+"kode": "MENARA",
+"tahun": 2026,
+"bulan": 2,
+"target": 250000000,
+"sales": 194447714.4
+},
+{
+"kode": "MENARA",
+"tahun": 2026,
+"bulan": 3,
+"target": 300000000,
+"sales": 249671468.87
+},
+{
+"kode": "MENARA",
+"tahun": 2026,
+"bulan": 4,
+"target": 200000000,
+"sales": 161920250.96
+},
+{
+"kode": "MENARA",
+"tahun": 2026,
+"bulan": 5,
+"target": 200000000,
+"sales": 194490144
+},
+{
+"kode": "MENARA",
+"tahun": 2026,
+"bulan": 6,
+"target": 200000000,
+"sales": 176230197.127
+},
+{
+"kode": "MENARA",
+"tahun": 2026,
+"bulan": 7,
+"target": 200000000,
+"sales": 203349128
+},
+{
+"kode": "MENARA",
+"tahun": 2026,
+"bulan": 8,
+"target": 200000000,
+"sales": 275057954
+},
+{
+"kode": "MENARA",
+"tahun": 2026,
+"bulan": 9,
+"target": 225000000,
+"sales": 267258274
+},
+{
+"kode": "GROW UIN",
+"tahun": 2026,
+"bulan": 6,
+"target": 150000000,
+"sales": 104928422.1
+},
+{
+"kode": "GROW UIN",
+"tahun": 2026,
+"bulan": 7,
+"target": 150000000,
+"sales": 94531150
+},
+{
+"kode": "GROW UIN",
+"tahun": 2026,
+"bulan": 8,
+"target": 150000000,
+"sales": 96797899.78
+},
+{
+"kode": "GROW UIN",
+"tahun": 2026,
+"bulan": 9,
+"target": 200000000,
+"sales": 157812960
+},
+{
+"kode": "GROW SP",
+"tahun": 2026,
+"bulan": 8,
+"target": 150000000,
+"sales": 78506403.93
+},
+{
+"kode": "GROW SP",
+"tahun": 2026,
+"bulan": 9,
+"target": 200000000,
+"sales": 57799516
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2024,
+"bulan": 1,
+"target": 3600000000,
+"sales": 2802362590
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2024,
+"bulan": 2,
+"target": 3370000000,
+"sales": 3069664166
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2024,
+"bulan": 3,
+"target": 5900000000,
+"sales": 4506442012
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2024,
+"bulan": 4,
+"target": 6100000000,
+"sales": 4194807863
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2024,
+"bulan": 5,
+"target": 4300000000,
+"sales": 2977266254
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2024,
+"bulan": 6,
+"target": 4480000000,
+"sales": 3255828692
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2024,
+"bulan": 7,
+"target": 4850000000,
+"sales": 3148526502
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2024,
+"bulan": 8,
+"target": 4850000000,
+"sales": 3258398852
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2024,
+"bulan": 9,
+"target": 4800000000,
+"sales": 2979818844
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2024,
+"bulan": 10,
+"target": 5050000000,
+"sales": 2965421258
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2024,
+"bulan": 11,
+"target": 5050000000,
+"sales": 2866204111
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2024,
+"bulan": 12,
+"target": 5800000000,
+"sales": 3199853555
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2025,
+"bulan": 1,
+"target": 4300000000,
+"sales": 2921137642
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2025,
+"bulan": 2,
+"target": 4950000000,
+"sales": 2970321954
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2025,
+"bulan": 3,
+"target": 6300000000,
+"sales": 5297615332
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2025,
+"bulan": 4,
+"target": 4250000000,
+"sales": 2812670949
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2025,
+"bulan": 5,
+"target": 4250000000,
+"sales": 2628746726
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2025,
+"bulan": 6,
+"target": 4550000000,
+"sales": 2524638150
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2025,
+"bulan": 7,
+"target": 4950000000,
+"sales": 2627669427
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2025,
+"bulan": 8,
+"target": 4450000000,
+"sales": 2687736133
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2025,
+"bulan": 9,
+"target": 4250000000,
+"sales": 2994883611
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2025,
+"bulan": 10,
+"target": 4250000000,
+"sales": 3755055927
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2025,
+"bulan": 11,
+"target": 4300000000,
+"sales": 5039614101
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2025,
+"bulan": 12,
+"target": 5000000000,
+"sales": 5402760832
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2026,
+"bulan": 1,
+"target": 4700000000,
+"sales": 3903353131.09
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2026,
+"bulan": 2,
+"target": 5400000000,
+"sales": 4894033680.23
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2026,
+"bulan": 3,
+"target": 6550000000,
+"sales": 6892318144.349999
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2026,
+"bulan": 4,
+"target": 4700000000,
+"sales": 3446006518.7600007
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2026,
+"bulan": 5,
+"target": 4650000000,
+"sales": 3890012090
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2026,
+"bulan": 6,
+"target": 4250000000,
+"sales": 3627186227.8903003
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2026,
+"bulan": 7,
+"target": 4050000000,
+"sales": 3802381263
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2026,
+"bulan": 8,
+"target": 4050000000,
+"sales": 4166807283.46
+},
+{
+"kode": "DEPT.FMCG",
+"tahun": 2026,
+"bulan": 9,
+"target": 4475000000,
+"sales": 3979562611
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2024,
+"bulan": 1,
+"target": 3600000000,
+"sales": 2802362590
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2024,
+"bulan": 2,
+"target": 3370000000,
+"sales": 3069664166
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2024,
+"bulan": 3,
+"target": 5900000000,
+"sales": 4506442012
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2024,
+"bulan": 4,
+"target": 6100000000,
+"sales": 4194807863
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2024,
+"bulan": 5,
+"target": 4300000000,
+"sales": 2977266254
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2024,
+"bulan": 6,
+"target": 4480000000,
+"sales": 3255828692
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2024,
+"bulan": 7,
+"target": 4850000000,
+"sales": 3148526502
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2024,
+"bulan": 8,
+"target": 4850000000,
+"sales": 3258398852
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2024,
+"bulan": 9,
+"target": 4800000000,
+"sales": 2979818844
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2024,
+"bulan": 10,
+"target": 5050000000,
+"sales": 2965421258
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2024,
+"bulan": 11,
+"target": 5050000000,
+"sales": 2866204111
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2024,
+"bulan": 12,
+"target": 5800000000,
+"sales": 3199853555
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2025,
+"bulan": 1,
+"target": 4300000000,
+"sales": 2921137642
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2025,
+"bulan": 2,
+"target": 4950000000,
+"sales": 2970321954
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2025,
+"bulan": 3,
+"target": 6300000000,
+"sales": 5297615332
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2025,
+"bulan": 4,
+"target": 4250000000,
+"sales": 2812670949
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2025,
+"bulan": 5,
+"target": 4250000000,
+"sales": 2628746726
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2025,
+"bulan": 6,
+"target": 4550000000,
+"sales": 2524638150
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2025,
+"bulan": 7,
+"target": 4950000000,
+"sales": 2627669427
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2025,
+"bulan": 8,
+"target": 4450000000,
+"sales": 2687736133
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2025,
+"bulan": 9,
+"target": 4250000000,
+"sales": 2994883611
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2025,
+"bulan": 10,
+"target": 4250000000,
+"sales": 3755055927
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2025,
+"bulan": 11,
+"target": 4300000000,
+"sales": 5039614101
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2025,
+"bulan": 12,
+"target": 5000000000,
+"sales": 5402760832
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2026,
+"bulan": 1,
+"target": 3700000000,
+"sales": 3401409639.09
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2026,
+"bulan": 2,
+"target": 4400000000,
+"sales": 4250662865.23
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2026,
+"bulan": 3,
+"target": 5550000000,
+"sales": 6249722441.349999
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2026,
+"bulan": 4,
+"target": 3700000000,
+"sales": 3046794724.7600007
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2026,
+"bulan": 5,
+"target": 3650000000,
+"sales": 3655791210
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2026,
+"bulan": 6,
+"target": 3750000000,
+"sales": 3454847147.8903003
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2026,
+"bulan": 7,
+"target": 3750000000,
+"sales": 3658159683
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2026,
+"bulan": 8,
+"target": 3750000000,
+"sales": 3900128087.46
+},
+{
+"kode": "DEPT.FMCG excl MBG",
+"tahun": 2026,
+"bulan": 9,
+"target": 4175000000,
+"sales": 3719245206
+},
+{
+"kode": "TOTAL2",
+"tahun": 2022,
+"bulan": 1,
+"target": 7462000000,
+"sales": 6524164022
+},
+{
+"kode": "TOTAL2",
+"tahun": 2022,
+"bulan": 2,
+"target": 7368000000,
+"sales": 6232011166
+},
+{
+"kode": "TOTAL2",
+"tahun": 2022,
+"bulan": 3,
+"target": 9984000000,
+"sales": 9143301297
+},
+{
+"kode": "TOTAL2",
+"tahun": 2022,
+"bulan": 4,
+"target": 22164000000,
+"sales": 17012344392
+},
+{
+"kode": "TOTAL2",
+"tahun": 2022,
+"bulan": 5,
+"target": 10344000000,
+"sales": 7110379255
+},
+{
+"kode": "TOTAL2",
+"tahun": 2022,
+"bulan": 6,
+"target": 8692000000,
+"sales": 7506554077
+},
+{
+"kode": "TOTAL2",
+"tahun": 2022,
+"bulan": 7,
+"target": 9100000000,
+"sales": 8754383844
+},
+{
+"kode": "TOTAL2",
+"tahun": 2022,
+"bulan": 8,
+"target": 9800000000,
+"sales": 7656637435
+},
+{
+"kode": "TOTAL2",
+"tahun": 2022,
+"bulan": 9,
+"target": 8970000000,
+"sales": 7137488729
+},
+{
+"kode": "TOTAL2",
+"tahun": 2022,
+"bulan": 10,
+"target": 10256000000,
+"sales": 7312593624
+},
+{
+"kode": "TOTAL2",
+"tahun": 2022,
+"bulan": 11,
+"target": 10310000000,
+"sales": 7726004565
+},
+{
+"kode": "TOTAL2",
+"tahun": 2022,
+"bulan": 12,
+"target": 11600000000,
+"sales": 9992194516
+},
+{
+"kode": "TOTAL2",
+"tahun": 2023,
+"bulan": 1,
+"target": 8350000000,
+"sales": 7713642678
+},
+{
+"kode": "TOTAL2",
+"tahun": 2023,
+"bulan": 2,
+"target": 8800000000,
+"sales": 7255446195
+},
+{
+"kode": "TOTAL2",
+"tahun": 2023,
+"bulan": 3,
+"target": 13850000000,
+"sales": 11401903046
+},
+{
+"kode": "TOTAL2",
+"tahun": 2023,
+"bulan": 4,
+"target": 17600000000,
+"sales": 19342767247
+},
+{
+"kode": "TOTAL2",
+"tahun": 2023,
+"bulan": 5,
+"target": 9350000000,
+"sales": 7869998408
+},
+{
+"kode": "TOTAL2",
+"tahun": 2023,
+"bulan": 6,
+"target": 9400000000,
+"sales": 9068869308
+},
+{
+"kode": "TOTAL2",
+"tahun": 2023,
+"bulan": 7,
+"target": 10300000000,
+"sales": 10033373990
+},
+{
+"kode": "TOTAL2",
+"tahun": 2023,
+"bulan": 8,
+"target": 9800000000,
+"sales": 7767858286
+},
+{
+"kode": "TOTAL2",
+"tahun": 2023,
+"bulan": 9,
+"target": 9550000000,
+"sales": 7351268362
+},
+{
+"kode": "TOTAL2",
+"tahun": 2023,
+"bulan": 10,
+"target": 10000000000,
+"sales": 7222280469
+},
+{
+"kode": "TOTAL2",
+"tahun": 2023,
+"bulan": 11,
+"target": 10100000000,
+"sales": 8017788193
+},
+{
+"kode": "TOTAL2",
+"tahun": 2023,
+"bulan": 12,
+"target": 11200000000,
+"sales": 9835449388
+},
+{
+"kode": "TOTAL2",
+"tahun": 2024,
+"bulan": 1,
+"target": 11900000000,
+"sales": 10352577744
+},
+{
+"kode": "TOTAL2",
+"tahun": 2024,
+"bulan": 2,
+"target": 11800000000,
+"sales": 11690998725
+},
+{
+"kode": "TOTAL2",
+"tahun": 2024,
+"bulan": 3,
+"target": 22650000000,
+"sales": 22926401272
+},
+{
+"kode": "TOTAL2",
+"tahun": 2024,
+"bulan": 4,
+"target": 20750000000,
+"sales": 18527782771
+},
+{
+"kode": "TOTAL2",
+"tahun": 2024,
+"bulan": 5,
+"target": 12850000000,
+"sales": 9284754401
+},
+{
+"kode": "TOTAL2",
+"tahun": 2024,
+"bulan": 6,
+"target": 13350000000,
+"sales": 11340888478
+},
+{
+"kode": "TOTAL2",
+"tahun": 2024,
+"bulan": 7,
+"target": 14900000000,
+"sales": 11910420745
+},
+{
+"kode": "TOTAL2",
+"tahun": 2024,
+"bulan": 8,
+"target": 13750000000,
+"sales": 9943749252
+},
+{
+"kode": "TOTAL2",
+"tahun": 2024,
+"bulan": 9,
+"target": 13500000000,
+"sales": 8769029572
+},
+{
+"kode": "TOTAL2",
+"tahun": 2024,
+"bulan": 10,
+"target": 14050000000,
+"sales": 8299218269
+},
+{
+"kode": "TOTAL2",
+"tahun": 2024,
+"bulan": 11,
+"target": 14700000000,
+"sales": 7868425381
+},
+{
+"kode": "TOTAL2",
+"tahun": 2024,
+"bulan": 12,
+"target": 16700000000,
+"sales": 9076087400
+},
+{
+"kode": "TOTAL2",
+"tahun": 2025,
+"bulan": 1,
+"target": 12780000000,
+"sales": 8451471813
+},
+{
+"kode": "TOTAL2",
+"tahun": 2025,
+"bulan": 2,
+"target": 14680000000,
+"sales": 10270307108
+},
+{
+"kode": "TOTAL2",
+"tahun": 2025,
+"bulan": 3,
+"target": 32030000000,
+"sales": 28900742015
+},
+{
+"kode": "TOTAL2",
+"tahun": 2025,
+"bulan": 4,
+"target": 13080000000,
+"sales": 8879063409
+},
+{
+"kode": "TOTAL2",
+"tahun": 2025,
+"bulan": 5,
+"target": 13400000000,
+"sales": 7671495988
+},
+{
+"kode": "TOTAL2",
+"tahun": 2025,
+"bulan": 6,
+"target": 15300000000,
+"sales": 9705895394
+},
+{
+"kode": "TOTAL2",
+"tahun": 2025,
+"bulan": 7,
+"target": 15300000000,
+"sales": 10890566295
+},
+{
+"kode": "TOTAL2",
+"tahun": 2025,
+"bulan": 8,
+"target": 13580000000,
+"sales": 7889160422
+},
+{
+"kode": "TOTAL2",
+"tahun": 2025,
+"bulan": 9,
+"target": 12840000000,
+"sales": 7586425848
+},
+{
+"kode": "TOTAL2",
+"tahun": 2025,
+"bulan": 10,
+"target": 12880000000,
+"sales": 7723845465
+},
+{
+"kode": "TOTAL2",
+"tahun": 2025,
+"bulan": 11,
+"target": 10100000000,
+"sales": 9510190267
+},
+{
+"kode": "TOTAL2",
+"tahun": 2025,
+"bulan": 12,
+"target": 12880000000,
+"sales": 10717629450
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2019,
+"bulan": 1,
+"target": 3570000000,
+"sales": 3655928050
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2019,
+"bulan": 2,
+"target": 3570000000,
+"sales": 3603503600
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2019,
+"bulan": 3,
+"target": 3770000000,
+"sales": 4244339395
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2019,
+"bulan": 4,
+"target": 3770000000,
+"sales": 5298595724
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2019,
+"bulan": 5,
+"target": 7120000000,
+"sales": 10780520429
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2019,
+"bulan": 6,
+"target": 3870000000,
+"sales": 4656561071
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2019,
+"bulan": 7,
+"target": 4100000000,
+"sales": 4164367000
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2019,
+"bulan": 8,
+"target": 3990000000,
+"sales": 3694525396
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2019,
+"bulan": 9,
+"target": 4290000000,
+"sales": 3448564106
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2019,
+"bulan": 10,
+"target": 4040000000,
+"sales": 3357201372
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2019,
+"bulan": 11,
+"target": 4240000000,
+"sales": 3597763494
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2019,
+"bulan": 12,
+"target": 4240000000,
+"sales": 3960191000
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2020,
+"bulan": 1,
+"target": 4500000000,
+"sales": 4295712673
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2020,
+"bulan": 2,
+"target": 4200000000,
+"sales": 3545601717
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2020,
+"bulan": 3,
+"target": 5000000000,
+"sales": 3836845954
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2020,
+"bulan": 4,
+"target": 4000000000,
+"sales": 4576119975
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2020,
+"bulan": 5,
+"target": 14800000000,
+"sales": 7267424859
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2020,
+"bulan": 6,
+"target": 4850000000,
+"sales": 3251861076
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2020,
+"bulan": 7,
+"target": 4650000000,
+"sales": 4168635933
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2020,
+"bulan": 8,
+"target": 4590000000,
+"sales": 4107537829
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2020,
+"bulan": 9,
+"target": 4550000000,
+"sales": 3693527874
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2020,
+"bulan": 10,
+"target": 4800000000,
+"sales": 4043888962
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2020,
+"bulan": 11,
+"target": 5010000000,
+"sales": 4180527752
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2020,
+"bulan": 12,
+"target": 5350000000,
+"sales": 4445400553
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2021,
+"bulan": 1,
+"target": 4520000000,
+"sales": 4112106192
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2021,
+"bulan": 2,
+"target": 4320000000,
+"sales": 3429793465
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2021,
+"bulan": 3,
+"target": 5570000000,
+"sales": 4878306865
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2021,
+"bulan": 4,
+"target": 8480000000,
+"sales": 8962639060
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2021,
+"bulan": 5,
+"target": 7370000000,
+"sales": 9244747753
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2021,
+"bulan": 6,
+"target": 5050000000,
+"sales": 4330911992
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2021,
+"bulan": 7,
+"target": 5775000000,
+"sales": 4822529459
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2021,
+"bulan": 8,
+"target": 5775000000,
+"sales": 5289762605
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2021,
+"bulan": 9,
+"target": 5280000000,
+"sales": 4675842513
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2021,
+"bulan": 10,
+"target": 5705000000,
+"sales": 5818089185
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2021,
+"bulan": 11,
+"target": 5720000000,
+"sales": 6255671111
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2021,
+"bulan": 12,
+"target": 6435000000,
+"sales": 6685240793
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2022,
+"bulan": 1,
+"target": 7462000000,
+"sales": 6524164022
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2022,
+"bulan": 2,
+"target": 7368000000,
+"sales": 6232011166
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2022,
+"bulan": 3,
+"target": 9984000000,
+"sales": 9143301297
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2022,
+"bulan": 4,
+"target": 22164000000,
+"sales": 17012344392
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2022,
+"bulan": 5,
+"target": 10344000000,
+"sales": 7110379255
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2022,
+"bulan": 6,
+"target": 8692000000,
+"sales": 7506554077
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2022,
+"bulan": 7,
+"target": 9100000000,
+"sales": 8754383844
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2022,
+"bulan": 8,
+"target": 9800000000,
+"sales": 7656637435
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2022,
+"bulan": 9,
+"target": 8970000000,
+"sales": 7137488729
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2022,
+"bulan": 10,
+"target": 10256000000,
+"sales": 7312593624
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2022,
+"bulan": 11,
+"target": 10310000000,
+"sales": 7726004565
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2022,
+"bulan": 12,
+"target": 11600000000,
+"sales": 9992194516
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2023,
+"bulan": 1,
+"target": 9900000000,
+"sales": 8845326358
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2023,
+"bulan": 2,
+"target": 9150000000,
+"sales": 7602223993
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2023,
+"bulan": 3,
+"target": 14700000000,
+"sales": 12061000697
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2023,
+"bulan": 4,
+"target": 19000000000,
+"sales": 20216869255
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2023,
+"bulan": 5,
+"target": 10150000000,
+"sales": 8432422026
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2023,
+"bulan": 6,
+"target": 10200000000,
+"sales": 9692804089
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2023,
+"bulan": 7,
+"target": 11200000000,
+"sales": 10688605517
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2023,
+"bulan": 8,
+"target": 10750000000,
+"sales": 8573662122
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2023,
+"bulan": 9,
+"target": 10600000000,
+"sales": 8268233429
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2023,
+"bulan": 10,
+"target": 11100000000,
+"sales": 8202461700
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2023,
+"bulan": 11,
+"target": 10950000000,
+"sales": 8756239611
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2023,
+"bulan": 12,
+"target": 12300000000,
+"sales": 10710114160
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2024,
+"bulan": 1,
+"target": 13000000000,
+"sales": 11256812318
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2024,
+"bulan": 2,
+"target": 12920000000,
+"sales": 12692433466
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2024,
+"bulan": 3,
+"target": 24550000000,
+"sales": 24262410972
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2024,
+"bulan": 4,
+"target": 22750000000,
+"sales": 19734323170
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2024,
+"bulan": 5,
+"target": 14350000000,
+"sales": 10159453150
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2024,
+"bulan": 6,
+"target": 14930000000,
+"sales": 12294674977
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2024,
+"bulan": 7,
+"target": 16650000000,
+"sales": 12826812303
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2024,
+"bulan": 8,
+"target": 15450000000,
+"sales": 10637176852
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2024,
+"bulan": 9,
+"target": 15200000000,
+"sales": 9610006698
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2024,
+"bulan": 10,
+"target": 15750000000,
+"sales": 9180616783
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2024,
+"bulan": 11,
+"target": 16050000000,
+"sales": 8462422938
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2024,
+"bulan": 12,
+"target": 18400000000,
+"sales": 9855479059
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2025,
+"bulan": 1,
+"target": 13980000000,
+"sales": 9187318595
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2025,
+"bulan": 2,
+"target": 15680000000,
+"sales": 10889428780
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2025,
+"bulan": 3,
+"target": 32830000000,
+"sales": 29346235008
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2025,
+"bulan": 4,
+"target": 13780000000,
+"sales": 9156927679
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2025,
+"bulan": 5,
+"target": 14300000000,
+"sales": 8038467773
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2025,
+"bulan": 6,
+"target": 16350000000,
+"sales": 10065867755
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2025,
+"bulan": 7,
+"target": 16400000000,
+"sales": 11256087526
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2025,
+"bulan": 8,
+"target": 14630000000,
+"sales": 8238422166
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2025,
+"bulan": 9,
+"target": 13740000000,
+"sales": 8241964641
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2025,
+"bulan": 10,
+"target": 13780000000,
+"sales": 8868295704
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2025,
+"bulan": 11,
+"target": 11000000000,
+"sales": 9927484096
+},
+{
+"kode": "HO (INCLUDE XOL)",
+"tahun": 2025,
+"bulan": 12,
+"target": 12880000000,
+"sales": 10717629450
+}
+]
+}

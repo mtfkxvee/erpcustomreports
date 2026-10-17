@@ -1,7 +1,7 @@
 # Copyright (c) 2026, X-SHA and contributors
 # For license information, please see license.txt
 #
-# Laporan "Weekly Margin" (Target vs Achievement) - tampilan ERP dari file admin
+# Laporan "Weekly Margin Target vs Achievement" (dulu bernama "Weekly Margin") - tampilan ERP dari file admin
 # terbaru "WEEKLY MARGIN OCTOBER 2026" sheet "28-04 October" bagian "WEEKLY
 # MARGIN CLEAR X-SHA GROUP" (susunan baris & kolom mengikuti file; sebelumnya
 # format Agustus dgn baris "Cikiray All" dst - user 2026-10-14: ikut file
@@ -40,6 +40,16 @@ from custom_reports.sales_snapshot import load_margin
 # Target margin HO per bulan, Semester II 2026 (RESUME TARGET MARGIN, kolom E)
 _HO_TARGET_BY_MONTH = {7: 0.20858447488584475, 8: 0.20804878048780487, 9: 0.20626506024096386,
                        10: 0.2065871121718377, 11: 0.20738041002277904, 12: 0.20793388429752066}
+
+
+def _ho_target(year, month):
+    """Target margin HO bulan itu, dibulatkan 4 desimal (= 2 desimal %) spt yg
+    diketik admin di file: WEEKLY MARGIN OCTOBER 0,2066 & SALES & MARGIN ACHV
+    AGUSTUS 0,208. None kalau di luar Semester II 2026."""
+    t = _HO_TARGET_BY_MONTH.get(month) if year == 2026 else None
+    return round(t, 4) if t else None
+
+
 # RESUME TARGET MARGIN: Total Outlet - Offline 24%, Total Outlet - Online 22%
 _OFFLINE_TARGET, _ONLINE_TARGET = 0.24, 0.22
 
@@ -147,7 +157,7 @@ def execute(filters=None):
             excluded.append(r["outlet"])
             continue
         clear += r["_margin"]; plus += r["_margin"]; sales_r += r["_sales"]; achv_sales += r["_sales"]
-    ho_target = _HO_TARGET_BY_MONTH.get(as_of.month) if as_of.year == 2026 else None
+    ho_target = _ho_target(as_of.year, as_of.month)
     pct_incl = plus / achv_sales if achv_sales else None
     data.append({
         "outlet": "TOTAL", "bold": 1, "deal_margin_clear": clear, "sales_retur": sales_r,

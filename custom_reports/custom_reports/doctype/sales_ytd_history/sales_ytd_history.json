@@ -1,0 +1,97 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-10-17 12:00:00.000000",
+ "description": "Angka bulanan laporan Sales YTD per sheet (outlet / departemen / TOTAL) - import file YTD admin + pembekuan otomatis tiap awal bulan.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "kode",
+  "tahun",
+  "bulan",
+  "col_break_1",
+  "target",
+  "sales",
+  "sumber"
+ ],
+ "fields": [
+  {
+   "description": "Nama sheet di file YTD, mis. XSC, OSC, DEPT.FHS, TOTAL, SLS & XMK.",
+   "fieldname": "kode",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Kode Sheet",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "tahun",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Tahun",
+   "reqd": 1
+  },
+  {
+   "fieldname": "bulan",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Bulan (1-12)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "target",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Target"
+  },
+  {
+   "fieldname": "sales",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Sales"
+  },
+  {
+   "fieldname": "sumber",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Sumber",
+   "options": "Import File YTD\nERP"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Sales YTD History",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

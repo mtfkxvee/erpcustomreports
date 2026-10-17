@@ -21,7 +21,7 @@ function ksc_default_week() {
 
 const KSC_DEFAULT = ksc_default_week();
 
-frappe.query_reports["Kontribusi Sales per Category"] = {
+frappe.query_reports["Weekly Kontribusi Sales per Category"] = {
     filters: [
         {
             fieldname: "departemen",
@@ -61,6 +61,14 @@ frappe.query_reports["Kontribusi Sales per Category"] = {
             description: __("Kosongkan utk minggu penuh. Isi mis. tgl 4 kalau laporan dibuat Senin tgl 5 (minggu ini dihitung s/d tgl ini, minggu pembanding tetap penuh).")
         }
     ],
+    onload: function(report) {
+        // Excel dgn tampilan spt file asli admin
+        report.page.add_inner_button(__("Download Report"), function() {
+            const filters = JSON.stringify(report.get_values() || {});
+            window.open(frappe.urllib.get_full_url(
+                "/api/method/custom_reports.report_export.download_kontribusi?filters=" + encodeURIComponent(filters)));
+        });
+    },
     formatter: function(value, row, column, data, default_formatter) {
         // angka 0 tampil "-" spt format akuntansi di laporan Excel asli
         if (["Int", "Float", "Currency", "Percent"].includes(column.fieldtype) && value === 0) {

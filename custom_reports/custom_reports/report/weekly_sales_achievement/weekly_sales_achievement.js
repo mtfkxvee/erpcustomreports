@@ -33,6 +33,14 @@ frappe.query_reports["Weekly Sales Achievement"] = {
             reqd: 1
         }
     ],
+    onload: function(report) {
+        // Excel dgn tampilan spt file asli admin (SALES REPORT HO sheet Data weekly)
+        report.page.add_inner_button(__("Download Report"), function() {
+            const filters = JSON.stringify(report.get_values() || {});
+            window.open(frappe.urllib.get_full_url(
+                "/api/method/custom_reports.report_export.download_weekly_sales_achievement?filters=" + encodeURIComponent(filters)));
+        });
+    },
     formatter: function(value, row, column, data, default_formatter) {
         // angka 0 tampil "-" spt format akuntansi di laporan Excel asli
         if (["Int", "Float", "Currency", "Percent"].includes(column.fieldtype) && value === 0) {

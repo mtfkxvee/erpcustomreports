@@ -20,6 +20,12 @@ frappe.query_reports["Daily Sales vs Target"] = {
         if (!frappe.user.has_role("System Manager")) {
             return;
         }
+        // Excel dgn tampilan spt file SALES REPORT HO (sheet ALL, DEPT. F&H.S, DEPT. FMCG)
+        report.page.add_inner_button(__("Download Report"), function() {
+            const tanggal = report.get_filter_value("tanggal");
+            window.open(frappe.urllib.get_full_url(
+                "/api/method/custom_reports.report_export.download_daily_sales_vs_target?tanggal=" + encodeURIComponent(tanggal)));
+        });
         report.page.add_inner_button(__("Ambil Ulang Snapshot"), function() {
             frappe.prompt(
                 {
