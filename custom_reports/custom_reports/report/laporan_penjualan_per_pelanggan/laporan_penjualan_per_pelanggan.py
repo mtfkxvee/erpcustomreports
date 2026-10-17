@@ -101,7 +101,9 @@ def get_columns(mode):
 
 
 def build_where(filters, mode):
-    conditions = ["si.docstatus = 1", "si.is_return = 0"]
+    # status != 'Draft': invoice "hantu" (docstatus=1 tapi status Draft, tanpa GL Entry)
+    # bukan penjualan valid dan tidak muncul di list Sales Invoice yang normal.
+    conditions = ["si.docstatus = 1", "si.is_return = 0", "si.status != 'Draft'"]
     values = {}
     conditions.append("si.posting_date BETWEEN %(from_date)s AND %(to_date)s")
     values["from_date"] = filters["from_date"]
