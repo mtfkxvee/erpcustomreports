@@ -13,7 +13,8 @@
 # Weekly Sales Net -> "WEEKLY MARGIN CLEAR" Sheet4; Kontribusi -> "KONTRIBUSI
 # SALES CATEGORY W1 VS W4" (1 sheet per departemen).
 # Daily Sales vs Target -> SALES REPORT HO sheet ALL / DEPT. F&H.S / DEPT. FMCG;
-# Daily Inventory -> file inventory harian (3 varian berdampingan).
+# Daily Inventory -> file inventory harian (3 varian berdampingan);
+# Daily Sales -> SALES REPORT HO sheet "Daily sales".
 # Laporan bulanan -> file admin masing2 (SALES REPORT HO, SALES CLEAR, SALES &
 # MARGIN, VISITOR TC AC, INV TARGET, KONTRIBUSI MoM, SERVEL, SALES YTD); lihat bagian bawah.
 
@@ -1392,3 +1393,166 @@ def download_sales_ytd(filters=None):
     ytd = YTD()
     sheets = [(k, titles.get(k, k), build_sheet(ytd, k, upto)) for k in order]
     _send(build_sales_ytd(sheets), f"SALES X-SHA GROUP_YTD_ {upto}.xlsx")
+
+
+# --- Daily Sales -> sheet "Daily sales" file SALES REPORT HO (kolom di huruf yg sama dgn file)
+_SEGOE = "Segoe UI"
+_DS_NAVY_TXT = "FF223962"
+
+
+def build_daily_sales(m):
+    """m = hasil daily_sales.compute(year, month)."""
+    from openpyxl.utils import column_index_from_string as CI
+    from custom_reports.custom_reports.report.daily_sales.daily_sales import FHS, FMCG, KMT, MBG_STORES, WEEKDAY_ORDER, WEEKS
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Daily sales"
+    ws.sheet_view.showGridLines = False
+
+    def put(ref, value, bold=False, size=8, fill=None, color=None, fmt=None, align=None, border=True):
+        col = "".join(ch for ch in ref if ch.isalpha())
+        row = int("".join(ch for ch in ref if ch.isdigit()))
+        return _put(ws, row, CI(col), value, bold=bold, size=size, fill=fill, fmt=fmt, align=align, color=color,
+                    border=border, font=_SEGOE)
+
+    def L(c):
+        return get_column_letter(c)
+
+    # blok: (kolom awal, key, judul, label sales, jenis 'o'=TC/sales/Ac 't'=+kontribusi 'm'=TC/sales, fill header, fill baris total)
+    blocks = []
+    for c, key, title, _code, sl, _h in FHS:
+        blocks.append((c, key, title, sl, "o", None, "FF806000"))
+    blocks.append(("AG", "fhs", "TOTAL DEPT.FASHION & H.S", "sales", "t", "FF806000", "FF806000"))
+    for c, key, title, _code, sl, _h in FMCG:
+        blocks.append((c, key, title, sl, "o", None, "FF548235"))
+    blocks.append(("BP", "fmcg", "OUTLET DEPT.FMCG", "sales", "t", "FF548235", "FF548235"))
+    for c, key, title, _code, sl, _h in KMT:
+        blocks.append((c, key, title, sl, "o", None, "FFA9CE91"))
+    blocks.append(("CI", "kmt", "TOTAL ", "sales", "t", "FFA9CE91", "FFA9CE91"))
+    blocks.append(("CO", "xsl", "MINI SOCCER", "sales", "t", None, "FF773F19"))
+    blocks.append(("DF", "holding", None, "sales", "t", None, None))
+    for c, key, title in MBG_STORES:
+        blocks.append((c, key, title, "sales", "m", None, "FFB25E25"))
+    blocks.append(("EA", "mbg", "MBG (SPPG)", "SALES", "m", "FFFFFF00", "FFB25E25"))
+    blocks.append(("EC", "mbgt", "TOTAL", "sales", "o", "FFB25E25", "FFB25E25"))
+
+    # baris 1: departemen
+    for rng, text, size, color in (("A1:A3", "TGL", 9, None), ("B1:B3", "HARI", 9, None),
+                                   ("C1:AJ1", "DEPARTMENT FASHION & HOMES SUPPLIES", 11, _DS_NAVY_TXT),
+                                   ("AL1:BS1", "DEPARTMENT FMCG", 11, _DS_NAVY_TXT),
+                                   ("BT1:CL1", "X-SHA KEMITRAAN/SLS MARKETING", 9, _DS_NAVY_TXT),
+                                   ("CM1:CM3", "ALL FMCG", 10, "FF002060"), ("CO1:CZ1", "HO", 11, _DS_NAVY_TXT),
+                                   ("DF1:DI1", "HOLDING", 14, _DS_NAVY_TXT), ("DK1:EE1", "MBG", 12, _DS_NAVY_TXT)):
+        a, b = rng.split(":")
+        put(a, text, bold=True, size=size, color=color, align="center")
+        ws.merge_cells(rng)
+    # baris 2-3: outlet & TC/sales/Ac
+    for c, key, title, sl, kind, hfill, _tfill in blocks:
+        c0 = CI(c)
+        width = {"o": 3, "t": 4, "m": 2}[kind]
+        hcolor = "FFFFFFFF" if hfill and hfill != "FFFFFF00" else (_DS_NAVY_TXT if hfill else None)
+        put(f"{c}2", title, bold=True, size=11 if key == "mbg" else 10, fill=hfill, color=hcolor, align="center")
+        for i in range(1, width):
+            put(f"{L(c0 + i)}2", None, fill=hfill)
+        ws.merge_cells(f"{c}2:{L(c0 + width - 1)}2")
+        subs = (["TC", "SALES"] if key == "mbg" else ["Tc", sl]) + (["Ac"] if kind in ("o", "t") else []) + \
+            (["kontribusi sales"] if kind == "t" else [])
+        for i, s in enumerate(subs):
+            put(f"{L(c0 + i)}3", s, bold=True, size=10, align="center")
+    for rng in ("CS2:CV2", "CW2:CZ2", "DA2:DD2"):
+        ws.merge_cells(rng)
+    ws.row_dimensions[1].height = 27
+    ws.row_dimensions[3].height = 16.5
+
+    def write_vals(r, vals, mode):
+        """mode: 'grand' / 'day' / 'week'."""
+        for c, key, _t, _sl, kind, _hf, tfill in blocks:
+            c0 = CI(c)
+            v = (vals or {}).get(key) or {}
+            fill, color, bold, size = None, None, mode != "day", 8
+            if mode == "grand":
+                fill, color, size = tfill, ("FFFFFFFF" if tfill else None), 10
+            elif mode == "week":
+                fill = "FFEDEDED"
+            put(f"{L(c0)}{r}", v.get("tc"), bold=bold, size=size, fill=fill, color=color, fmt=_ACC)
+            put(f"{L(c0 + 1)}{r}", v.get("s"), bold=bold, size=size, fill=fill, color=color, fmt=_ACC)
+            if kind in ("o", "t"):
+                put(f"{L(c0 + 2)}{r}", v.get("ac"), bold=bold, size=size, fill=fill, color=color, fmt=_ACC)
+            if kind == "t":
+                put(f"{L(c0 + 3)}{r}", v.get("k"), bold=bold, size=size, fill="FFF2F2F2" if mode == "week" else fill,
+                    color=color, fmt=_PCT)
+        s = ((vals or {}).get("allfmcg") or {}).get("s")
+        if mode == "grand":
+            put(f"CM{r}", s, bold=True, size=10, fill="FF385724", color="FFFFFFFF", fmt=_ACC)
+        else:
+            put(f"CM{r}", s, bold=True, size=8, fill="FFDAE3F3" if mode == "week" else None, color="FF002060", fmt=_ACC)
+        for sep in ("AK", "CN", "DE"):
+            put(f"{sep}{r}", None, fill="FF747373", border=False)
+
+    put("A4", "Grand total", bold=True, size=10)
+    write_vals(4, m["total"], "grand")
+    r, wi = 5, 0
+    for x in m["days"]:
+        put(f"A{r}", x["day"], bold=True, size=8, align="center")
+        put(f"B{r}", x["hari"], bold=True, size=8, fill="FF002060", color="FFFFFFFF", align="left")
+        write_vals(r, x["vals"], "day")
+        r += 1
+        a, b = WEEKS[wi]
+        if x["day"] == min(b, m["n_days"]):
+            put(f"A{r}", f"WEEK-{wi + 1}", bold=True, size=8, fill="FFEDEDED", align="center")
+            put(f"B{r}", None, fill="FFEDEDED")
+            write_vals(r, m["weeks"][wi], "week")
+            r += 1
+            wi += 1
+
+    # tabel bawah: rata2 sales per nama hari (spt file baris 41-50)
+    r += 2
+    for c, grp, title in (("AG", "fhs", "DEPT. FASHION & H.S"), ("BP", "fmcg", "DEPT. FMCG"), ("CI", "kmt", "X-SHA KEMITRAAN")):
+        c0 = CI(c)
+        put(f"{L(c0 + 1)}{r}", title, bold=True, size=8, align="center", border=False)
+        put(f"{L(c0 + 2)}{r}", "Hari", bold=True, size=8, align="center", border=False)
+        put(f"{L(c0 + 3)}{r}", "Avg", bold=True, size=8, align="center", border=False)
+        a = m["avg"][grp]
+        for i, (h, s, n, av) in enumerate(a["rows"], start=1):
+            put(f"{c}{r + i}", h, bold=True, size=8, align="left", border=False)
+            put(f"{L(c0 + 1)}{r + i}", s, size=8, fmt=_ACC, border=False)
+            put(f"{L(c0 + 2)}{r + i}", n, size=8, border=False)
+            put(f"{L(c0 + 3)}{r + i}", av, size=8, fmt=_ACC, border=False)
+        tr = r + len(a["rows"]) + 1
+        tot, n, av = a["total"]
+        put(f"{c}{tr}", None, fill="FFDAE3F3", border=False)
+        put(f"{L(c0 + 1)}{tr}", tot, bold=True, size=8, fill="FFDAE3F3", fmt=_ACC, border=False)
+        put(f"{L(c0 + 2)}{tr}", n, bold=True, size=8, fill="FFDAE3F3", border=False)
+        put(f"{L(c0 + 3)}{tr}", av, bold=True, size=8, fill="FFDAE3F3", fmt=_ACC, border=False)
+        put(f"{c}{tr + 1}", "Avg sales", bold=True, size=8, border=False)
+        put(f"{L(c0 + 1)}{tr + 1}", a["avg"], bold=True, size=8, fmt=_ACC, border=False)
+
+    widths = {"A": 11, "B": 5.1, "AK": 1.1, "CN": 1.1, "DE": 1.0, "DJ": 2, "CM": 14.3}
+    for c, key, _t, _sl, kind, _hf, _tf in blocks:
+        c0 = CI(c)
+        widths[c] = 8
+        widths[L(c0 + 1)] = 14.3 if kind == "t" else 12.6
+        if kind in ("o", "t"):
+            widths[L(c0 + 2)] = 9
+        if kind == "t":
+            widths[L(c0 + 3)] = 10.6
+    for col, w in widths.items():
+        ws.column_dimensions[col].width = w
+    # kolom yg di file disembunyikan
+    for rng in ("F:H", "AA:AC", "CS:DD", "DK:DZ"):
+        a, b = rng.split(":")
+        for c in range(CI(a), CI(b) + 1):
+            ws.column_dimensions[L(c)].hidden = True
+    ws.freeze_panes = "C5"
+    return wb
+
+
+@frappe.whitelist()
+def download_daily_sales(filters=None):
+    frappe.only_for("System Manager")
+    from custom_reports.custom_reports.report.daily_sales.daily_sales import _month_from, compute
+
+    filters = _filters(filters)
+    year, month = _month_from(filters)
+    _send(build_daily_sales(compute(year, month)), f"DAILY SALES {_bulan(month, year)}.xlsx")
