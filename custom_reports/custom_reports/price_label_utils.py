@@ -4,10 +4,14 @@ from frappe.utils import flt
 
 
 @frappe.whitelist()
-def get_discounted_price(item_code, item_group, normal_price, price_list=None):
+def get_discounted_price(item_code, item_group=None, normal_price=0, price_list=None):
     """Cari pricing rule aktif untuk item dan hitung harga diskon."""
     normal_price = flt(normal_price)
     td = today()
+
+    # Sebagian pemanggil tidak mengirim item_group, ambil dari master Item
+    if not item_group:
+        item_group = frappe.db.get_value("Item", item_code, "item_group")
 
     # Cek by item code dulu
     rules = frappe.db.sql("""
