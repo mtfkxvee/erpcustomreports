@@ -1,3 +1,4 @@
+import itertools
 import math
 import statistics
 from collections import defaultdict
@@ -203,7 +204,7 @@ def hitung(warehouse, dari, sampai, z, lt_transfer):
 
         terima = sorted(tgl_terima)
         if len(terima) >= 2:
-            siklus = statistics.median([b2 - b1 for b1, b2 in zip(terima, terima[1:], strict=False)])
+            siklus = statistics.median([b2 - b1 for b1, b2 in itertools.pairwise(terima)])
         else:
             siklus = SIKLUS_DEFAULT
         siklus = min(max(siklus, SIKLUS_MIN), SIKLUS_MAX)
