@@ -69,7 +69,6 @@ def parse_rows(file_path):
     from openpyxl import load_workbook
 
     fname = os.path.basename(file_path)
-    departemen = "FMCG" if "FMCG" in fname.upper() else ("FHS" if "FHS" in fname.upper() else "")
     ws = load_workbook(file_path, read_only=True, data_only=True).worksheets[0]
     for i, row in enumerate(ws.iter_rows(values_only=True), start=1):
         if i == 1:
@@ -87,14 +86,20 @@ def parse_rows(file_path):
                 d[f] = _num(v)
             else:
                 d[f] = _text(v)
-        m = _TRX_DATE.match(d["no_transaksi"].strip())
-        d["tanggal_transaksi"] = datetime.date(2000 + int(m.group(1)), int(m.group(2)), int(m.group(3))) if m else \
-            (d["waktu_bayar"].date() if d["waktu_bayar"] else None)
-        d["kode_outlet"] = OUTLET_CODE.get(d["outlet"].strip(), "")
-        d["departemen"] = departemen
-        d["sumber_file"] = fname
-        d["baris_file"] = i
+        _derive(d, fname, i)
         yield i, d
+
+
+def _derive(d, fname, i):
+    """Isi kolom bantu (tanggal_transaksi, kode_outlet, departemen, sumber_file, baris_file)."""
+    m = _TRX_DATE.match(d["no_transaksi"].strip())
+    d["tanggal_transaksi"] = datetime.date(2000 + int(m.group(1)), int(m.group(2)), int(m.group(3))) if m else \
+        (d["waktu_bayar"].date() if d["waktu_bayar"] else None)
+    d["kode_outlet"] = OUTLET_CODE.get(d["outlet"].strip(), "")
+    d["departemen"] = "FMCG" if "FMCG" in fname.upper() else ("FHS" if "FHS" in fname.upper() else "")
+    d["sumber_file"] = fname
+    d["baris_file"] = i
+    return d
 
 
 def import_file(file_path, chunk=5000):
@@ -134,3 +139,69 @@ def import_folder(path):
         total += import_file(os.path.join(path, f))
     print(f"SELESAI: {len(files)} file, {total} baris | total di {DOCTYPE}: {frappe.db.count(DOCTYPE)}")
     return total
+
+
+# ---------------------------------------------------------------------------
+# API (tanpa tampilan di ERP) - dipanggil dari laptop admin
+_FILE_NAME = re.compile(r"^\d{4}_\d{2}_(FHS|FMCG)\.xlsx$", re.I)
+API_MAX_ROWS = 10000
+
+
+def _check_file_name(sumber_file):
+    frappe.only_for("System Manager")
+    if not _FILE_NAME.match(sumber_file or ""):
+        frappe.throw(f"Nama file tdk sesuai format (mis. 2026_01_FHS.xlsx): {sumber_file}")
+
+
+@frappe.whitelist(methods=["POST"])
+def api_reset_file(sumber_file):
+    """Hapus data dari 1 file (sebelum import ulang). Return jumlah baris yg dihapus."""
+    _check_file_name(sumber_file)
+    n = frappe.db.count(DOCTYPE, {"sumber_file": sumber_file})
+    frappe.db.delete(DOCTYPE, {"sumber_file": sumber_file})
+    frappe.db.commit()
+    return n
+
+
+@frappe.whitelist(methods=["POST"])
+def api_insert_rows(sumber_file, rows):
+    """Simpan potongan baris 1 file. rows = [{baris_file, <21 field file>}],
+    waktu_bayar "YYYY-MM-DD HH:MM:SS" atau kosong. Kolom bantu dihitung di sini."""
+    _check_file_name(sumber_file)
+    rows = frappe.parse_json(rows) if isinstance(rows, str) else rows
+    if not isinstance(rows, list) or len(rows) > API_MAX_ROWS:
+        frappe.throw(f"rows harus list maks {API_MAX_ROWS} baris")
+    stem = os.path.splitext(sumber_file)[0]
+    ts, user = now(), frappe.session.user
+    buf = []
+    for r in rows:
+        i = int(r["baris_file"])
+        d = {}
+        for f in FILE_FIELDS:
+            v = r.get(f)
+            if f == "waktu_bayar":
+                d[f] = datetime.datetime.strptime(v, "%Y-%m-%d %H:%M:%S") if v else None
+            elif f in NUMERIC:
+                d[f] = _num(v)
+            else:
+                d[f] = _text(v)
+        _derive(d, sumber_file, i)
+        buf.append((f"{stem}-{i:07d}", ts, ts, user, user, 0, 0) + tuple(d[f] for f in _INSERT_FIELDS[7:]))
+    if buf:
+        frappe.db.bulk_insert(DOCTYPE, _INSERT_FIELDS, buf, ignore_duplicates=True)
+        frappe.db.commit()
+    return len(buf)
+
+
+@frappe.whitelist()
+def api_summary(sumber_file):
+    """Jumlah baris & total angka 1 file di database (utk dicocokkan dgn file Excel)."""
+    _check_file_name(sumber_file)
+    r = frappe.db.sql(f"""
+        SELECT COUNT(*) AS baris, COUNT(DISTINCT no_transaksi) AS transaksi, SUM(quantity) AS quantity,
+               SUM(hpp_produk) AS hpp_produk, SUM(sub_total) AS sub_total, SUM(jumlah_refund) AS jumlah_refund,
+               MIN(tanggal_transaksi) AS tgl_awal, MAX(tanggal_transaksi) AS tgl_akhir,
+               SUM(CASE WHEN kode_outlet = '' OR kode_outlet IS NULL THEN 1 ELSE 0 END) AS tanpa_kode_outlet
+        FROM `tab{DOCTYPE}` WHERE sumber_file = %s
+    """, (sumber_file,), as_dict=True)[0]
+    return r
