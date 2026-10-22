@@ -1,0 +1,271 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-10-22 15:00:00.000000",
+ "description": "Detail penjualan per baris produk dari sistem POS lama (file Fact_Detail_Sales, Jan-Mei 2026). Diisi lewat import, bukan input manual.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_file",
+  "no_transaksi",
+  "waktu_bayar",
+  "outlet",
+  "pelanggan",
+  "nama_produk",
+  "sku",
+  "kategori",
+  "cb1",
+  "quantity",
+  "hpp_produk",
+  "harga_jual",
+  "sub_total",
+  "nama_diskon_produk",
+  "diskon_per_produk",
+  "nama_diskon_transaksi",
+  "total_diskon",
+  "komplimen",
+  "cb2",
+  "kategori_transaksi",
+  "total_penjualan",
+  "metode_pembayaran",
+  "status_pembayaran",
+  "jumlah_refund",
+  "sb_bantu",
+  "tanggal_transaksi",
+  "kode_outlet",
+  "departemen",
+  "cb3",
+  "sumber_file",
+  "baris_file"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_file",
+   "fieldtype": "Section Break",
+   "label": "Data dari File"
+  },
+  {
+   "fieldname": "no_transaksi",
+   "fieldtype": "Data",
+   "label": "No Transaksi",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "waktu_bayar",
+   "fieldtype": "Datetime",
+   "label": "Waktu Bayar",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outlet",
+   "fieldtype": "Data",
+   "label": "Outlet",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "pelanggan",
+   "fieldtype": "Data",
+   "label": "Pelanggan",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nama_produk",
+   "fieldtype": "Data",
+   "label": "Nama Produk",
+   "read_only": 1,
+   "in_list_view": 1,
+   "length": 255
+  },
+  {
+   "fieldname": "sku",
+   "fieldtype": "Data",
+   "label": "SKU",
+   "read_only": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "kategori",
+   "fieldtype": "Data",
+   "label": "Kategori",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Float",
+   "label": "Quantity",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "hpp_produk",
+   "fieldtype": "Currency",
+   "label": "HPP Produk",
+   "read_only": 1
+  },
+  {
+   "fieldname": "harga_jual",
+   "fieldtype": "Currency",
+   "label": "Harga Jual (Rp)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sub_total",
+   "fieldtype": "Currency",
+   "label": "Sub Total",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "nama_diskon_produk",
+   "fieldtype": "Data",
+   "label": "Nama Diskon Produk",
+   "read_only": 1
+  },
+  {
+   "fieldname": "diskon_per_produk",
+   "fieldtype": "Currency",
+   "label": "Diskon per Produk (Rp)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nama_diskon_transaksi",
+   "fieldtype": "Data",
+   "label": "Nama Diskon Transaksi",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_diskon",
+   "fieldtype": "Currency",
+   "label": "Total Diskon (Rp)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "komplimen",
+   "fieldtype": "Currency",
+   "label": "Komplimen (Rp)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "kategori_transaksi",
+   "fieldtype": "Data",
+   "label": "Kategori Transaksi",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "total_penjualan",
+   "fieldtype": "Currency",
+   "label": "Total Penjualan (Rp)",
+   "read_only": 1,
+   "description": "Total 1 transaksi (diulang di setiap baris produk transaksi yg sama) - jangan dijumlah per baris."
+  },
+  {
+   "fieldname": "metode_pembayaran",
+   "fieldtype": "Small Text",
+   "label": "Metode Pembayaran",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status_pembayaran",
+   "fieldtype": "Data",
+   "label": "Status Pembayaran",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "jumlah_refund",
+   "fieldtype": "Currency",
+   "label": "Jumlah Refund (Rp)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sb_bantu",
+   "fieldtype": "Section Break",
+   "label": "Data Bantu (dihitung saat import)"
+  },
+  {
+   "fieldname": "tanggal_transaksi",
+   "fieldtype": "Date",
+   "label": "Tanggal Transaksi",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "description": "Dari No Transaksi (mis. CS/55/260101/0001 = 01-01-2026). Waktu Bayar bisa beda (pembayaran menyusul)."
+  },
+  {
+   "fieldname": "kode_outlet",
+   "fieldtype": "Data",
+   "label": "Kode Outlet",
+   "read_only": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "description": "Kode outlet ERP (XSC, XSM, XCW, dst.) dari nama outlet di file."
+  },
+  {
+   "fieldname": "departemen",
+   "fieldtype": "Select",
+   "label": "Departemen",
+   "read_only": 1,
+   "options": "\nFHS\nFMCG",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sumber_file",
+   "fieldtype": "Data",
+   "label": "Sumber File",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "baris_file",
+   "fieldtype": "Int",
+   "label": "Baris di File",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-22 15:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Custom Reports",
+ "name": "Sales Invoice History",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "tanggal_transaksi",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "no_transaksi"
+}
