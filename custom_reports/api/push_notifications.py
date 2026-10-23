@@ -1,7 +1,18 @@
 import frappe
 import requests
-from google.oauth2 import service_account
-import google.auth.transport.requests
+
+# Import defensif -- kalau `google-auth` belum ke-install pas hooks.py ini pertama kali kebaca
+# (mis. urutan deploy kebalik: git pull duluan drpd pip install), JANGAN sampai ImportError di
+# sini nge-crash SELURUH alur simpan Delivery Request (doc_event on_update manggil modul ini).
+# Nggak ada push notif yg kekirim sampai library-nya bener ke-install, tapi app driver/dispatcher
+# tetap jalan normal -- itu prioritas di atas fitur notifnya sendiri.
+try:
+    from google.oauth2 import service_account
+    import google.auth.transport.requests
+
+    GOOGLE_AUTH_AVAILABLE = True
+except ImportError:
+    GOOGLE_AUTH_AVAILABLE = False
 
 FCM_SCOPES = ["https://www.googleapis.com/auth/firebase.messaging"]
 FCM_TIMEOUT = 15
@@ -18,6 +29,8 @@ def _get_fcm_access_token():
     """Tukar service account key jadi access token OAuth2 khusus scope FCM. Access token-nya
     dipakai sekali pakai per request (Google rekomendasiin cache, tapi volume kirim kita rendah
     jadi nggak perlu optimasi itu dulu)."""
+    if not GOOGLE_AUTH_AVAILABLE:
+        raise RuntimeError("Library google-auth belum terinstall (jalankan: bench pip install google-auth)")
     credentials = service_account.Credentials.from_service_account_file(
         _get_service_account_path(), scopes=FCM_SCOPES
     )
