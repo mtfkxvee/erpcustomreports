@@ -13,3 +13,4 @@ custom_reports.patches.add_admin_driver_role
 custom_reports.patches.remove_renamed_reports
 custom_reports.patches.add_driver_activity_location_all_types
 custom_reports.patches.import_sales_ytd_history
+custom_reports.patches.add_user_fcm_token_field

@@ -38,6 +38,11 @@ doc_events = {
         "on_submit": "custom_reports.custom_reports.shelving.ledger.on_stock_entry_submit",
         "on_cancel": "custom_reports.custom_reports.shelving.ledger.on_stock_entry_cancel",
     },
+    # Push notification (FCM) ke driver pas Delivery Request baru di-assign (lihat
+    # custom_reports/api/push_notifications.py)
+    "Delivery Request": {
+        "on_update": "custom_reports.api.push_notifications.notify_on_delivery_assignment",
+    },
 }
 
 scheduler_events = {
